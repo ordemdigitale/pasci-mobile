@@ -1,35 +1,61 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
-
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
+import Icon from '@/assets/icons'
+import { theme } from '@/constants/theme'
+import { Tabs } from 'expo-router'
+import React from 'react'
+// Accueil, Annuaire, Offres, Profil
+export default function _layout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-      }}>
+        tabBarActiveTintColor: theme.colors.green,
+        tabBarInactiveTintColor: theme.colors.darkGray,
+        tabBarLabelStyle: {
+          fontFamily: "pMedium",
+          fontSize: 12,
+        },
+        tabBarStyle: {
+          backgroundColor: theme.colors.white,
+          borderTopWidth: 0
+        },
+        headerShown: false
+      }}
+    >
       <Tabs.Screen
-        name="index"
+        name='index'
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          tabBarIcon: ({ color, size, focused }) => (
+            <Icon name="home" size={26} strokeWidth={1.6} color={color} />
+          ),
+          tabBarLabel: "Accueil"
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name='ressources'
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          tabBarIcon: ({ color, size, focused }) => (
+            <Icon name="folder" size={26} strokeWidth={1.6} color={color} />
+          ),
+          tabBarLabel: "Projets"
+        }}
+      />
+      <Tabs.Screen
+        name="jobs"
+        options={{
+          tabBarIcon: ({ color, size, focused }) => (
+            <Icon name="news" size={26} strokeWidth={1.6} color={color} />
+          ),
+          tabBarLabel: "Emplois"
+        }}
+      />
+      <Tabs.Screen
+        name='profile'
+        options={{
+          tabBarIcon: ({ color, size, focused }) => (
+            <Icon name="user" size={26} strokeWidth={1.6} color={color} />
+          ),
+          tabBarLabel: "Profil"
         }}
       />
     </Tabs>
-  );
+  )
 }
