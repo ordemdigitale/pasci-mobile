@@ -1,14 +1,19 @@
 # Application mobile pour le projet PASCI
 
-## Get started
+## Démarrer
+1. Cloner le repo
+   
+   ```bash
+   git clone https://github.com/ordemdigitale/pasci-mobile.git
+   ```
 
-1. Install dependencies
+2. Installer les dépendances
 
    ```bash
    npm install
    ```
 
-2. Start the app
+3. Lancez l'application
 
    ```bash
    npx expo start
