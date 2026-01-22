@@ -81,7 +81,7 @@ export default function Index() {
             source={require('@/assets/images/hero.png')}
             style={styles.heroImage}
           >
-            <Text style={styles.heroMainText}>Plateforme digitale des OSC membres du CRASC</Text>
+            <Text style={styles.heroMainText}>Plateforme digitale des OSCs membres du CRASC</Text>
             <Text style={{color: theme.colors.white, fontFamily: "pRegular", padding: wp(1)}}>
               Cette Plateforme digitale est la résultante d'une démarche alliant à la fois, inclusivité, représentativité, accessibilité et pérennité.
             </Text>
