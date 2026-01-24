@@ -2,6 +2,7 @@
   "expo": {
     "name": "pasci-mobile-Idrys",
     "slug": "pasci-mobile-Idrys",
+    "scheme": "pasci-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -24,6 +25,10 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font"
+    ]
   }
 }
