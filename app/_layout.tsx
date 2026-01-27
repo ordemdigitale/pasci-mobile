@@ -1,7 +1,8 @@
 import { Stack } from 'expo-router';
 import { useFonts, Poppins_400Regular, Poppins_600SemiBold, Poppins_700Bold } from '@expo-google-fonts/poppins';
 import { Karla_400Regular, Karla_700Bold } from '@expo-google-fonts/karla';
-import { View, SafeAreaView } from 'react-native';
+import { View, SafeAreaView, Platform, StatusBar as RNStatusBar } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import Skeleton from '../components/ui/Skeleton';
 
 export default function RootLayout() {
@@ -15,7 +16,7 @@ export default function RootLayout() {
 
   if (!fontsLoaded) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: 'white', paddingTop: Platform.OS === 'android' ? RNStatusBar.currentHeight : 0 }}>
         {/* Header Skeleton */}
         <View style={{ paddingHorizontal: 24, paddingVertical: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <Skeleton width={50} height={50} borderRadius={12} />
@@ -44,8 +45,16 @@ export default function RootLayout() {
   }
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-    </Stack>
+    <>
+      <StatusBar style="dark" translucent backgroundColor="transparent" />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="splash" />
+        <Stack.Screen name="login" />
+        <Stack.Screen name="register" />
+        <Stack.Screen name="info" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      </Stack>
+    </>
   );
 }

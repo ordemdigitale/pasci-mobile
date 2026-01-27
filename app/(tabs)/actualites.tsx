@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, SafeAreaView, FlatList, TouchableOpacity, Image } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Image, Platform, StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Search, Bell } from 'lucide-react-native';
 import Skeleton from '../../components/ui/Skeleton';
@@ -70,7 +71,11 @@ export default function ActualitesScreen() {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView 
+      className="flex-1 bg-gray-50" 
+      edges={['top']}
+      style={{ paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }}
+    >
       <View className="px-6 py-4 bg-white flex-row justify-between items-center border-b border-gray-50">
         <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-xl text-gray-900">Actualités</Text>
         <View className="flex-row gap-3">

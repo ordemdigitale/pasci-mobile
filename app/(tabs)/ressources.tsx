@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, SafeAreaView, FlatList, TouchableOpacity, TextInput, Dimensions } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, TextInput, Dimensions, Platform, StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Search, Download, FileText, BarChart3, Megaphone, FileDigit } from 'lucide-react-native';
 import Skeleton from '../../components/ui/Skeleton';
 
@@ -111,7 +112,11 @@ export default function RessourcesScreen() {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView 
+      className="flex-1 bg-white" 
+      edges={['top']}
+      style={{ paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }}
+    >
       <FlatList
         data={loading ? [1, 2, 3] : RECENT_RESOURCES}
         renderItem={loading ? renderSkeleton : renderResourceItem}

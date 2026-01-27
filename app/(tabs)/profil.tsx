@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, SafeAreaView, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Image, Platform, StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { User, Settings, LogOut, Shield, Bell, HelpCircle, ChevronRight } from 'lucide-react-native';
 import Skeleton from '../../components/ui/Skeleton';
@@ -28,7 +29,11 @@ export default function ProfilScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 bg-white">
+      <SafeAreaView 
+        className="flex-1 bg-white" 
+        edges={['top']}
+        style={{ paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }}
+      >
         <View className="items-center mt-10">
           <Skeleton width={100} height={100} borderRadius={50} style={{ marginBottom: 16 }} />
           <Skeleton width={150} height={20} style={{ marginBottom: 8 }} />
@@ -44,7 +49,11 @@ export default function ProfilScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView 
+      className="flex-1 bg-white" 
+      edges={['top']}
+      style={{ paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }}
+    >
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Profile Header */}
         <View className="items-center mt-10 px-6">

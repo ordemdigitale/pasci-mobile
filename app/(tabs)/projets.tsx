@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, SafeAreaView, FlatList, TouchableOpacity, Image, Dimensions, ScrollView } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Image, Dimensions, ScrollView, Platform, StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Bell, Menu, Calendar, ChevronRight } from 'lucide-react-native';
 import Skeleton from '../../components/ui/Skeleton';
@@ -133,7 +134,11 @@ export default function ProjetsScreen() {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView 
+      className="flex-1 bg-gray-50" 
+      edges={['top']}
+      style={{ paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }}
+    >
       <FlatList
         data={loading ? [1, 2, 3, 4] : (activeTab === 'Appels' ? APPELS : [])}
         renderItem={loading ? renderSkeleton : renderAppelItem}

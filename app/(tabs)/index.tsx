@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Image, TouchableOpacity, FlatList, Dimensions } from 'react-native';
+import { View, Text, ScrollView, Image, TouchableOpacity, FlatList, Dimensions, Platform, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Bell, Search, Download, ChevronRight } from 'lucide-react-native';
@@ -106,7 +106,11 @@ export default function HomeScreen() {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView 
+      className="flex-1 bg-gray-50" 
+      edges={['top']}
+      style={{ paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }}
+    >
       {/* Custom Header */}
       <View className="px-6 py-4 bg-white flex-row justify-between items-center shadow-sm">
         <Image source={logo} style={{ width: 50, height: 54 }} resizeMode="contain" />

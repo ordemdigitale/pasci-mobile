@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Image, TextInput, Dimensions, ScrollView } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Image, TextInput, Dimensions, ScrollView, Platform, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { 
@@ -11,7 +11,8 @@ import {
   Calendar, 
   MapPin, 
   CheckCircle2,
-  ChevronRight
+  ChevronRight,
+  ChevronLeft
 } from 'lucide-react-native';
 import Skeleton from '../components/ui/Skeleton';
 
@@ -67,9 +68,14 @@ export default function FormationsScreen() {
     <View className="px-6 pt-4">
       {/* Search & Filter Header */}
       <View className="flex-row justify-between items-center mb-6">
-        <View>
-          <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-2xl text-gray-900">Catalogue</Text>
-          <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-brand-orange text-[10px] font-bold uppercase tracking-widest">Pasci Project</Text>
+        <View className="flex-row items-center">
+          <TouchableOpacity onPress={() => router.back()} className="bg-orange-50 p-2 rounded-full mr-4">
+            <ChevronLeft size={24} color="#E05017" />
+          </TouchableOpacity>
+          <View>
+            <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-2xl text-gray-900">Catalogue</Text>
+            <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-brand-orange text-[10px] font-bold uppercase tracking-widest">Pasci Project</Text>
+          </View>
         </View>
         <View className="flex-row">
           <TouchableOpacity className="bg-gray-100 p-2.5 rounded-full mr-2">
@@ -221,7 +227,11 @@ export default function FormationsScreen() {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView 
+      className="flex-1 bg-gray-50" 
+      edges={['top']}
+      style={{ paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }}
+    >
       <FlatList
         data={loading ? [1, 2, 3] : COURSES}
         renderItem={loading ? renderSkeleton : renderCourseItem}
