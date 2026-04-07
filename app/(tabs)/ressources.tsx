@@ -1,53 +1,80 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, TextInput, Dimensions, Platform, StatusBar } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, FlatList, TouchableOpacity, TextInput, Linking, Platform, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Search, Download, FileText, BarChart3, Megaphone, FileDigit } from 'lucide-react-native';
+import { Search, Download, FileText, BarChart3, File } from 'lucide-react-native';
 import Skeleton from '../../components/ui/Skeleton';
+import { useQuery } from '@tanstack/react-query';
+import { dataService } from '../../services/dataService';
+import { Documentation } from '../../services/types';
 
-const { width } = Dimensions.get('window');
+function getFileIcon(type?: string) {
+  const t = (type || '').toUpperCase();
+  if (t.includes('PDF')) return { icon: FileText, color: '#DC2626', bg: '#FEF2F2' };
+  if (t.includes('XLS') || t.includes('EXCEL')) return { icon: BarChart3, color: '#16A34A', bg: '#F0FDF4' };
+  return { icon: File, color: '#E05017', bg: '#FFF7ED' };
+}
 
-const RECENT_RESOURCES = [
-  { id: '1', title: 'Guide de gestion...', type: 'PDF', size: '2.4 MB', date: '12 Oct 2023', icon: <FileText size={20} color="#E05017" />, bgColor: '#FEF2F2' },
-  { id: '2', title: 'Rapport annuel PASCI...', type: 'PDF', size: '5.1 MB', date: '05 Jan 2024', icon: <BarChart3 size={20} color="#E05017" />, bgColor: '#FFF7ED' },
-  { id: '3', title: 'Manuel de plaidoyer', type: 'PDF', size: '1.8 MB', date: '22 Nov 2023', icon: <Megaphone size={20} color="#E05017" />, bgColor: '#FFF1F2' },
-];
-
-const ARCHIVES = [
-  { id: '4', title: 'Statuts types pour...', type: 'DOCX', size: '0.4 MB', date: '15 Sep 2023', icon: <FileDigit size={20} color="#E05017" />, bgColor: '#FDF2F0' },
-];
+function formatFileSize(bytes?: number): string {
+  if (!bytes) return '';
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
 
 export default function RessourcesScreen() {
-  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('Documentation');
 
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 1000);
-    return () => clearTimeout(timer);
-  }, []);
+  const { data: docs, isLoading } = useQuery({
+    queryKey: ['documentation'],
+    queryFn: dataService.getDocumentation,
+  });
 
-  const renderResourceItem = ({ item }) => (
-    <TouchableOpacity className="bg-white rounded-[24px] p-4 mb-4 border border-gray-50 shadow-sm flex-row items-center">
-      <View style={{ backgroundColor: item.bgColor }} className="w-12 h-12 rounded-2xl items-center justify-center mr-4">
-        {item.icon}
-      </View>
-      <View className="flex-1">
-        <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-gray-900 text-sm mb-1" numberOfLines={1}>
-          {item.title}
-        </Text>
-        <View className="flex-row items-center">
-          <View className="bg-gray-100 px-1.5 py-0.5 rounded mr-2">
-            <Text className="text-gray-400 text-[8px] font-bold">{item.type}</Text>
-          </View>
-          <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-400 text-[10px]">
-            •  {item.size}  •  {item.date}
-          </Text>
-        </View>
-      </View>
-      <TouchableOpacity className="p-2">
-        <Download size={20} color="#E05017" />
-      </TouchableOpacity>
-    </TouchableOpacity>
+  const filtered = docs?.filter(doc =>
+    !searchQuery ||
+    doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    doc.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const handleDownload = (doc: Documentation) => {
+    if (doc.file_url) {
+      Linking.openURL(doc.file_url);
+    }
+  };
+
+  const renderResourceItem = ({ item }: { item: Documentation }) => {
+    const { icon: IconComp, color, bg } = getFileIcon(item.file_type);
+    return (
+      <TouchableOpacity
+        onPress={() => handleDownload(item)}
+        className="bg-white rounded-[24px] p-4 mb-4 border border-gray-50 shadow-sm flex-row items-center"
+      >
+        <View style={{ backgroundColor: bg }} className="w-12 h-12 rounded-2xl items-center justify-center mr-4">
+          <IconComp size={20} color={color} />
+        </View>
+        <View className="flex-1">
+          <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-gray-900 text-sm mb-1" numberOfLines={1}>
+            {item.title}
+          </Text>
+          <View className="flex-row items-center flex-wrap">
+            {item.file_type && (
+              <View className="bg-gray-100 px-1.5 py-0.5 rounded mr-2">
+                <Text className="text-gray-400 text-[8px] font-bold">{item.file_type.toUpperCase()}</Text>
+              </View>
+            )}
+            <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-400 text-[10px]">
+              {[
+                item.file_size ? formatFileSize(item.file_size) : null,
+                new Date(item.created_at).toLocaleDateString('fr-FR'),
+              ].filter(Boolean).join(' • ')}
+            </Text>
+          </View>
+        </View>
+        <TouchableOpacity onPress={() => handleDownload(item)} className="p-2">
+          <Download size={20} color="#E05017" />
+        </TouchableOpacity>
+      </TouchableOpacity>
+    );
+  };
 
   const renderSkeleton = () => (
     <View className="bg-white rounded-[24px] p-4 mb-4 border border-gray-50 shadow-sm flex-row items-center">
@@ -69,20 +96,22 @@ export default function RessourcesScreen() {
           placeholder="Rechercher une ressource..."
           className="flex-1 ml-3 font-bold text-gray-700"
           placeholderTextColor="#9CA3AF"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
         />
       </View>
 
       {/* Tabs */}
       <View className="flex-row mb-8 border-b border-gray-100">
         {['Documentation', 'Fiches Informatives'].map((tab) => (
-          <TouchableOpacity 
-            key={tab} 
+          <TouchableOpacity
+            key={tab}
             onPress={() => setActiveTab(tab)}
             className={`flex-1 pb-4 items-center ${activeTab === tab ? 'border-b-2 border-brand-orange' : ''}`}
           >
-            <Text 
+            <Text
               style={{ fontFamily: activeTab === tab ? 'Poppins_700Bold' : 'Karla_400Regular' }}
-              className={activeTab === tab ? "text-brand-orange text-sm" : "text-gray-400 text-sm"}
+              className={activeTab === tab ? 'text-brand-orange text-sm' : 'text-gray-400 text-sm'}
             >
               {tab}
             </Text>
@@ -91,39 +120,39 @@ export default function RessourcesScreen() {
       </View>
 
       <View className="flex-row justify-between items-center mb-4">
-        <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-400 text-[10px] uppercase tracking-widest">RESSOURCES RÉCENTES</Text>
-        <TouchableOpacity>
-          <Text className="text-brand-orange font-bold text-[10px]">Tout voir</Text>
-        </TouchableOpacity>
+        <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-400 text-[10px] uppercase tracking-widest">
+          {searchQuery ? `Résultats pour "${searchQuery}"` : 'RESSOURCES DISPONIBLES'}
+        </Text>
+        {!isLoading && (
+          <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-400 text-[10px]">
+            {filtered?.length || 0} document{(filtered?.length || 0) !== 1 ? 's' : ''}
+          </Text>
+        )}
       </View>
     </View>
   );
 
-  const renderFooter = () => (
-    <View className="px-6 mt-4 pb-10">
-      <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-400 text-[10px] uppercase tracking-widest mb-4">ARCHIVES 2023</Text>
-      <FlatList
-        data={loading ? [1] : ARCHIVES}
-        renderItem={loading ? renderSkeleton : renderResourceItem}
-        keyExtractor={(item, index) => index.toString()}
-        scrollEnabled={false}
-      />
-    </View>
-  );
-
   return (
-    <SafeAreaView 
-      className="flex-1 bg-white" 
+    <SafeAreaView
+      className="flex-1 bg-white"
       edges={['top']}
       style={{ paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }}
     >
       <FlatList
-        data={loading ? [1, 2, 3] : RECENT_RESOURCES}
-        renderItem={loading ? renderSkeleton : renderResourceItem}
-        keyExtractor={(item, index) => index.toString()}
+        data={isLoading ? [1, 2, 3] : (filtered || [])}
+        renderItem={({ item }) => isLoading ? renderSkeleton() : renderResourceItem({ item: item as Documentation })}
+        keyExtractor={(item, index) => (typeof item === 'number' ? `skeleton-${item}` : `${(item as Documentation).id}-${index}`)}
         ListHeaderComponent={renderHeader}
-        ListFooterComponent={renderFooter}
-        contentContainerStyle={{ paddingBottom: 20 }}
+        ListEmptyComponent={
+          !isLoading ? (
+            <View className="px-8 py-12 items-center">
+              <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-400 text-center">
+                Aucune ressource disponible pour le moment.
+              </Text>
+            </View>
+          ) : null
+        }
+        contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
         style={{ backgroundColor: '#FAFAFA' }}
       />

@@ -1,8 +1,9 @@
-import React from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, ScrollView, KeyboardAvoidingView, Platform, StatusBar } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, Image, ScrollView, KeyboardAvoidingView, Platform, StatusBar, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Mail, Lock, Eye, ChevronLeft, ArrowRight } from 'lucide-react-native';
+import { authService } from '../services/authService';
 
 /**
  * Login Screen
@@ -10,6 +11,28 @@ import { Mail, Lock, Eye, ChevronLeft, ArrowRight } from 'lucide-react-native';
  */
 export default function LoginScreen() {
   const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Erreur', 'Veuillez remplir tous les champs');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await authService.login(email, password);
+      router.replace('/(tabs)');
+    } catch (error: any) {
+      console.error(error);
+      Alert.alert('Erreur de connexion', 'Identifiants invalides ou problème réseau');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView 
@@ -59,6 +82,8 @@ export default function LoginScreen() {
                   placeholderTextColor="#9CA3AF"
                   keyboardType="email-address"
                   autoCapitalize="none"
+                  value={email}
+                  onChangeText={setEmail}
                 />
               </View>
             </View>
@@ -77,21 +102,30 @@ export default function LoginScreen() {
                   placeholder="••••••••"
                   className="flex-1 ml-3 text-gray-700 font-bold"
                   placeholderTextColor="#9CA3AF"
-                  secureTextEntry
+                  secureTextEntry={!showPassword}
+                  value={password}
+                  onChangeText={setPassword}
                 />
-                <TouchableOpacity>
-                  <Eye size={20} color="#9CA3AF" />
+                <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                  <Eye size={20} color={showPassword ? "#E05017" : "#9CA3AF"} />
                 </TouchableOpacity>
               </View>
             </View>
 
             {/* Bouton Connexion */}
             <TouchableOpacity 
-              onPress={() => router.replace('/(tabs)')}
-              className="bg-brand-orange flex-row items-center justify-center p-5 rounded-3xl shadow-xl shadow-orange-200 mt-4"
+              onPress={handleLogin}
+              disabled={loading}
+              className={`bg-brand-orange flex-row items-center justify-center p-5 rounded-3xl shadow-xl shadow-orange-200 mt-4 ${loading ? 'opacity-70' : ''}`}
             >
-              <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-white text-lg mr-2">Se connecter</Text>
-              <ArrowRight size={20} color="white" />
+              {loading ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <>
+                  <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-white text-lg mr-2">Se connecter</Text>
+                  <ArrowRight size={20} color="white" />
+                </>
+              )}
             </TouchableOpacity>
 
             {/* Séparateur */}

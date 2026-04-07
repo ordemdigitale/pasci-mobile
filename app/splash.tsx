@@ -1,8 +1,9 @@
-import React from 'react';
-import { View, Text, Image, TouchableOpacity, Dimensions, ImageBackground } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, Image, TouchableOpacity, Dimensions, ImageBackground, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ChevronRight } from 'lucide-react-native';
+import * as SecureStore from 'expo-secure-store';
 
 const { width, height } = Dimensions.get('window');
 
@@ -12,11 +13,37 @@ const { width, height } = Dimensions.get('window');
  */
 export default function SplashScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const token = await SecureStore.getItemAsync('userToken');
+        if (token) {
+          router.replace('/(tabs)');
+        }
+      } catch (e) {
+        console.log('Error checking auth', e);
+      } finally {
+        setCheckingAuth(false);
+      }
+    };
+    checkAuth();
+  }, []);
+
+  if (checkingAuth) {
+    return (
+      <View className="flex-1 bg-white items-center justify-center">
+        <ActivityIndicator size="large" color="#E05017" />
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1 bg-white">
       {/* Fond avec l'image Hero en haut */}
-      <View style={{ height: height * 0.6 }} className="w-full relative">
+      <View style={{ height: height * 0.55 }} className="w-full relative">
         <Image 
           source={require('../assets/hero-image.png')} 
           style={{ width: '100%', height: '100%' }}
@@ -37,8 +64,8 @@ export default function SplashScreen() {
 
       {/* Contenu textuel en bas */}
       <View 
-        style={{ marginTop: -40 }} 
-        className="flex-1 bg-white rounded-t-[40px] px-8 pt-10 pb-12 justify-between"
+        style={{ marginTop: -60, paddingBottom: insets.bottom + 32 }} 
+        className="flex-1 bg-white rounded-t-[40px] px-8 pt-10 justify-between"
       >
         <View>
           <View className="bg-orange-50 self-start px-3 py-1 rounded-full mb-4">

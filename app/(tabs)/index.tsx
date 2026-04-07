@@ -2,9 +2,12 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, Image, TouchableOpacity, FlatList, Dimensions, Platform, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Bell, Search, Download, ChevronRight } from 'lucide-react-native';
+import { Bell, Search, Download, ChevronRight, Building2 } from 'lucide-react-native';
 import CrascMap from '../../components/CrascMap';
 import DirectoryModal from '../../components/DirectoryModal';
+import { useQuery } from '@tanstack/react-query';
+import { dataService } from '../../services/dataService';
+import { News, PTF, Documentation } from '../../services/types';
 
 const { width } = Dimensions.get('window');
 
@@ -27,34 +30,27 @@ const SERVICES = [
   { id: '4', title: 'Assistance', icon: iconAdmin, color: '#F3E8FF' },          // Violet clair
 ];
 
-const NEWS = [
-  {
-    id: '1',
-    title: 'Lancement du nouveau programme de formation pour les OSC',
-    date: '24 Oct 2023',
-    category: 'CRASC SUD',
-    image: heroImage,
-  },
-  {
-    id: '2',
-    title: 'Atelier de renforcement des capacités : Gouvernance et Transparence',
-    date: '15 Nov 2023',
-    category: 'CRASC CENTRE',
-    image: heroImage,
-  },
-  {
-    id: '3',
-    title: 'Assemblée générale annuelle 2025 : Bilan et Perspectives',
-    date: '10 Jan 2024',
-    category: 'CRASC NORD',
-    image: heroImage,
-  }
-];
-
 export default function HomeScreen() {
   const router = useRouter();
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState<string | undefined>(undefined);
+
+  const { data: news, isLoading: newsLoading } = useQuery({
+    queryKey: ['news'],
+    queryFn: () => dataService.getNews(),
+  });
+
+  const { data: ptfList } = useQuery({
+    queryKey: ['ptf'],
+    queryFn: dataService.getPtfList,
+  });
+
+  const { data: docList } = useQuery({
+    queryKey: ['documentation'],
+    queryFn: dataService.getDocumentation,
+  });
+
+  const featuredDoc = docList?.[0] ?? null;
 
   const handleMapPress = (region) => {
     console.log("Pressed region:", region.name);
@@ -87,20 +83,28 @@ export default function HomeScreen() {
     </View>
   );
 
-  const renderNewsItem = ({ item }) => (
+  const renderNewsItem = ({ item }: { item: News }) => (
     <TouchableOpacity 
-      onPress={() => router.push(`/news-details/${item.id}`)}
+      onPress={() => router.push(`/news-details/${item.slug}`)}
       className="mr-4 w-72 bg-white rounded-[32px] overflow-hidden shadow-sm border border-gray-100"
     >
-      <Image source={item.image} className="w-full h-40" resizeMode="cover" />
+      <Image 
+        source={item.thumbnail_url ? { uri: item.thumbnail_url } : heroImage} 
+        className="w-full h-40" 
+        resizeMode="cover" 
+      />
       <View className="p-4">
         <View className="bg-orange-50 self-start px-2 py-1 rounded-lg mb-2">
-            <Text className="text-brand-orange text-[10px] font-bold">{item.category}</Text>
+            <Text className="text-brand-orange text-[10px] font-bold">
+              {item.crasc_id ? `CRASC ${item.crasc_id}` : 'INFO'}
+            </Text>
         </View>
         <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-gray-900 text-sm leading-5 mb-2" numberOfLines={2}>
           {item.title}
         </Text>
-        <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-400 text-[10px]">📅 {item.date}</Text>
+        <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-400 text-[10px]">
+          📅 {new Date(item.created_at).toLocaleDateString('fr-FR')}
+        </Text>
       </View>
     </TouchableOpacity>
   );
@@ -209,27 +213,36 @@ export default function HomeScreen() {
             </View>
         </View>
 
-        {/* NEW: PARTNERS SECTION */}
-        <View className="mt-10">
+        {/* PARTNERS SECTION — PTF depuis l'API */}
+        {ptfList && ptfList.length > 0 && (
+          <View className="mt-10">
             <View className="flex-row justify-between items-center px-6 mb-4">
-                <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-lg text-gray-900">Nos Partenaires Techniques</Text>
-                <TouchableOpacity onPress={() => router.push('/annuaire-partenaires')}>
-                    <Text className="text-brand-orange font-bold">Tout voir</Text>
-                </TouchableOpacity>
+              <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-lg text-gray-900">Partenaires Techniques</Text>
+              <TouchableOpacity onPress={() => router.push('/annuaire-partenaires')}>
+                <Text className="text-brand-orange font-bold">Tout voir</Text>
+              </TouchableOpacity>
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} className="pl-6">
-                {[
-                    { name: 'Union Européenne', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Flag_of_Europe.svg/1200px-Flag_of_Europe.svg.png' },
-                    { name: 'AFD', logo: 'https://upload.wikimedia.org/wikipedia/fr/thumb/f/f3/Logo_AFD_2016.svg/1200px-Logo_AFD_2016.svg.png' },
-                    { name: 'USAID', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/USAID-Identity.svg/1200px-USAID-Identity.svg.png' },
-                    { name: 'PNUD', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/UNDP_logo.svg/1200px-UNDP_logo.svg.png' }
-                ].map((partner, i) => (
-                    <TouchableOpacity key={i} className="mr-4 bg-white p-4 rounded-3xl border border-gray-100 items-center justify-center w-24 h-24 shadow-sm">
-                        <Image source={{ uri: partner.logo }} style={{ width: 40, height: 40 }} resizeMode="contain" />
-                    </TouchableOpacity>
-                ))}
+              {ptfList.slice(0, 8).map((ptf: PTF) => (
+                <TouchableOpacity
+                  key={ptf.id}
+                  className="mr-4 bg-white p-4 rounded-3xl border border-gray-100 items-center justify-center w-24 h-24 shadow-sm"
+                >
+                  {ptf.thumbnail_url ? (
+                    <Image source={{ uri: ptf.thumbnail_url }} style={{ width: 48, height: 48 }} resizeMode="contain" />
+                  ) : (
+                    <View className="items-center">
+                      <Building2 size={24} color="#E05017" />
+                      <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 text-[8px] text-center mt-1" numberOfLines={2}>
+                        {ptf.name}
+                      </Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              ))}
             </ScrollView>
-        </View>
+          </View>
+        )}
 
         {/* ACTUALITÉS (FlatList) */}
         <View className="mt-10">
@@ -238,9 +251,9 @@ export default function HomeScreen() {
                 <TouchableOpacity><Text className="text-brand-orange font-bold">Voir tout</Text></TouchableOpacity>
             </View>
             <FlatList
-              data={NEWS}
+              data={news}
               renderItem={renderNewsItem}
-              keyExtractor={item => item.id}
+              keyExtractor={item => item.id.toString()}
               horizontal
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={{ paddingLeft: 24, paddingRight: 8 }}
@@ -248,21 +261,30 @@ export default function HomeScreen() {
         </View>
 
         {/* RESSOURCE SECTION */}
-        <View className="mt-10 px-6 mb-12">
+        {featuredDoc && (
+          <View className="mt-10 px-6 mb-12">
             <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-lg text-gray-900 mb-4">Ressource en vedette</Text>
-            <TouchableOpacity className="flex-row items-center bg-white p-5 rounded-[32px] border border-gray-100 shadow-sm">
-                <View className="bg-red-100 w-12 h-12 rounded-2xl items-center justify-center mr-4">
-                    <Text className="text-red-600 font-bold text-xs">PDF</Text>
-                </View>
-                <View className="flex-1">
-                    <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-gray-900 text-sm">Guide de conformité OSC 2024</Text>
-                    <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-400 text-[10px] mt-1">Document PDF • 2.4 MB</Text>
-                </View>
-                <View className="bg-orange-50 p-2 rounded-full">
-                    <Download size={18} color="#E05017" />
-                </View>
+            <TouchableOpacity
+              onPress={() => featuredDoc.file_url && router.push('/ressources')}
+              className="flex-row items-center bg-white p-5 rounded-[32px] border border-gray-100 shadow-sm"
+            >
+              <View className="bg-red-100 w-12 h-12 rounded-2xl items-center justify-center mr-4">
+                <Text className="text-red-600 font-bold text-xs">PDF</Text>
+              </View>
+              <View className="flex-1">
+                <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-gray-900 text-sm" numberOfLines={2}>
+                  {featuredDoc.title}
+                </Text>
+                <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-400 text-[10px] mt-1">
+                  {featuredDoc.file_type ? `Document ${featuredDoc.file_type.toUpperCase()}` : 'Document PDF'}
+                </Text>
+              </View>
+              <View className="bg-orange-50 p-2 rounded-full">
+                <Download size={18} color="#E05017" />
+              </View>
             </TouchableOpacity>
-        </View>
+          </View>
+        )}
 
       </ScrollView>
 

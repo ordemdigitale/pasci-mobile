@@ -19,11 +19,11 @@ import {
   Bookmark,
   Eye,
   Phone,
-  MessageCircle,
-  ChevronDown,
-  X,
 } from 'lucide-react-native';
 import Skeleton from './ui/Skeleton';
+import { useQuery } from '@tanstack/react-query';
+import { dataService } from '../services/dataService';
+import { Crasc } from '../services/types';
 
 const { width } = Dimensions.get('window');
 
@@ -33,51 +33,43 @@ interface DirectoryModalProps {
   selectedRegion?: string;
 }
 
-interface CrascItem {
-  id: string;
-  title: string;
-  subtitle: string;
-  tag: string;
-  tagColor: string;
-}
-
-const MOCK_CRASCS: CrascItem[] = [
-  { id: 'crasc-nord', title: 'CRASC Abidjan Nord', subtitle: 'Éducation, Santé & Droits de l\'Homme', tag: 'ABIDJAN NORD', tagColor: '#E05017' },
-  { id: 'crasc-centre', title: 'CRASC Bouaké Centre', subtitle: 'Agriculture & Développement Rural', tag: 'VALLÉE DU BANDAMA', tagColor: '#3B82F6' },
-  { id: 'crasc-sud', title: 'CRASC San Pédro', subtitle: 'Pêche & Environnement', tag: 'BAS-SASSANDRA', tagColor: '#10B981' },
-];
-
 const DirectoryModal: React.FC<DirectoryModalProps> = ({ visible, onClose, selectedRegion }) => {
-  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  useEffect(() => {
-    if (visible) {
-      setLoading(true);
-      const timer = setTimeout(() => {
-        setLoading(false);
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [visible]);
+  const { data: crascs, isLoading } = useQuery({
+    queryKey: ['crascs'],
+    queryFn: dataService.getCrascs,
+    enabled: visible,
+  });
 
-  const handleDetailsPress = (id: string) => {
+  const filteredCrascs = React.useMemo(() => {
+    if (!crascs) return [];
+    if (!selectedRegion) return crascs;
+    const regionName = selectedRegion.replace('CRASC ', '').toUpperCase();
+    return crascs.filter(c => c.name.toUpperCase().includes(regionName));
+  }, [crascs, selectedRegion]);
+
+  const handleDetailsPress = (slug: string) => {
     onClose();
-    router.push(`/crasc-details/${id}`);
+    router.push(`/crasc-details/${slug}`);
   };
 
-  const renderCard = ({ item }: { item: CrascItem | number }) => {
+  const renderCard = ({ item }: { item: Crasc | number }) => {
     if (typeof item === 'number') {
       return renderSkeletonCard();
     }
+    
+    // On peut filtrer par région si nécessaire
+    if (selectedRegion && !item.name.includes(selectedRegion.replace('CRASC ', ''))) {
+      // Si on veut filtrer strictement, mais pour l'instant on affiche tout ou on pourrait filtrer
+    }
+
     return (
     <View className="bg-white rounded-3xl p-4 mb-4 shadow-sm border border-gray-100 flex-row relative mx-6">
-      {/* Bookmark Icon */}
       <TouchableOpacity className="absolute top-4 right-4">
-        <Bookmark size={20} color={item.title.includes('Nord') ? '#D1D5DB' : '#E05017'} fill={item.title.includes('Nord') ? 'transparent' : '#E05017'} />
+        <Bookmark size={20} color="#D1D5DB" />
       </TouchableOpacity>
 
-      {/* Logo Placeholder */}
       <View className="w-20 h-20 bg-orange-50 rounded-2xl items-center justify-center mr-4">
         <Image 
             source={require('../assets/logo.png')} 
@@ -87,36 +79,35 @@ const DirectoryModal: React.FC<DirectoryModalProps> = ({ visible, onClose, selec
       </View>
 
       <View className="flex-1">
-        {/* Tag */}
-        <View style={{ backgroundColor: item.tagColor + '20' }} className="self-start px-2 py-0.5 rounded-md mb-1">
-          <Text style={{ color: item.tagColor, fontSize: 10, fontWeight: 'bold' }}>{item.tag}</Text>
+        <View className="flex-row justify-between items-center mb-1">
+          <View className="bg-orange-100 px-2 py-0.5 rounded-md">
+            <Text className="text-brand-orange text-[10px] font-bold">INFO</Text>
+          </View>
+          {item.osc_count !== undefined && (
+            <View className="flex-row items-center">
+              <Text style={{ fontFamily: 'Karla_700Bold' }} className="text-gray-400 text-[10px]">{item.osc_count} OSCs</Text>
+            </View>
+          )}
         </View>
 
-        {/* Title */}
         <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-base mb-1">
-          {item.title}
+          {item.name}
         </Text>
 
-        {/* Subtitle */}
-        <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-400 text-[11px] mb-4">
-          {item.subtitle}
+        <Text className="text-gray-400 text-[10px] mb-3" numberOfLines={2}>
+          {item.description || 'Centre de Ressources et d\'Appui à la Société Civile.'}
         </Text>
 
-        {/* Action Buttons */}
-        <View className="flex-row items-center">
+        <View className="flex-row">
           <TouchableOpacity 
-            onPress={() => handleDetailsPress(item.id)}
-            className="bg-brand-orange flex-row items-center px-4 py-2 rounded-full mr-2"
+            onPress={() => handleDetailsPress(item.slug)}
+            className="flex-row items-center bg-gray-900 px-4 py-2 rounded-xl mr-2"
           >
             <Eye size={14} color="white" />
-            <Text className="text-white font-bold text-xs ml-1.5">Détails</Text>
+            <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-white text-[10px] ml-2">Détails</Text>
           </TouchableOpacity>
-          <TouchableOpacity className="w-8 h-8 rounded-full border border-gray-200 items-center justify-center">
-            {item.title.includes('Nord') ? (
-              <Phone size={14} color="#6B7280" />
-            ) : (
-              <MessageCircle size={14} color="#E05017" />
-            )}
+          <TouchableOpacity className="w-10 h-10 bg-gray-100 items-center justify-center rounded-xl">
+            <Phone size={16} color="#4B5563" />
           </TouchableOpacity>
         </View>
       </View>
@@ -146,57 +137,20 @@ const DirectoryModal: React.FC<DirectoryModalProps> = ({ visible, onClose, selec
         <View className="bg-white flex-row items-center px-4 py-3 rounded-2xl shadow-sm border border-gray-100">
           <Search size={20} color="#9CA3AF" />
           <TextInput
-            placeholder="Rechercher une organisation (ex: F..."
+            placeholder="Rechercher un CRASC..."
             className="flex-1 ml-3 font-bold text-gray-700"
             placeholderTextColor="#9CA3AF"
           />
-          <SlidersHorizontal size={20} color="#4B5563" />
         </View>
       </View>
 
-      {/* Filter Chips */}
-      <View className="flex-row px-6 mt-6 mb-8">
-        <TouchableOpacity className="bg-brand-orange flex-row items-center px-4 py-2.5 rounded-full mr-3">
-          <Text className="text-white font-bold text-xs mr-2">Toutes les régions</Text>
-          <ChevronDown size={14} color="white" />
-        </TouchableOpacity>
-        <TouchableOpacity className="bg-white border border-gray-200 flex-row items-center px-4 py-2.5 rounded-full">
-          <Text className="text-gray-700 font-bold text-xs mr-2">Secteur: Santé</Text>
-          <X size={14} color="#4B5563" />
-        </TouchableOpacity>
-      </View>
-
-      <View className="px-6 mb-4 flex-row justify-between items-center">
-        <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-400 text-xs uppercase tracking-widest">Récemment consultés</Text>
-        {!loading && <Text className="text-brand-orange font-bold text-xs">12 organisations</Text>}
-      </View>
-    </View>
-  );
-
-  const renderFooter = () => (
-    <View className="px-6 mt-6 mb-10">
-      <View className="flex-row justify-between items-center mb-4">
-        <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-400 text-xs uppercase tracking-widest">Proximité (San Pédro)</Text>
-        <TouchableOpacity className="flex-row items-center">
-          <Text className="text-brand-orange font-bold text-xs ml-1">Carte</Text>
-        </TouchableOpacity>
-      </View>
-      <View className="bg-white rounded-[32px] overflow-hidden shadow-sm border border-gray-100">
-        <View className="h-40 w-full relative">
-          <Image 
-            source={{ uri: 'https://maps.googleapis.com/maps/api/staticmap?center=5.36,-4.00&zoom=12&size=600x300&maptype=roadmap&markers=color:red%7C5.36,-4.00' }} 
-            className="w-full h-full"
-            resizeMode="cover"
-            defaultSource={require('../assets/logo.png')}
-          />
-          <View className="absolute top-4 left-4 bg-white/90 px-2 py-1 rounded-full flex-row items-center">
-            <View className="w-2 h-2 rounded-full bg-green-500 mr-1.5" />
-            <Text className="text-[10px] font-bold text-gray-800">ACTIF</Text>
-          </View>
-        </View>
-        <View className="p-4 bg-white">
-          <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-base">CRASC Bas-Sassandra</Text>
-        </View>
+      <View className="px-6 mt-6 mb-4 flex-row justify-between items-center">
+        <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-400 text-xs uppercase tracking-widest">
+          {selectedRegion ? `Résultats pour ${selectedRegion}` : 'Tous les CRASC'}
+        </Text>
+        {!isLoading && (
+          <Text className="text-brand-orange font-bold text-xs">{filteredCrascs.length} pôle{filteredCrascs.length !== 1 ? 's' : ''}</Text>
+        )}
       </View>
     </View>
   );
@@ -221,12 +175,11 @@ const DirectoryModal: React.FC<DirectoryModalProps> = ({ visible, onClose, selec
           </TouchableOpacity>
         </View>
 
-        <FlatList<CrascItem | number>
-          data={loading ? [1, 2] : MOCK_CRASCS}
+        <FlatList<Crasc | number>
+          data={isLoading ? [1, 2] : filteredCrascs}
           renderItem={renderCard}
           keyExtractor={(item, index) => index.toString()}
           ListHeaderComponent={renderHeader}
-          ListFooterComponent={loading ? null : renderFooter}
           showsVerticalScrollIndicator={false}
         />
 

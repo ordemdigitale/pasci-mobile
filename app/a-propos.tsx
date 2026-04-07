@@ -1,7 +1,11 @@
 import React from 'react';
-import { View, Text, SafeAreaView, ScrollView, TouchableOpacity, Image, Dimensions } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Image, Dimensions } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, Stack } from 'expo-router';
-import { ChevronLeft, Eye, Heart, Mail } from 'lucide-react-native';
+import { ChevronLeft, Eye, Heart, Mail, Building2 } from 'lucide-react-native';
+import { useQuery } from '@tanstack/react-query';
+import { dataService } from '../services/dataService';
+import { PTF } from '../services/types';
 
 const { width } = Dimensions.get('window');
 
@@ -11,14 +15,13 @@ const OBJECTIFS = [
   { id: 3, title: 'Mise en Réseau', desc: 'Création de ponts entre les OSC et les institutions étatiques.' },
 ];
 
-const PARTENAIRES = [
-  { name: 'Union Européen...', role: 'PRINCIPAL BAILLEUR', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Flag_of_Europe.svg/1200px-Flag_of_Europe.svg.png' },
-  { name: 'Coordination OSC', role: 'PARTENAIRE TECHNIQUE', image: 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png' },
-  { name: 'Ministère...', role: 'APPUI INSTITUTIONNEL', image: 'https://cdn-icons-png.flaticon.com/512/1041/1041916.png' },
-];
-
 export default function AproposScreen() {
   const router = useRouter();
+
+  const { data: ptfList } = useQuery({
+    queryKey: ['ptf'],
+    queryFn: dataService.getPtfList,
+  });
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -99,23 +102,35 @@ export default function AproposScreen() {
         </View>
 
         {/* Nos Partenaires */}
-        <View className="mt-12 px-6">
-          <View className="flex-row justify-between items-center mb-8">
-            <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-lg">Nos Partenaires</Text>
-            <TouchableOpacity><Text className="text-brand-orange font-bold text-xs uppercase">Voir tout</Text></TouchableOpacity>
-          </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="-mx-2">
-            {PARTENAIRES.map((p, i) => (
-              <View key={i} className="bg-white border border-gray-100 p-5 rounded-[32px] w-40 mx-2 items-center shadow-sm">
-                <View className="w-16 h-16 bg-gray-50 rounded-full items-center justify-center mb-4">
-                  <Image source={{ uri: p.image }} className="w-10 h-10" resizeMode="contain" />
+        {ptfList && ptfList.length > 0 && (
+          <View className="mt-12 px-6">
+            <View className="flex-row justify-between items-center mb-8">
+              <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-lg">Nos Partenaires</Text>
+              <TouchableOpacity onPress={() => router.push('/annuaire-partenaires')}>
+                <Text className="text-brand-orange font-bold text-xs uppercase">Voir tout</Text>
+              </TouchableOpacity>
+            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="-mx-2">
+              {ptfList.slice(0, 6).map((ptf: PTF) => (
+                <View key={ptf.id} className="bg-white border border-gray-100 p-5 rounded-[32px] w-40 mx-2 items-center shadow-sm">
+                  <View className="w-16 h-16 bg-gray-50 rounded-full items-center justify-center mb-4">
+                    {ptf.thumbnail_url ? (
+                      <Image source={{ uri: ptf.thumbnail_url }} className="w-10 h-10" resizeMode="contain" />
+                    ) : (
+                      <Building2 size={28} color="#E05017" />
+                    )}
+                  </View>
+                  <Text style={{ fontFamily: 'Poppins_700Bold', fontSize: 10 }} className="text-gray-900 text-center mb-1" numberOfLines={2}>
+                    {ptf.name}
+                  </Text>
+                  {ptf.pays && (
+                    <Text style={{ fontFamily: 'Karla_400Regular', fontSize: 8 }} className="text-gray-400 text-center">{ptf.pays}</Text>
+                  )}
                 </View>
-                <Text style={{ fontFamily: 'Poppins_700Bold', fontSize: 10 }} className="text-gray-900 text-center mb-1">{p.name}</Text>
-                <Text style={{ fontFamily: 'Karla_400Regular', fontSize: 8 }} className="text-gray-400 text-center">{p.role}</Text>
-              </View>
-            ))}
-          </ScrollView>
-        </View>
+              ))}
+            </ScrollView>
+          </View>
+        )}
 
         {/* Contact Button */}
         <View className="px-6 mt-12 mb-6">

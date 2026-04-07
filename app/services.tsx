@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { View, Text, FlatList, TouchableOpacity, Image, TextInput, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Search, ChevronLeft } from 'lucide-react-native';
-import Skeleton from '../components/ui/Skeleton';
 
 const { width } = Dimensions.get('window');
 const COLUMN_WIDTH = (width - 60) / 2;
@@ -63,12 +62,6 @@ const SERVICES_DATA = [
 
 export default function ServicesScreen() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 1000);
-    return () => clearTimeout(timer);
-  }, []);
 
   const renderServiceItem = ({ item }) => (
     <TouchableOpacity 
@@ -85,15 +78,6 @@ export default function ServicesScreen() {
         {item.description}
       </Text>
     </TouchableOpacity>
-  );
-
-  const renderSkeleton = () => (
-    <View style={{ width: COLUMN_WIDTH }} className="bg-white rounded-[32px] p-5 mb-5 border border-gray-50 shadow-sm shadow-gray-200">
-      <Skeleton width={56} height={56} borderRadius={16} style={{ marginBottom: 16 }} />
-      <Skeleton width="80%" height={16} style={{ marginBottom: 8 }} />
-      <Skeleton width="100%" height={10} style={{ marginBottom: 4 }} />
-      <Skeleton width="60%" height={10} />
-    </View>
   );
 
   const renderHeader = () => (
@@ -131,8 +115,8 @@ export default function ServicesScreen() {
       </View>
 
       <FlatList
-        data={loading ? [1, 2, 3, 4, 5, 6] : SERVICES_DATA}
-        renderItem={loading ? renderSkeleton : renderServiceItem}
+        data={SERVICES_DATA}
+        renderItem={renderServiceItem}
         keyExtractor={(item, index) => index.toString()}
         numColumns={2}
         columnWrapperStyle={{ justifyContent: 'space-between' }}

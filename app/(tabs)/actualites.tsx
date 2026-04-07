@@ -1,59 +1,45 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { View, Text, FlatList, TouchableOpacity, Image, Platform, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Search, Bell } from 'lucide-react-native';
 import Skeleton from '../../components/ui/Skeleton';
+import { useQuery } from '@tanstack/react-query';
+import { dataService } from '../../services/dataService';
+import { News } from '../../services/types';
 
 const heroImage = require('../../assets/hero-image.png');
 
-const ALL_NEWS = [
-  {
-    id: '1',
-    title: 'Renforcement des Capacités de la Société Civile : Un Nouveau Jalon',
-    date: '12 Octobre 2023',
-    category: 'SOCIÉTÉ CIVILE',
-    image: heroImage,
-  },
-  {
-    id: '2',
-    title: 'Lancement du nouveau programme de formation pour les OSC',
-    date: '24 Oct 2023',
-    category: 'CRASC SUD',
-    image: heroImage,
-  },
-  {
-    id: '3',
-    title: 'Atelier sur la transparence budgétaire à Yamoussoukro',
-    date: '15 Nov 2023',
-    category: 'CRASC CENTRE',
-    image: heroImage,
-  },
-];
-
 export default function ActualitesScreen() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
+  
+  const { data: news, isLoading } = useQuery({
+    queryKey: ['news'],
+    queryFn: dataService.getNews,
+  });
 
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 1000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const renderNewsItem = ({ item }) => (
+  const renderNewsItem = ({ item }: { item: News }) => (
     <TouchableOpacity 
-      onPress={() => router.push(`/news-details/${item.id}`)}
+      onPress={() => router.push(`/news-details/${item.slug}`)}
       className="bg-white rounded-[32px] overflow-hidden shadow-sm border border-gray-100 mb-6"
     >
-      <Image source={item.image} className="w-full h-48" resizeMode="cover" />
+      <Image 
+        source={item.thumbnail_url ? { uri: item.thumbnail_url } : heroImage} 
+        className="w-full h-48" 
+        resizeMode="cover" 
+      />
       <View className="p-5">
         <View className="bg-orange-50 self-start px-3 py-1 rounded-lg mb-3">
-            <Text className="text-brand-orange text-[10px] font-bold">{item.category}</Text>
+            <Text className="text-brand-orange text-[10px] font-bold">
+              {item.crasc_id ? `CRASC ${item.crasc_id}` : 'SOCIÉTÉ CIVILE'}
+            </Text>
         </View>
         <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-base leading-6 mb-2">
           {item.title}
         </Text>
-        <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-400 text-xs">📅 {item.date}</Text>
+        <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-400 text-xs">
+          📅 {new Date(item.created_at).toLocaleDateString('fr-FR')}
+        </Text>
       </View>
     </TouchableOpacity>
   );
@@ -92,9 +78,9 @@ export default function ActualitesScreen() {
       </View>
 
       <FlatList
-        data={loading ? [1, 2, 3] : ALL_NEWS}
-        renderItem={loading ? renderSkeleton : renderNewsItem}
-        keyExtractor={(item, index) => index.toString()}
+        data={isLoading ? [1, 2, 3] : news}
+        renderItem={isLoading ? renderSkeleton : renderNewsItem}
+        keyExtractor={(item, index) => (typeof item === 'number' ? `skeleton-${item}` : item.id)}
         contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24 }}
         showsVerticalScrollIndicator={false}
       />
