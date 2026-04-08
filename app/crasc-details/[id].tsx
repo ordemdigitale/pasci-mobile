@@ -15,7 +15,7 @@ import Skeleton from '../../components/ui/Skeleton';
 import { useQuery } from '@tanstack/react-query';
 import { dataService } from '../../services/dataService';
 
-const { width } = Dimensions.get(‘window’);
+const { width } = Dimensions.get('window');
 
 export default function CrascDetailsScreen() {
   const { id } = useLocalSearchParams();

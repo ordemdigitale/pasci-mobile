@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, ScrollView, KeyboardAvoidingView, Platform, StatusBar, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image, ScrollView, Platform, StatusBar, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Mail, Lock, Eye, ChevronLeft, ArrowRight } from 'lucide-react-native';
@@ -40,10 +40,6 @@ export default function LoginScreen() {
       edges={['top']}
       style={{ paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }}
     >
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1"
-      >
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1, paddingBottom: 40 }}>
           
           {/* Header avec Retour */}
@@ -146,7 +142,6 @@ export default function LoginScreen() {
           </View>
 
         </ScrollView>
-      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

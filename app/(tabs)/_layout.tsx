@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import { Platform } from 'react-native';
-import { Home, Newspaper, Folder, Users, Briefcase } from 'lucide-react-native';
+import { Home, Newspaper, Folder, Users, Briefcase, User } from 'lucide-react-native';
 
 export default function TabLayout() {
   return (
@@ -74,9 +74,15 @@ export default function TabLayout() {
       <Tabs.Screen
         name="profil"
         options={{
-          href: null, // Cache l'onglet Profil de la barre du bas
+          title: 'PROFIL',
+           tabBarIcon: ({ color, focused }) => (
+            <User size={20} color={color} fill={focused ? color : 'transparent'} />
+          ),
         }}
       />
+      {/* Fichiers alias — masqués de la barre d'onglets */}
+      <Tabs.Screen name="jobs" options={{ href: null }} />
+      <Tabs.Screen name="profile" options={{ href: null }} />
     </Tabs>
   );
 }
