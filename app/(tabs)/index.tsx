@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, Image, TouchableOpacity, FlatList, Dimensions, Platform, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Bell, Search, Download, ChevronRight, Building2 } from 'lucide-react-native';
+import { Search, Download, Building2 } from 'lucide-react-native';
 import CrascMap from '../../components/CrascMap';
 import DirectoryModal from '../../components/DirectoryModal';
 import { useQuery } from '@tanstack/react-query';
 import { dataService } from '../../services/dataService';
-import { News, PTF, Documentation } from '../../services/types';
+import { News, PTF, Documentation, KeyStats, Formation } from '../../services/types';
 
 const { width } = Dimensions.get('window');
 
@@ -15,30 +15,45 @@ const { width } = Dimensions.get('window');
 const logo = require('../../assets/logo.png');
 const heroImage = require('../../assets/hero-image.png');
 
-// Service Icons
-const iconAccompagnement = require('../../assets/icons/icon-accompagnement.png');
-const iconAppui = require('../../assets/icons/icon-appui-conseil.png');
-const iconFormation = require('../../assets/icons/icon-formation.png');
-const iconRedaction = require('../../assets/icons/icon-redaction.png');
-const iconAdmin = require('../../assets/icons/icon-soutien-administratif.png');
-const iconSuivi = require('../../assets/icons/icon-suivi-evaluation.png');
-
-const SERVICES = [
-  { id: '1', title: 'Subventions', icon: iconAccompagnement, color: '#FDF0ED' }, // Rose/Orange très clair
-  { id: '2', title: 'Formations', icon: iconFormation, color: '#E7EEF7' },      // Bleu clair
-  { id: '3', title: 'Annuaire', icon: iconAppui, color: '#FFF5E6' },            // Jaune/Orange clair
-  { id: '4', title: 'Assistance', icon: iconAdmin, color: '#F3E8FF' },          // Violet clair
-];
 
 export default function HomeScreen() {
   const router = useRouter();
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState<string | undefined>(undefined);
 
-  const { data: news, isLoading: newsLoading } = useQuery({
-    queryKey: ['news'],
-    queryFn: () => dataService.getNews(),
+  const { data: news } = useQuery({
+    queryKey: ['news-spotlight'],
+    queryFn: () => dataService.getNews({ limit: 10 }),
   });
+
+  const { data: keyStats } = useQuery({
+    queryKey: ['key-stats'],
+    queryFn: dataService.getKeyStats,
+  });
+
+  const { data: formations } = useQuery({
+    queryKey: ['formations-home'],
+    queryFn: () => dataService.getFormations({ limit: 6 }),
+  });
+
+  const MOCK_STATS: KeyStats[] = [
+    { id: 1, name: 'OSC', number: 3201 },
+    { id: 2, name: 'CRASC', number: 5 },
+    { id: 3, name: 'Régions', number: 33 },
+    { id: 4, name: 'Projets', number: 120 },
+  ];
+  const displayStats = keyStats && keyStats.length > 0 ? keyStats : MOCK_STATS;
+
+  const STAT_COLORS: Record<string, { bg: string; text: string; border: string }> = {
+    osc:     { bg: '#DBEAFE', text: '#1D4ED8', border: '#BFDBFE' },
+    crasc:   { bg: '#FFEDD5', text: '#E05017', border: '#FED7AA' },
+    OSC:     { bg: '#DBEAFE', text: '#1D4ED8', border: '#BFDBFE' },
+    CRASC:   { bg: '#FFEDD5', text: '#E05017', border: '#FED7AA' },
+    régions: { bg: '#DCFCE7', text: '#166534', border: '#BBF7D0' },
+    projets: { bg: '#F3E8FF', text: '#6B21A8', border: '#E9D5FF' },
+    Régions: { bg: '#DCFCE7', text: '#166534', border: '#BBF7D0' },
+    Projets: { bg: '#F3E8FF', text: '#6B21A8', border: '#E9D5FF' },
+  };
 
   const { data: ptfList } = useQuery({
     queryKey: ['ptf'],
@@ -52,36 +67,12 @@ export default function HomeScreen() {
 
   const featuredDoc = docList?.[0] ?? null;
 
-  const handleMapPress = (region) => {
+  const handleMapPress = (region: { name: string }) => {
     console.log("Pressed region:", region.name);
     setSelectedRegion(region.name);
     setModalVisible(true);
   };
 
-  const handleServicePress = (item) => {
-    if (item.title === 'Annuaire') {
-      setModalVisible(true);
-    } else if (item.title === 'Formations') {
-      router.push('/formations');
-    } else {
-      router.push('/ressources');
-    }
-  };
-
-  const renderServiceItem = ({ item }) => (
-    <View className="items-center mr-6 w-20">
-      <TouchableOpacity 
-        onPress={() => handleServicePress(item)}
-        style={{ backgroundColor: item.color }}
-        className="w-16 h-16 rounded-3xl items-center justify-center mb-2 shadow-sm"
-      >
-        <Image source={item.icon} style={{ width: 32, height: 32 }} resizeMode="contain" />
-      </TouchableOpacity>
-      <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-[10px] text-center font-bold text-gray-700" numberOfLines={2}>
-        {item.title}
-      </Text>
-    </View>
-  );
 
   const renderNewsItem = ({ item }: { item: News }) => (
     <TouchableOpacity 
@@ -113,67 +104,51 @@ export default function HomeScreen() {
     <SafeAreaView 
       className="flex-1 bg-gray-50" 
       edges={['top']}
-      style={{ paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }}
     >
       {/* Custom Header */}
       <View className="px-6 py-4 bg-white flex-row justify-between items-center shadow-sm">
         <Image source={logo} style={{ width: 50, height: 54 }} resizeMode="contain" />
-        <View className="flex-row gap-4">
-          <TouchableOpacity className="p-2 bg-gray-100 rounded-full">
-            <Search size={20} color="#4b5563" />
-          </TouchableOpacity>
-          <TouchableOpacity 
-            onPress={() => router.push('/inbox')}
-            className="p-2 bg-gray-100 rounded-full"
-          >
-            <Bell size={20} color="#4b5563" />
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity onPress={() => router.push('/recherche')} className="p-2 bg-gray-100 rounded-full">
+          <Search size={20} color="#4b5563" />
+        </TouchableOpacity>
       </View>
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         
-        {/* IMPACT SECTION */}
-        <View className="p-4 mt-2">
-            <View className="bg-brand-orange rounded-[40px] p-8 relative overflow-hidden">
-                <View className="bg-white/20 px-3 py-1 rounded-full self-start mb-4">
-                    <Text className="text-white text-[10px] font-bold uppercase tracking-widest">Impact 2024</Text>
-                </View>
-                <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-white text-2xl mb-3 leading-8">
-                    Renforcer la société civile en Côte d’Ivoire
-                </Text>
-                <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-white/80 text-sm mb-6 leading-5">
-                    Nous œuvrons pour un développement durable via l’appui technique et le plaidoyer citoyen.
-                </Text>
-                            <TouchableOpacity 
-                                onPress={() => router.push('/a-propos')}
-                                className="bg-brand-orange px-8 py-4 rounded-2xl shadow-lg shadow-orange-300"
-                            >
-                                <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-white text-base">En savoir plus</Text>
-                            </TouchableOpacity>
-            </View>
-        </View>
+        {/* HERO SECTION */}
+        <View className="px-4 mt-4">
+          {/* Titre principal */}
+          <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-[#2a591d] text-2xl text-center mb-5 leading-8">
+            Plateforme digitale des OSC membres du CRASC
+          </Text>
 
-        {/* SERVICES PRIORITAIRES (FlatList) */}
-        <View className="mt-6">
-            <View className="flex-row justify-between items-center px-6 mb-4">
-                <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-lg text-gray-900">Services prioritaires</Text>
-                <TouchableOpacity 
-                    onPress={() => router.push('/services')}
-                    className="flex-row items-center"
-                >
-                    <Text className="text-brand-orange font-bold mr-1">Tout voir</Text>
-                    <ChevronRight size={16} color="#E05017" />
-                </TouchableOpacity>
-            </View>
-            <FlatList
-              data={SERVICES}
-              renderItem={renderServiceItem}
-              keyExtractor={item => item.id}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingLeft: 24, paddingRight: 8 }}
+          {/* Card CRASC */}
+          <View className="bg-white rounded-[32px] overflow-hidden border border-gray-100"
+            style={{ shadowColor: '#000', shadowOpacity: 0.08, shadowOffset: { width: 0, height: 4 }, shadowRadius: 16, elevation: 4 }}
+          >
+            {/* Image */}
+            <Image
+              source={heroImage}
+              style={{ width: '100%', height: 200 }}
+              resizeMode="cover"
             />
+            {/* Contenu */}
+            <View className="px-6 py-5">
+              <Text style={{ fontFamily: 'Poppins_700Bold', fontSize: 15 }} className="text-gray-900 mb-3">
+                Centre Régional d’Appui à la Société Civile (CRASC)
+              </Text>
+              <Text style={{ fontFamily: 'Karla_400Regular', fontSize: 13, lineHeight: 20 }} className="text-gray-600 mb-5">
+                Cette Plateforme digitale est la résultante d’une démarche alliant à la fois, inclusivité, représentativité, accessibilité et pérennité. Multifonctionnelle et dynamique, elle vise à accroître la visibilité des OSC, la synergie d’action, le partage d’expérience et la professionnalisation.
+              </Text>
+              <TouchableOpacity
+                onPress={() => router.push('/a-propos')}
+                className="self-end px-6 py-3 rounded-xl"
+                style={{ backgroundColor: '#E05017' }}
+              >
+                <Text style={{ fontFamily: 'Poppins_700Bold', color: 'white', fontSize: 13 }}>Voir plus</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
 
         {/* MAP SECTION */}
@@ -212,6 +187,145 @@ export default function HomeScreen() {
                 </View>
             </View>
         </View>
+
+        {/* NOS SERVICES */}
+        <View className="mt-8 px-4">
+          <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-lg text-gray-900 mb-4">
+            Nos Services
+          </Text>
+          <View
+            className="bg-white rounded-[32px] overflow-hidden border border-gray-100"
+            style={{ shadowColor: '#000', shadowOpacity: 0.08, shadowOffset: { width: 0, height: 4 }, shadowRadius: 16, elevation: 4 }}
+          >
+            <Image
+              source={require('../../assets/images/service-hero.jpg')}
+              style={{ width: '100%', height: 200 }}
+              resizeMode="cover"
+            />
+            <View className="px-6 py-5" style={{ backgroundColor: '#f0f9ff' }}>
+              <Text style={{ fontFamily: 'Poppins_700Bold', fontSize: 20, color: '#2a591d', lineHeight: 28 }} className="mb-3">
+                Des Services Stratégiques{'\n'}pour le Succès de{'\n'}Votre Projet
+              </Text>
+              <Text style={{ fontFamily: 'Karla_400Regular', fontSize: 13, lineHeight: 20 }} className="text-gray-600 mb-5">
+                Au CRASC, nous vous offrons un accompagnement sur mesure, de l'appui-conseil à la rédaction de documents complexes, pour garantir la conformité et l'efficacité de vos initiatives.
+              </Text>
+              <TouchableOpacity
+                onPress={() => router.push('/services')}
+                className="self-start px-6 py-3 rounded-xl"
+                style={{ backgroundColor: '#E05017' }}
+              >
+                <Text style={{ fontFamily: 'Poppins_700Bold', color: 'white', fontSize: 13 }}>
+                  Voir tous les services →
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+
+        {/* CHIFFRES CLÉS */}
+        <View className="mt-10 px-4">
+          <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-xl text-center mb-1">
+            Chiffres clés
+          </Text>
+          <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 text-sm text-center mb-6">
+            Notre impact en quelques chiffres
+          </Text>
+          <View className="flex-row flex-wrap justify-between">
+            {displayStats.map((stat) => {
+              const cfg = STAT_COLORS[stat.name] ?? { bg: '#F3F4F6', text: '#6B7280', border: '#E5E7EB' };
+              return (
+                <View
+                  key={stat.id}
+                  className="bg-white rounded-3xl p-5 items-center mb-4"
+                  style={{ width: '48%', borderWidth: 2, borderColor: cfg.border, shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 8, elevation: 2 }}
+                >
+                  <View className="w-12 h-12 rounded-2xl items-center justify-center mb-3" style={{ backgroundColor: cfg.bg }}>
+                    <Text style={{ fontFamily: 'Poppins_700Bold', fontSize: 14, color: cfg.text }}>{ stat.name.substring(0, 3).toUpperCase() }</Text>
+                  </View>
+                  <Text style={{ fontFamily: 'Poppins_700Bold', fontSize: 32, color: '#1F2937' }}>
+                    {stat.number.toLocaleString('fr-FR')}
+                  </Text>
+                  <Text style={{ fontFamily: 'Karla_700Bold', fontSize: 11, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 1, marginTop: 2 }}>
+                    {stat.name}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+        </View>
+
+        {/* REJOIGNEZ-NOUS CTA */}
+        <View className="mt-6 px-4">
+          <View className="bg-brand-green rounded-[32px] p-6 flex-row items-center justify-between shadow-lg overflow-hidden">
+            {/* Décoration de fond */}
+            <View className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full" />
+            
+            <View className="flex-1 pr-4">
+              <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-white text-lg mb-1">
+                Votre OSC n'est pas encore listée ?
+              </Text>
+              <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-white/80 text-xs mb-4">
+                Rejoignez le réseau des OSC pour bénéficier de nos services et accroître votre visibilité.
+              </Text>
+              <TouchableOpacity
+                onPress={() => router.push('/rejoindre')}
+                className="bg-white px-6 py-3 rounded-xl self-start shadow-sm"
+              >
+                <Text style={{ fontFamily: 'Poppins_700Bold', color: '#2a591d', fontSize: 13 }}>
+                  Rejoignez-nous
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View className="bg-white/20 p-4 rounded-full">
+              <Building2 size={32} color="white" />
+            </View>
+          </View>
+        </View>
+
+        {/* NOS FORMATIONS */}
+        {formations && formations.length > 0 && (
+          <View className="mt-10">
+            <View className="px-6 mb-2">
+              <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-xl text-center mb-1">Nos Formations</Text>
+              <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 text-sm text-center mb-1">Développez vos compétences avec nos programmes de formation</Text>
+              <View style={{ height: 3, width: 96, borderRadius: 4, alignSelf: 'center', marginTop: 8, marginBottom: 16, backgroundColor: '#E05017' }} />
+            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="pl-4">
+              {formations.map((f: Formation) => (
+                <TouchableOpacity
+                  key={f.id}
+                  onPress={() => router.push(`/course-details/${f.slug}` as any)}
+                  className="mr-4 w-64 bg-white rounded-[28px] overflow-hidden border border-gray-100"
+                  style={{ shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 12, elevation: 3 }}
+                >
+                  {f.thumbnail_url ? (
+                    <Image source={{ uri: f.thumbnail_url }} style={{ width: '100%', height: 140 }} resizeMode="cover" />
+                  ) : (
+                    <View style={{ width: '100%', height: 140, backgroundColor: '#FFF5F0', alignItems: 'center', justifyContent: 'center' }}>
+                      <Text style={{ fontSize: 40 }}>📚</Text>
+                    </View>
+                  )}
+                  {f.type && (
+                    <View className="absolute top-3 right-3 px-2 py-1 rounded-full" style={{ backgroundColor: '#E05017' }}>
+                      <Text style={{ fontFamily: 'Karla_700Bold', color: 'white', fontSize: 9 }}>{f.type}</Text>
+                    </View>
+                  )}
+                  <View className="p-4">
+                    <Text style={{ fontFamily: 'Poppins_600SemiBold', fontSize: 13 }} className="text-gray-900 mb-2" numberOfLines={2}>
+                      {f.title}
+                    </Text>
+                    {f.description && (
+                      <Text style={{ fontFamily: 'Karla_400Regular', fontSize: 12 }} className="text-gray-500 mb-3" numberOfLines={2}>
+                        {f.description}
+                      </Text>
+                    )}
+                    <Text style={{ fontFamily: 'Karla_700Bold', fontSize: 12, color: '#E05017' }}>Découvrir →</Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
 
         {/* PARTNERS SECTION — PTF depuis l'API */}
         {ptfList && ptfList.length > 0 && (

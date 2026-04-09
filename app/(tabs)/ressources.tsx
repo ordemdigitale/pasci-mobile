@@ -6,6 +6,8 @@ import Skeleton from '../../components/ui/Skeleton';
 import { useQuery } from '@tanstack/react-query';
 import { dataService } from '../../services/dataService';
 import { Documentation } from '../../services/types';
+import { downloadAndOpenDocument } from '../../helpers/fileHelper';
+import DownloadProgressModal from '../../components/ui/DownloadProgressModal';
 
 function getFileIcon(type?: string) {
   const t = (type || '').toUpperCase();
@@ -23,21 +25,49 @@ function formatFileSize(bytes?: number): string {
 export default function RessourcesScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('Documentation');
+  const [downloadState, setDownloadState] = useState({ 
+    visible: false, 
+    progress: 0, 
+    fileName: '' 
+  });
 
   const { data: docs, isLoading } = useQuery({
     queryKey: ['documentation'],
     queryFn: dataService.getDocumentation,
   });
 
-  const filtered = docs?.filter(doc =>
-    !searchQuery ||
-    doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    doc.description?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filtered = docs?.filter(doc => {
+    const matchesTab =
+      activeTab === 'Documentation'
+        ? !doc.type || doc.type === 'documentation'
+        : doc.type === 'fiche';
+    const matchesSearch =
+      !searchQuery ||
+      doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      doc.description?.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesTab && matchesSearch;
+  });
 
-  const handleDownload = (doc: Documentation) => {
-    if (doc.file_url) {
-      Linking.openURL(doc.file_url);
+  const handleDownload = async (doc: Documentation) => {
+    const targetUrl = doc.download_url || doc.file_url;
+    if (targetUrl) {
+      const rawTitle = doc.title || 'document';
+      const safeTitle = rawTitle
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "") 
+        .replace(/[^a-z0-9]/gi, '_') 
+        .toLowerCase();
+      
+      const fileName = `${safeTitle}.pdf`;
+      
+      setDownloadState({ visible: true, progress: 0, fileName: doc.title });
+      
+      try {
+        await downloadAndOpenDocument(targetUrl, fileName, (progress) => {
+          setDownloadState(prev => ({ ...prev, progress }));
+        });
+      } finally {
+        setDownloadState(prev => ({ ...prev, visible: false }));
+      }
     }
   };
 
@@ -125,7 +155,7 @@ export default function RessourcesScreen() {
         </Text>
         {!isLoading && (
           <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-400 text-[10px]">
-            {filtered?.length || 0} document{(filtered?.length || 0) !== 1 ? 's' : ''}
+            {(filtered?.length || 0)} document{(filtered?.length || 0) !== 1 ? 's' : ''}
           </Text>
         )}
       </View>
@@ -136,7 +166,6 @@ export default function RessourcesScreen() {
     <SafeAreaView
       className="flex-1 bg-white"
       edges={['top']}
-      style={{ paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }}
     >
       <FlatList
         data={isLoading ? [1, 2, 3] : (filtered || [])}
@@ -155,6 +184,12 @@ export default function RessourcesScreen() {
         contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
         style={{ backgroundColor: '#FAFAFA' }}
+      />
+      
+      <DownloadProgressModal 
+        visible={downloadState.visible} 
+        progress={downloadState.progress} 
+        fileName={downloadState.fileName}
       />
     </SafeAreaView>
   );

@@ -32,5 +32,10 @@ export const authService = {
   register: async (data: { email: string; password: string; first_name?: string; last_name?: string; username?: string }) => {
     const response = await apiClient.post('/auth/register', data);
     return response.data;
-  }
+  },
+
+  updateProfile: async (data: { first_name?: string | null; last_name?: string | null; username?: string | null; bio?: string | null }) => {
+    const response = await apiClient.put('/users/me', data);
+    return response.data;
+  },
 };

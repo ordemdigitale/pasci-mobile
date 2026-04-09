@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, SafeAreaView, ScrollView, TouchableOpacity, Image, Share, Linking } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Image, Share, Linking } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import {
   ChevronLeft,
@@ -50,7 +51,7 @@ export default function ProjetDetailsScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView className="flex-1 bg-white">
+      <SafeAreaView className="flex-1 bg-white" edges={['top']}>
         <Stack.Screen options={{ headerShown: false }} />
         <View className="px-6 py-4 flex-row justify-between items-center">
           <Skeleton width={40} height={40} borderRadius={20} />
@@ -73,7 +74,7 @@ export default function ProjetDetailsScreen() {
 
   if (isError || !data) {
     return (
-      <SafeAreaView className="flex-1 bg-white items-center justify-center">
+      <SafeAreaView className="flex-1 bg-white items-center justify-center" edges={['top']}>
         <Stack.Screen options={{ headerShown: false }} />
         <Target size={60} color="#D1D5DB" />
         <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-400 text-center px-8 mt-4">
@@ -89,7 +90,7 @@ export default function ProjetDetailsScreen() {
   const statutStyle = getStatutStyle(data.statut);
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-white" edges={['top', 'bottom']}>
       <Stack.Screen options={{ headerShown: false }} />
 
       {/* Header */}
@@ -105,7 +106,7 @@ export default function ProjetDetailsScreen() {
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
         {/* Hero Image */}
-        <View className="relative">
+        <View>
           {data.image_url ? (
             <Image source={{ uri: data.image_url }} className="w-full h-64" resizeMode="cover" />
           ) : (
@@ -113,9 +114,6 @@ export default function ProjetDetailsScreen() {
               <TrendingUp size={64} color="#E05017" />
             </View>
           )}
-          <View style={{ backgroundColor: statutStyle.bg }} className="absolute bottom-6 left-6 px-4 py-1.5 rounded-xl">
-            <Text style={{ color: statutStyle.text }} className="text-xs font-bold uppercase">{data.statut}</Text>
-          </View>
           {data.domaine && (
             <View className="absolute top-6 right-6 bg-white/90 px-3 py-1 rounded-xl">
               <Text className="text-brand-orange text-[10px] font-bold uppercase">{data.domaine}</Text>
@@ -124,7 +122,11 @@ export default function ProjetDetailsScreen() {
         </View>
 
         {/* Content Card */}
-        <View className="bg-white -mt-10 rounded-t-[40px] px-8 pt-10">
+        <View className="bg-white -mt-10 rounded-t-[40px] px-8 pt-8">
+          {/* Statut badge */}
+          <View style={{ backgroundColor: statutStyle.bg }} className="self-start px-4 py-1.5 rounded-xl mb-4">
+            <Text style={{ color: statutStyle.text }} className="text-xs font-bold uppercase">{data.statut}</Text>
+          </View>
           <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-2xl leading-9 mb-2">
             {data.nom}
           </Text>
@@ -189,7 +191,7 @@ export default function ProjetDetailsScreen() {
           {data.durée && (
             <View className="flex-row items-center mb-8 bg-gray-50 px-4 py-3 rounded-2xl border border-gray-100">
               <Clock size={16} color="#E05017" />
-              <Text style={{ fontFamily: 'Karla_700Bold' }} className="text-gray-700 ml-2 text-sm">Durée : {data.durée}</Text>
+              <Text style={{ fontFamily: 'Karla_700Bold' }} className="text-gray-700 ml-2 text-sm">Durée : {data.durée} mois</Text>
             </View>
           )}
 
@@ -270,8 +272,13 @@ export default function ProjetDetailsScreen() {
           )}
 
           {/* CTA */}
-          <TouchableOpacity className="bg-brand-orange py-5 rounded-[24px] items-center shadow-lg shadow-orange-300 mb-6">
-            <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-white text-lg">Soumettre ma candidature</Text>
+          <TouchableOpacity
+            onPress={() => data.dossier_url ? Linking.openURL(data.dossier_url) : null}
+            disabled={!data.dossier_url}
+            className={`border-2 border-brand-orange py-5 rounded-[24px] items-center flex-row justify-center mb-6 ${!data.dossier_url ? 'opacity-40' : ''}`}
+          >
+            <FileDown size={20} color="#E05017" />
+            <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-brand-orange text-lg ml-2">Télécharger le dossier</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

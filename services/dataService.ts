@@ -1,5 +1,5 @@
 import apiClient from './apiClient';
-import { News, Job, Formation, FormationRubrique, Partner, Crasc, PTF, OffreProjet, PoleConcertation, ForumSujet, KeyStats, Documentation } from './types';
+import { News, Job, Formation, FormationRubrique, Partner, Crasc, PTF, OffreProjet, PoleConcertation, ForumSujet, ForumSujetDetail, ForumCommentaire, KeyStats, Documentation } from './types';
 
 export const dataService = {
   // CRASC
@@ -110,6 +110,21 @@ export const dataService = {
     return response.data;
   },
 
+  getForumSujetDetail: async (poleSlug: string, sujetSlug: string): Promise<ForumSujetDetail> => {
+    const response = await apiClient.get<ForumSujetDetail>(`/forum/poles/${poleSlug}/sujets/${sujetSlug}`);
+    return response.data;
+  },
+
+  createForumSujet: async (poleSlug: string, data: { title: string; content: string }): Promise<ForumSujet> => {
+    const response = await apiClient.post<ForumSujet>(`/forum/poles/${poleSlug}/sujets`, data);
+    return response.data;
+  },
+
+  createForumCommentaire: async (poleSlug: string, sujetSlug: string, content: string): Promise<ForumCommentaire> => {
+    const response = await apiClient.post<ForumCommentaire>(`/forum/poles/${poleSlug}/sujets/${sujetSlug}/commentaires`, { content });
+    return response.data;
+  },
+
   // Régions
   getRegions: async () => {
     const response = await apiClient.get('/crasc/region');
@@ -126,6 +141,26 @@ export const dataService = {
   getDocumentation: async (): Promise<Documentation[]> => {
     const response = await apiClient.get<Documentation[]>('/documentation');
     return response.data;
+  },
+
+  // Paiement formation
+  initierPaiementFormation: async (slug: string, participantName: string, participantEmail: string) => {
+    const response = await apiClient.post(`/formations/${slug}/paiement/initier`, {
+      participant_name: participantName,
+      participant_email: participantEmail,
+    });
+    return response.data as { inscription_id: number; payment_url: string; transaction_id: string; amount: number; currency: string; cinetpay_configured: boolean };
+  },
+
+  confirmerPaiementSimulation: async (inscriptionId: number) => {
+    const response = await apiClient.post(`/formations/paiement/simulation/confirmer/${inscriptionId}`);
+    return response.data;
+  },
+
+  // Certificat
+  verifCertificat: async (code: string) => {
+    const response = await apiClient.get(`/formations/certificats/verifier/${code}`);
+    return response.data as { id: number; code: string; formation_title: string; participant_name: string; participant_email: string; issued_at: string };
   },
 
   // Recherche
@@ -145,5 +180,39 @@ export const dataService = {
   searchSuggestions: async (query: string) => {
     const response = await apiClient.get(`/search/suggestions?q=${encodeURIComponent(query)}`);
     return response.data;
+  },
+
+  // Modules & leçons d'une formation
+  getFormationModules: async (slug: string) => {
+    const response = await apiClient.get(`/formations/${slug}/modules`);
+    return response.data as Array<{
+      id: number;
+      title: string;
+      description: string | null;
+      order: number;
+      lecons: Array<{
+        id: number;
+        module_id: number;
+        title: string;
+        type: 'video' | 'pdf' | 'text';
+        content: string | null;
+        file_url: string | null;
+        duration_minutes: number | null;
+        is_preview: boolean;
+        order: number;
+      }>;
+    }>;
+  },
+
+  marquerLeconVue: async (leconId: number) => {
+    const response = await apiClient.post(`/formations/lecons/${leconId}/vue`);
+    return response.data as { progression: number; total_lecons: number; certificat_code?: string };
+  },
+
+  checkInscription: async (slug: string, email: string) => {
+    console.log(`🔍 [DEBUG] Checking enrollment for ${slug} with email: ${email}`);
+    const response = await apiClient.get(`/formations/${slug}/check-inscription?email=${encodeURIComponent(email)}`);
+    console.log(`📥 [DEBUG] enrollment Response:`, response.data);
+    return response.data as { registered: boolean; progression?: number; total_lecons?: number; certificat_code?: string; lecons_vues?: number[] };
   },
 };

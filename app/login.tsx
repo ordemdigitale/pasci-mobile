@@ -88,7 +88,7 @@ export default function LoginScreen() {
             <View>
                 <View className="flex-row justify-between items-center mb-3 ml-1">
                     <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-xs text-gray-400 uppercase tracking-widest">Mot de passe</Text>
-                    <TouchableOpacity>
+                    <TouchableOpacity onPress={() => router.push('/forgot-password')}>
                         <Text className="text-brand-orange text-[10px] font-bold">Oublié ?</Text>
                     </TouchableOpacity>
                 </View>

@@ -10,9 +10,26 @@ import { PTF } from '../services/types';
 const { width } = Dimensions.get('window');
 
 const OBJECTIFS = [
-  { id: 1, title: 'Renforcement Technique', desc: 'Formations spécialisées sur la gestion de projet et le plaidoyer politique.' },
-  { id: 2, title: 'Soutien Financier', desc: 'Octroi de subventions pour des projets à fort impact social en Côte d’Ivoire.' },
-  { id: 3, title: 'Mise en Réseau', desc: 'Création de ponts entre les OSC et les institutions étatiques.' },
+  { id: 1, title: 'Accès à l\'information', desc: 'Faciliter l\'accès à l\'information sur toutes les opportunités d\'appuis techniques et financiers pour les OSC.' },
+  { id: 2, title: 'Renforcement des capacités', desc: 'Renforcer les capacités techniques, organisationnelles et institutionnelles des Organisations de la Société Civile de sa zone.' },
+  { id: 3, title: 'Appui-conseils et performances', desc: 'Améliorer les conditions et cadres de travail des OSC, les accompagner, leur apporter des appuis-conseils et des connaissances pour améliorer leurs performances, afin qu\'elles deviennent des interlocuteurs crédibles, reconnus, informés et compétents.' },
+  { id: 4, title: 'Cadre d\'échanges', desc: 'Créer un cadre d\'échanges et de mutualisation de différents services au bénéfice des OSC.' },
+];
+
+const ZONES_COUVERTURE = [
+  { id: 'centre', title: 'CRASC Centre', count: 5, regions: 'Bélier, Gbêkè, Hambol, Marahoué, N\'zi', color: '#F59E42' },
+  { id: 'est', title: 'CRASC Est', count: 4, regions: 'Bounkani, Gontougo, Iffou, Moronou', color: '#FF6B8A' },
+  { id: 'nord', title: 'CRASC Nord', count: 7, regions: 'Bagoué, Béré, Kabadougou, Poro, Folon, Tchologo, Worodougou', color: '#5A7D5A' },
+  { id: 'ouest', title: 'CRASC Ouest', count: 5, regions: 'Bafing, Cavally, Guémon, Haut-Sassandra, Tonkpi', color: '#2E86C1' },
+  { id: 'sud', title: 'CRASC Sud', count: 10, regions: 'Agnéby-Tiassa, Gbokle, Goh, Me, San-Pedro, Grands-Ponts, Indénié-Djuablin, Loh-Djiboua, Nawa, Sud-Comoé, Abidjan', color: '#4FC3DC' },
+];
+
+const STRUCTURATION = [
+  'L\'Assemblée Générale',
+  'Le Conseil d\'Administration',
+  'La Direction Exécutive',
+  'Délégations régionales',
+  'Le Commissariat aux comptes',
 ];
 
 export default function AproposScreen() {
@@ -54,42 +71,37 @@ export default function AproposScreen() {
 
         {/* Mission Section */}
         <View className="px-8 mt-10">
-          <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-brand-orange text-[10px] uppercase tracking-widest mb-4">Notre Mission</Text>
-          <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-2xl leading-9 mb-6">
-            Transformer la société civile pour une Côte d'Ivoire plus inclusive.
+          <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-brand-orange text-[10px] uppercase tracking-widest mb-4">Présentation</Text>
+          <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-2xl leading-9 mb-6">Présentation de la plateforme</Text>
+          <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 leading-6 text-base mb-6">
+            Cette Plateforme digitale est la résultante d’une démarche alliant à la fois, inclusivité, représentativité, accessibilité et pérennité. Elle vise à accroitre la visibilité des OSC, la synergie d’action et le partage d’expérience.
           </Text>
-          <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 leading-6 text-base">
-            Le Projet d'Appui à la Société Civile Ivoirienne (PASCI) est une initiative stratégique visant à renforcer les capacités techniques, financières et de plaidoyer des organisations locales. Nous croyons en une gouvernance participative où chaque voix compte.
+          
+          <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-2xl leading-9 mb-6">Présentation du CRASC</Text>
+          <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 leading-6 text-base mb-6">
+            Le Centre Régional d’Appui à la Société Civile (CRASC) est un dispositif régional de mutualisation des compétences et des services au bénéfice des OSC de la Côte d'Ivoire. Sa mission essentielle est de renforcer les capacités techniques, organisationnelles et institutionnelles des OSC.
           </Text>
-        </View>
 
-        {/* Vision & Valeurs Cards */}
-        <View className="px-6 mt-10 flex-row justify-between">
-          <View className="bg-white border border-gray-100 p-6 rounded-[32px] w-[48%] shadow-sm">
-            <View className="bg-orange-50 w-12 h-12 rounded-2xl items-center justify-center mb-4">
-              <Eye size={24} color="#E05017" />
-            </View>
-            <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-sm mb-2">Vision</Text>
-            <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-400 text-[10px] leading-4">Une société civile autonome et professionnelle.</Text>
-          </View>
-          <View className="bg-white border border-gray-100 p-6 rounded-[32px] w-[48%] shadow-sm">
-            <View className="bg-orange-50 w-12 h-12 rounded-2xl items-center justify-center mb-4">
-              <Heart size={24} color="#E05017" />
-            </View>
-            <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-sm mb-2">Valeurs</Text>
-            <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-400 text-[10px] leading-4">Intégrité, inclusion et transparence radicale.</Text>
-          </View>
+          <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-brand-orange text-[10px] uppercase tracking-widest mb-4">Historique de mise en place des CRASC</Text>
+          <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 leading-6 text-base mb-4">
+            En Côte d'Ivoire le Mapping en Juillet 2010 de la société civile a fait ressortir les principales difficultés auxquelles la société civile est confrontée. Pour combler ces multiples insuffisances, les principales stratégies à moyen et long termes identifiées par l'État de Côte d'Ivoire et l'Union Européenne ont conduit à la création d'un programme d'appui aux organisations de la société civile ivoirienne intitulé LIANE (Leadership & Initiatives des Acteurs Non Étatiques).
+          </Text>
+          <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 leading-6 text-base mb-6">
+            L'un des résultats du projet LIANE I, piloté par le CERAP, dans le cadre du processus de renforcement des capacités a été la création du "Centre Régional d'Appui à la Société Civile (CRASC)" en Juillet 2015, pour pérenniser les acquis du projet.
+          </Text>
+
+          <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-xl mb-4">Missions des CRASC</Text>
+          <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 leading-6 text-base">
+            La mission essentielle des CRASC est de renforcer les capacités techniques, organisationnelles et institutionnelles des OSC de leur zone de couverture.
+          </Text>
         </View>
 
         {/* Objectifs Clés Section */}
         <View className="bg-orange-50/30 mt-12 px-8 py-12">
-          <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-xl mb-10">Objectifs Clés</Text>
+          <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-xl mb-10">Objectifs des CRASC</Text>
           
           {OBJECTIFS.map((obj, index) => (
             <View key={obj.id} className="flex-row mb-10 relative">
-              {index !== OBJECTIFS.length - 1 && (
-                <View className="absolute left-4 top-10 w-[1px] h-16 bg-orange-200" />
-              )}
               <View className="w-9 h-9 bg-brand-orange rounded-full items-center justify-center z-10">
                 <Text className="text-white font-bold">{obj.id}</Text>
               </View>
@@ -97,6 +109,43 @@ export default function AproposScreen() {
                 <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-base mb-2">{obj.title}</Text>
                 <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 text-sm leading-5">{obj.desc}</Text>
               </View>
+            </View>
+          ))}
+        </View>
+
+        {/* Structuration Section */}
+        <View className="px-8 mt-12">
+          <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-xl mb-6">Structuration</Text>
+          <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 mb-6 leading-6">
+            Les CRASC disposent de 5 organes de gestion pour assurer leur bon fonctionnement et leur transparence :
+          </Text>
+          <View className="bg-white border border-gray-100 rounded-[32px] p-6 shadow-sm">
+            {STRUCTURATION.map((item, index) => (
+              <View key={index} className={`flex-row items-center py-3 ${index !== STRUCTURATION.length - 1 ? 'border-b border-gray-50' : ''}`}>
+                <View className="w-2 h-2 rounded-full bg-brand-orange mr-4" />
+                <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-gray-700 text-sm">{item}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* Zones de couverture */}
+        <View className="px-8 mt-12 mb-6">
+          <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-xl mb-6">Zones de couverture</Text>
+          {ZONES_COUVERTURE.map((zone) => (
+            <View key={zone.id} className="bg-white border border-gray-100 p-5 rounded-[32px] mb-4 shadow-sm">
+              <View className="flex-row items-center justify-between mb-3">
+                <View className="flex-row items-center">
+                  <View style={{ backgroundColor: zone.color }} className="w-3 h-3 rounded-full mr-3" />
+                  <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-base">{zone.title}</Text>
+                </View>
+                <View className="bg-gray-100 px-3 py-1 rounded-full">
+                  <Text className="text-[10px] font-bold text-gray-600">{zone.count} Régions</Text>
+                </View>
+              </View>
+              <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 text-xs leading-5">
+                Régions : {zone.regions}
+              </Text>
             </View>
           ))}
         </View>

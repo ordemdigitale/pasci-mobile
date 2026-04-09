@@ -111,11 +111,17 @@ export interface Partner {
   name: string;
   description?: string;
   thumbnail_url?: string;
+  thumbnail_path?: string;
   slug: string;
   email?: string;
   phone?: string;
+  website?: string;
   ville?: string;
   address?: string;
+  created_at?: string;
+  type?: { id: number; name: string; slug: string };
+  crasc?: { id: number; name: string; slug: string };
+  news_items?: { id: number; title: string; slug: string; thumbnail_url?: string; created_at: string }[];
   tags?: string[];
 }
 
@@ -171,6 +177,7 @@ export interface OffreProjet {
   partenaires_list?: string[];
   image_url?: string;
   image_path?: string;
+  dossier_url?: string;
   date_publication: string;
   created_at: string;
   updated_at: string;
@@ -205,6 +212,20 @@ export interface ForumSujet {
   updated_at: string;
 }
 
+export interface ForumCommentaire {
+  id: number;
+  content: string;
+  author_id?: string;
+  author_name?: string;
+  sujet_id: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ForumSujetDetail extends ForumSujet {
+  commentaires: ForumCommentaire[];
+}
+
 export interface KeyStats {
   id: number;
   name: string;
@@ -220,6 +241,7 @@ export interface Documentation {
   file_path?: string;
   file_size?: number;
   file_type?: string;
+  type?: string;
   created_at: string;
   updated_at?: string;
 }

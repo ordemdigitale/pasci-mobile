@@ -60,7 +60,6 @@ export default function ActualitesScreen() {
     <SafeAreaView 
       className="flex-1 bg-gray-50" 
       edges={['top']}
-      style={{ paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }}
     >
       <View className="px-6 py-4 bg-white flex-row justify-between items-center border-b border-gray-50">
         <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-xl text-gray-900">Actualités</Text>

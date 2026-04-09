@@ -13,10 +13,7 @@ import {
 import { useRouter } from 'expo-router';
 import {
   ChevronLeft,
-  Bell,
   Search,
-  SlidersHorizontal,
-  Bookmark,
   Eye,
   Phone,
 } from 'lucide-react-native';
@@ -65,11 +62,7 @@ const DirectoryModal: React.FC<DirectoryModalProps> = ({ visible, onClose, selec
     }
 
     return (
-    <View className="bg-white rounded-3xl p-4 mb-4 shadow-sm border border-gray-100 flex-row relative mx-6">
-      <TouchableOpacity className="absolute top-4 right-4">
-        <Bookmark size={20} color="#D1D5DB" />
-      </TouchableOpacity>
-
+    <View className="bg-white rounded-3xl p-4 mb-4 shadow-sm border border-gray-100 flex-row mx-6">
       <View className="w-20 h-20 bg-orange-50 rounded-2xl items-center justify-center mr-4">
         <Image 
             source={require('../assets/logo.png')} 
@@ -84,9 +77,7 @@ const DirectoryModal: React.FC<DirectoryModalProps> = ({ visible, onClose, selec
             <Text className="text-brand-orange text-[10px] font-bold">INFO</Text>
           </View>
           {item.osc_count !== undefined && (
-            <View className="flex-row items-center">
-              <Text style={{ fontFamily: 'Karla_700Bold' }} className="text-gray-400 text-[10px]">{item.osc_count} OSCs</Text>
-            </View>
+            <Text style={{ fontFamily: 'Karla_700Bold' }} className="text-gray-400 text-[10px]">{item.osc_count} OSCs</Text>
           )}
         </View>
 
@@ -169,10 +160,7 @@ const DirectoryModal: React.FC<DirectoryModalProps> = ({ visible, onClose, selec
               <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-brand-orange text-[10px] font-bold uppercase tracking-widest">Pasci Project</Text>
             </View>
           </View>
-          <TouchableOpacity className="bg-gray-100 p-2 rounded-full relative">
-            <Bell size={20} color="#4B5563" />
-            <View className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
-          </TouchableOpacity>
+
         </View>
 
         <FlatList<Crasc | number>
@@ -183,13 +171,7 @@ const DirectoryModal: React.FC<DirectoryModalProps> = ({ visible, onClose, selec
           showsVerticalScrollIndicator={false}
         />
 
-        {/* Floating Action Button */}
-        <TouchableOpacity 
-          style={{ position: 'absolute', bottom: 30, right: 24, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 8 }}
-          className="w-14 h-14 bg-brand-orange rounded-full items-center justify-center"
-        >
-          <SlidersHorizontal size={24} color="white" />
-        </TouchableOpacity>
+
       </SafeAreaView>
     </Modal>
   );

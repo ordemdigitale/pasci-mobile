@@ -72,7 +72,7 @@ export default function EspaceCollabScreen() {
       <TouchableOpacity
         style={{ width: CARD_WIDTH }}
         className="bg-white rounded-[32px] p-5 mb-5 items-center border border-gray-100 shadow-sm shadow-gray-200"
-        onPress={() => router.push(`/crasc-details/${item.slug}`)}
+        onPress={() => router.push(`/pole-details/${item.slug}`)}
       >
         <View style={{ backgroundColor: colorSet.bg }} className="w-16 h-16 rounded-3xl items-center justify-center mb-4">
           <Users size={28} color={colorSet.icon} />
@@ -245,7 +245,6 @@ export default function EspaceCollabScreen() {
     <SafeAreaView
       className="flex-1 bg-gray-50"
       edges={['top']}
-      style={{ paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }}
     >
       <FlatList
         data={listData}

@@ -233,18 +233,7 @@ export default function JobDetailsScreen() {
         </View>
       </ScrollView>
 
-      {/* Apply Button */}
-      <View className="px-6 pb-10 pt-4 bg-white border-t border-gray-50">
-        {job.is_expired ? (
-          <View className="bg-gray-100 py-4 rounded-[24px] items-center">
-            <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-400 text-base">Offre expirée</Text>
-          </View>
-        ) : (
-          <TouchableOpacity className="bg-brand-orange py-4 rounded-[24px] items-center shadow-lg shadow-orange-300">
-            <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-white text-base">Postuler maintenant</Text>
-          </TouchableOpacity>
-        )}
-      </View>
+
     </SafeAreaView>
   );
 }
