@@ -29,11 +29,7 @@ export default function CrascDetailsScreen() {
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
   const router = useRouter();
 
-  console.log('CRASC Details - ID from params:', id);
-  console.log('CRASC_DATA IDs available:', CRASC_DATA.map(c => c.id));
-
   const data = CRASC_DATA.find(c => c.id === id);
-  console.log('Found data:', data);
   const isLoading = false;
 
   const { data: news } = useQuery({
