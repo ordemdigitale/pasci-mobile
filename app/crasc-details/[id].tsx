@@ -133,37 +133,59 @@ export default function CrascDetailsScreen() {
   };
 
   const renderOscItem = ({ item }) => (
-    <TouchableOpacity
-      activeOpacity={0.7}
-      onPress={() => router.push(`/osc-details/${item.slug || item.id}`)}
-      className="bg-white rounded-3xl mb-4 border border-gray-100 shadow-sm overflow-hidden"
-    >
-      {item.thumbnail_url ? (
-        <Image source={{ uri: item.thumbnail_url }} style={{ width: '100%', height: 120 }} resizeMode="cover" />
-      ) : (
-        <View style={{ width: '100%', height: 80, backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ color: '#9CA3AF', fontWeight: 'bold', fontSize: 22 }}>
-            {item.name.substring(0, 2).toUpperCase()}
-          </Text>
-        </View>
-      )}
-      <View className="p-4">
-        <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-gray-900 text-sm mb-1" numberOfLines={1}>
-          {item.name}
-        </Text>
-        {item.description && (
-          <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 text-[11px] leading-4 mb-2" numberOfLines={2}>
-            {item.description}
-          </Text>
-        )}
-        {item.ville && (
-          <View className="flex-row items-center">
-            <MapPin size={11} color="#9CA3AF" />
-            <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-400 text-[10px] ml-1">{item.ville}</Text>
+    <View className="bg-white rounded-3xl mb-4 border border-gray-100 shadow-sm overflow-hidden">
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={() => router.push(`/osc-details/${item.slug || item.id}`)}
+      >
+        {item.thumbnail_url ? (
+          <Image source={{ uri: item.thumbnail_url }} style={{ width: '100%', height: 120 }} resizeMode="cover" />
+        ) : (
+          <View style={{ width: '100%', height: 80, backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ color: '#9CA3AF', fontWeight: 'bold', fontSize: 22 }}>
+              {item.name.substring(0, 2).toUpperCase()}
+            </Text>
           </View>
         )}
+        <View className="p-4">
+          <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-gray-900 text-sm mb-1" numberOfLines={1}>
+            {item.name}
+          </Text>
+          {item.description && (
+            <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 text-[11px] leading-4 mb-2" numberOfLines={2}>
+              {item.description}
+            </Text>
+          )}
+          {item.ville && (
+            <View className="flex-row items-center">
+              <MapPin size={11} color="#9CA3AF" />
+              <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-400 text-[10px] ml-1">{item.ville}</Text>
+            </View>
+          )}
+        </View>
+      </TouchableOpacity>
+
+      {/* Action Buttons */}
+      <View className="flex-row border-t border-gray-100 px-4 py-3 gap-2">
+        <TouchableOpacity
+          onPress={() => router.push(`/osc-details/${item.slug || item.id}`)}
+          className="flex-1 flex-row items-center justify-center bg-orange-50 rounded-lg py-2"
+        >
+          <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-brand-orange text-xs">
+            Détails
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => router.push('/contact')}
+          className="flex-1 flex-row items-center justify-center bg-orange-50 rounded-lg py-2"
+        >
+          <Phone size={14} color="#E05017" style={{ marginRight: 4 }} />
+          <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-brand-orange text-xs">
+            Contact
+          </Text>
+        </TouchableOpacity>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 
   const renderFooter = () => {
