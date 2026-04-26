@@ -29,14 +29,15 @@ export default function CrascDetailsScreen() {
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
   const router = useRouter();
 
-  const data = CRASC_DATA.find(c => c.id === id);
-  const isLoading = false;
-
-  const { data: news } = useQuery({
-    queryKey: ['crasc-news', data?.id],
-    queryFn: () => dataService.getNews({}),
-    enabled: false,
+  const { data: apiData, isLoading } = useQuery({
+    queryKey: ['crasc-details', id],
+    queryFn: () => dataService.getCrascBySlug(id as string),
+    enabled: !!id,
   });
+
+  const localData = CRASC_DATA.find(c => c.id === id);
+  const data = apiData || localData;
+  const oscMembers = apiData?.oscs || [];
 
   const onShare = async () => {
     if (!data) return;
@@ -152,6 +153,24 @@ export default function CrascDetailsScreen() {
     if (!data) return null;
     return (
       <View className="mt-8">
+        {/* OSC Membres Section */}
+        {oscMembers && oscMembers.length > 0 && (
+          <View className="mb-8">
+            <View className="flex-row items-center mb-4">
+              <View className="w-9 h-9 bg-blue-100 rounded-xl items-center justify-center mr-3">
+                <Users size={18} color="#2563EB" />
+              </View>
+              <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-base flex-1">OSC Membres</Text>
+              <View className="bg-gray-100 px-3 py-1 rounded-full">
+                <Text style={{ fontFamily: 'Karla_700Bold' }} className="text-gray-600 text-[10px]">
+                  {oscMembers.length} organisation{oscMembers.length !== 1 ? 's' : ''}
+                </Text>
+              </View>
+            </View>
+            {oscMembers.map((item: any) => renderOscItem({ item }))}
+          </View>
+        )}
+
         {/* Bouton Contacter le CRASC */}
         <TouchableOpacity
           onPress={() => router.push('/contact')}
