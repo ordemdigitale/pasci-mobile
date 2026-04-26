@@ -167,7 +167,7 @@ export default function AproposScreen() {
           <View className="mt-12 px-6">
             <View className="flex-row justify-between items-center mb-8">
               <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-lg">Nos Partenaires</Text>
-              <TouchableOpacity onPress={() => router.push('/annuaire-partenaires')}>
+              <TouchableOpacity onPress={() => router.push({ pathname: '/(tabs)/annuaire', params: { tab: 'ptf' } })}>
                 <Text className="text-brand-orange font-bold text-xs uppercase">Voir tout</Text>
               </TouchableOpacity>
             </View>
