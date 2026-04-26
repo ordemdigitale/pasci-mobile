@@ -100,7 +100,7 @@ const DirectoryModal: React.FC<DirectoryModalProps> = ({ visible, onClose, selec
           <TouchableOpacity
             onPress={() => {
               onClose();
-              router.push('/contact');
+              router.replace('/contact');
             }}
             className="w-10 h-10 bg-gray-100 items-center justify-center rounded-xl"
           >
