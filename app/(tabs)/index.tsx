@@ -5,6 +5,8 @@ import { useRouter } from 'expo-router';
 import { Search, Download, Building2, Mail, Heart, Users, Briefcase } from 'lucide-react-native';
 import CrascMap from '../../components/CrascMap';
 import DirectoryModal from '../../components/DirectoryModal';
+import HeroSlider from '../../components/HeroSlider';
+import HeaderMenu from '../../components/HeaderMenu';
 import { useQuery } from '@tanstack/react-query';
 import { dataService } from '../../services/dataService';
 import { News, PTF, Documentation, KeyStats, Formation } from '../../services/types';
@@ -108,26 +110,21 @@ export default function HomeScreen() {
       {/* Custom Header */}
       <View className="px-6 py-4 bg-white flex-row justify-between items-center shadow-sm">
         <Image source={logo} style={{ width: 50, height: 54 }} resizeMode="contain" />
-        <TouchableOpacity onPress={() => router.push('/recherche')} className="p-2 bg-gray-100 rounded-full">
-          <Search size={20} color="#4b5563" />
-        </TouchableOpacity>
+        <View className="flex-row items-center gap-2">
+          <TouchableOpacity onPress={() => router.push('/recherche')} className="p-2 bg-gray-100 rounded-full">
+            <Search size={20} color="#4b5563" />
+          </TouchableOpacity>
+          <HeaderMenu />
+        </View>
       </View>
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
 
-        {/* HERO SLIDER SECTION */}
-        <View className="px-4 mt-4 mb-6">
-          <View className="bg-white rounded-[32px] overflow-hidden border border-gray-100" style={{ shadowColor: '#000', shadowOpacity: 0.08, shadowOffset: { width: 0, height: 4 }, shadowRadius: 16, elevation: 4 }}>
-            <Image
-              source={heroImage}
-              style={{ width: '100%', height: 200 }}
-              resizeMode="cover"
-            />
-          </View>
-        </View>
+        {/* HERO SLIDER SECTION - ANIMATED */}
+        <HeroSlider />
 
         {/* HERO SECTION */}
-        <View className="px-4">
+        <View className="px-4 mt-4">
           {/* Titre principal */}
           <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-[#2a591d] text-2xl text-center mb-5 leading-8">
             Plateforme Digitale des OSC membres du CRASC (PDOC)
