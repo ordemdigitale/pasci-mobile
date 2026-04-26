@@ -101,7 +101,7 @@ const DirectoryModal: React.FC<DirectoryModalProps> = ({ visible, onClose, selec
             onPress={() => {
               onClose();
               setTimeout(() => {
-                router.push('/contact');
+                router.replace('/contact');
               }, 300);
             }}
             className="w-10 h-10 bg-gray-100 items-center justify-center rounded-xl"
