@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Image, ScrollView, Dimensions, NativeScrollEvent, NativeSyntheticEvent, TouchableOpacity, Text } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 
 const { width } = Dimensions.get('window');
@@ -126,11 +127,17 @@ export default function HeroSlider() {
               style={{ width: '100%', height: 200 }}
               resizeMode="cover"
             />
-            {/* Overlay */}
-            <View className="absolute inset-0 bg-black/70" />
-            
-            {/* Text Overlay */}
-            <View className="absolute inset-0 flex items-center justify-center px-4">
+
+            {/* Gradient Overlay - Bottom to Top */}
+            <LinearGradient
+              colors={['rgba(0, 0, 0, 0.8)', 'rgba(0, 0, 0, 0.4)', 'transparent']}
+              start={{ x: 0.5, y: 1 }}
+              end={{ x: 0.5, y: 0 }}
+              style={{ position: 'absolute', inset: 0 }}
+            />
+
+            {/* Text Content */}
+            <View className="absolute bottom-0 left-0 right-0 px-4 py-6">
               <Text
                 style={{ fontFamily: 'Poppins_700Bold' }}
                 className="text-white text-2xl text-center mb-2"
@@ -139,14 +146,14 @@ export default function HeroSlider() {
               </Text>
               <Text
                 style={{ fontFamily: 'Karla_400Regular' }}
-                className="text-white/80 text-sm text-center mb-4"
+                className="text-white text-sm text-center mb-4"
               >
                 {slide.description}
               </Text>
               {slide.action && (
                 <TouchableOpacity
                   onPress={() => router.push(slide.action!.route)}
-                  className="bg-brand-orange px-6 py-2 rounded-full"
+                  className="bg-brand-orange px-6 py-2 rounded-full self-center"
                 >
                   <Text
                     style={{ fontFamily: 'Poppins_600SemiBold' }}
