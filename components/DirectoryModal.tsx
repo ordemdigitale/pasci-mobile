@@ -97,7 +97,10 @@ const DirectoryModal: React.FC<DirectoryModalProps> = ({ visible, onClose, selec
             <Eye size={14} color="white" />
             <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-white text-[10px] ml-2">Détails</Text>
           </TouchableOpacity>
-          <TouchableOpacity className="w-10 h-10 bg-gray-100 items-center justify-center rounded-xl">
+          <TouchableOpacity
+            onPress={() => router.push('/contact')}
+            className="w-10 h-10 bg-gray-100 items-center justify-center rounded-xl"
+          >
             <Phone size={16} color="#4B5563" />
           </TouchableOpacity>
         </View>
