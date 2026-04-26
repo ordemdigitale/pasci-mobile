@@ -11,6 +11,7 @@ import {
   Target,
   Newspaper,
   ChevronRight,
+  Phone,
 } from 'lucide-react-native';
 import Skeleton from '../../components/ui/Skeleton';
 import { useQuery } from '@tanstack/react-query';
@@ -280,9 +281,14 @@ export default function CrascDetailsScreen() {
           <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-lg" numberOfLines={1}>{data.name}</Text>
           <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-brand-orange text-[10px] font-bold uppercase tracking-widest">Détails du pôle</Text>
         </View>
-        <TouchableOpacity onPress={onShare} className="bg-gray-50 p-2 rounded-full">
-          <Share2 size={20} color="#1F2937" />
-        </TouchableOpacity>
+        <View className="flex-row gap-2">
+          <TouchableOpacity onPress={() => router.push('/contact')} className="bg-gray-50 p-2 rounded-full">
+            <Phone size={20} color="#E05017" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={onShare} className="bg-gray-50 p-2 rounded-full">
+            <Share2 size={20} color="#1F2937" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
