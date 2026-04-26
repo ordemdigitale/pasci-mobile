@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import { Platform } from 'react-native';
-import { Home, Newspaper, Folder, Users, Briefcase, User } from 'lucide-react-native';
+import { Home, Folder, Users, Briefcase, User, Book } from 'lucide-react-native';
 
 export default function TabLayout() {
   return (
@@ -35,20 +35,11 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="projets"
+        name="annuaire"
         options={{
-          title: 'PROJETS',
+          title: 'ANNUAIRE',
           tabBarIcon: ({ color, focused }) => (
-            <Briefcase size={20} color={color} fill={focused ? color : 'transparent'} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="espace-collab"
-        options={{
-          title: 'COLLAB',
-          tabBarIcon: ({ color, focused }) => (
-            <Users size={20} color={color} fill={focused ? color : 'transparent'} />
+            <Book size={20} color={color} fill={focused ? color : 'transparent'} />
           ),
         }}
       />
@@ -62,15 +53,23 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="actualites"
+        name="espace-collab"
         options={{
-          title: 'ACTUS',
+          title: 'COLLAB',
           tabBarIcon: ({ color, focused }) => (
-            <Newspaper size={20} color={color} fill={focused ? color : 'transparent'} />
+            <Users size={20} color={color} fill={focused ? color : 'transparent'} />
           ),
         }}
       />
-      {/* Profil est maintenant accessible via le header des pages principales */}
+      <Tabs.Screen
+        name="projets"
+        options={{
+          title: 'PROJETS',
+          tabBarIcon: ({ color, focused }) => (
+            <Briefcase size={20} color={color} fill={focused ? color : 'transparent'} />
+          ),
+        }}
+      />
       <Tabs.Screen
         name="profil"
         options={{
@@ -83,6 +82,7 @@ export default function TabLayout() {
       {/* Fichiers alias — masqués de la barre d'onglets */}
       <Tabs.Screen name="jobs" options={{ href: null }} />
       <Tabs.Screen name="profile" options={{ href: null }} />
+      <Tabs.Screen name="actualites" options={{ href: null }} />
     </Tabs>
   );
 }

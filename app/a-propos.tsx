@@ -49,7 +49,7 @@ export default function AproposScreen() {
         <TouchableOpacity onPress={() => router.back()} className="mr-4">
           <ChevronLeft size={24} color="#E05017" />
         </TouchableOpacity>
-        <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-lg flex-1 text-center pr-8">À Propos de PASCI</Text>
+        <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-lg flex-1 text-center pr-8">À Propos de PDOC</Text>
       </View>
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
@@ -64,7 +64,7 @@ export default function AproposScreen() {
             <View className="absolute inset-0 bg-black/20" />
             <View className="absolute bottom-8 left-8">
               <Text className="text-white/80 text-[10px] font-bold uppercase tracking-widest mb-1">Impact Côte d'Ivoire</Text>
-              <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-white text-3xl">Le Projet PASCI</Text>
+              <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-white text-3xl">Le Projet PDOC</Text>
             </View>
           </View>
         </View>
@@ -191,7 +191,7 @@ export default function AproposScreen() {
 
         {/* Footer */}
         <Text className="text-center text-gray-300 text-[10px] mb-10 uppercase tracking-widest">
-          PASCI CÔTE D'IVOIRE © 2024 - TOUS DROITS RÉSERVÉS
+          PDOC CÔTE D'IVOIRE © 2024 - TOUS DROITS RÉSERVÉS
         </Text>
       </ScrollView>
     </SafeAreaView>

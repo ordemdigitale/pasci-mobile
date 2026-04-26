@@ -42,7 +42,7 @@ export default function CrascDetailsScreen() {
   const onShare = async () => {
     if (!data) return;
     try {
-      await Share.share({ message: `Découvrez le ${data.name} sur la plateforme PASCI.` });
+      await Share.share({ message: `Découvrez le ${data.name} sur la plateforme PDOC.` });
     } catch (error) {
       console.log(error.message);
     }

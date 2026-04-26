@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, Image, TouchableOpacity, FlatList, Dimensions, Platform, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Search, Download, Building2 } from 'lucide-react-native';
+import { Search, Download, Building2, Mail } from 'lucide-react-native';
 import CrascMap from '../../components/CrascMap';
 import DirectoryModal from '../../components/DirectoryModal';
 import { useQuery } from '@tanstack/react-query';
@@ -37,9 +37,9 @@ export default function HomeScreen() {
   });
 
   const MOCK_STATS: KeyStats[] = [
-    { id: 1, name: 'OSC', number: 3201 },
-    { id: 2, name: 'CRASC', number: 5 },
-    { id: 3, name: 'Régions', number: 33 },
+    { id: 1, name: 'CRASC', number: 5 },
+    { id: 2, name: 'Régions', number: 33 },
+    { id: 3, name: 'OSC', number: 3201 },
     { id: 4, name: 'Projets', number: 120 },
   ];
   const displayStats = keyStats && keyStats.length > 0 ? keyStats : MOCK_STATS;
@@ -156,7 +156,7 @@ export default function HomeScreen() {
             <View className="flex-row justify-between items-center mb-4 px-2">
                 <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-lg text-gray-900">Carte des CRASC</Text>
                 <View className="bg-brand-green/10 px-3 py-1 rounded-full">
-                    <Text className="text-[10px] font-bold text-brand-green">Régional</Text>
+                    <Text className="text-[10px] font-bold text-brand-green">Cliquer sur la carte</Text>
                 </View>
             </View>
             <View className="bg-white rounded-[40px] p-6 shadow-sm border border-gray-100">
@@ -399,6 +399,17 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
         )}
+
+        {/* CONTACT BUTTON */}
+        <View className="px-4 mt-12 mb-6">
+          <TouchableOpacity
+            onPress={() => router.push('/contact')}
+            className="bg-brand-orange py-5 rounded-[24px] flex-row items-center justify-center shadow-lg shadow-orange-300"
+          >
+            <Mail size={20} color="white" />
+            <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-white text-lg ml-3">Nous Contacter</Text>
+          </TouchableOpacity>
+        </View>
 
       </ScrollView>
 

@@ -69,7 +69,7 @@ export default function SplashScreen() {
       >
         <View>
           <View className="bg-orange-50 self-start px-3 py-1 rounded-full mb-4">
-            <Text className="text-brand-orange text-[10px] font-bold uppercase tracking-widest">Bienvenue sur Pasci</Text>
+            <Text className="text-brand-orange text-[10px] font-bold uppercase tracking-widest">Bienvenue sur PDOC</Text>
           </View>
           
           <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-3xl text-gray-900 leading-[42px] mb-4">

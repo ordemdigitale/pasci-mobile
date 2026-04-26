@@ -31,7 +31,7 @@ export default function JobDetailsScreen() {
     if (!job) return;
     try {
       await Share.share({
-        message: `Offre d'emploi : ${job.title} chez ${job.employer} — PASCI`,
+        message: `Offre d'emploi : {{job.title}} — PDOC`,
       });
     } catch (error) {
       console.log(error);

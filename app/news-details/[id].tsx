@@ -41,7 +41,7 @@ export default function NewsDetailsScreen() {
     if (!data) return;
     try {
       await Share.share({
-        message: `${data.title}\n\nRetrouvez cette actualité sur la plateforme PASCI.`,
+        message: `${data.title}\n\nRetrouvez cette actualité sur la plateforme PDOC.`,
       });
     } catch (error) {
       console.log(error.message);

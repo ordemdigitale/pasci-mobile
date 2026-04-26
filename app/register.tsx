@@ -69,7 +69,7 @@ export default function RegisterScreen() {
               Créer votre{"\n"}compte
             </Text>
             <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-400 text-sm mt-2">
-              Rejoignez le réseau PASCI pour bénéficier d'un accompagnement sur mesure.
+              Rejoignez le réseau PDOC pour bénéficier d'un accompagnement sur mesure.
             </Text>
           </View>
 

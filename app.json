@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "PASCI",
-    "slug": "pasci-mobile-Idrys",
-    "scheme": "pasci-mobile",
+    "name": "PDOC",
+    "slug": "pdoc-mobile-Idrys",
+    "scheme": "pdoc-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -22,7 +22,7 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.angel_code.pascimobileIdrys"
+      "package": "com.angel_code.pdocmobileIdrys"
     },
     "web": {
       "favicon": "./assets/favicon.png"
