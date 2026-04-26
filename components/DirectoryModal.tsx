@@ -15,7 +15,6 @@ import {
   ChevronLeft,
   Search,
   Eye,
-  Phone,
 } from 'lucide-react-native';
 import Skeleton from './ui/Skeleton';
 import { useQuery } from '@tanstack/react-query';
@@ -90,23 +89,12 @@ const DirectoryModal: React.FC<DirectoryModalProps> = ({ visible, onClose, selec
         </Text>
 
         <View className="flex-row">
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={() => handleDetailsPress(item.slug)}
             className="flex-row items-center bg-gray-900 px-4 py-2 rounded-xl mr-2"
           >
             <Eye size={14} color="white" />
             <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-white text-[10px] ml-2">Détails</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => {
-              onClose();
-              setTimeout(() => {
-                router.replace('/contact');
-              }, 300);
-            }}
-            className="w-10 h-10 bg-gray-100 items-center justify-center rounded-xl"
-          >
-            <Phone size={16} color="#4B5563" />
           </TouchableOpacity>
         </View>
       </View>
