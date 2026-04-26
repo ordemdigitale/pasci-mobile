@@ -38,6 +38,8 @@ export default function HeroSlider() {
     },
   });
 
+  const displaySlides = heroSlides?.length > 0 ? heroSlides : [];
+
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const contentOffsetX = event.nativeEvent.contentOffset.x;
     const index = Math.round(contentOffsetX / width);
@@ -76,9 +78,7 @@ export default function HeroSlider() {
         clearInterval(autoplayTimer);
       }
     };
-  }, [displaySlides.length]);
-
-  const displaySlides = heroSlides.length > 0 ? heroSlides : [];
+  }, [displaySlides.length, autoplayTimer]);
 
   const handleDotPress = (index: number) => {
     isUserScrolling.current = true;
