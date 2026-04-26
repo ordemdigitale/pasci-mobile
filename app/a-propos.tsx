@@ -148,6 +148,18 @@ export default function AproposScreen() {
               </Text>
             </View>
           ))}
+          
+          {/* Voir tous les CRASC */}
+          <View className="mt-6 mb-6">
+            <TouchableOpacity 
+              onPress={() => router.push({ pathname: '/(tabs)/annuaire', params: { tab: 'crasc' } })}
+              className="bg-brand-orange py-4 rounded-[24px] items-center"
+            >
+              <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-white text-base">
+                Voir tous les CRASC
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Nos Partenaires */}

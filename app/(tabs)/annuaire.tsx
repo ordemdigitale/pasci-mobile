@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, FlatList, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Search, MapPin } from 'lucide-react-native';
 import { useQuery } from '@tanstack/react-query';
 import { dataService } from '../../services/dataService';
@@ -10,7 +10,8 @@ const { width } = Dimensions.get('window');
 
 export default function AnnuaireScreen() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'osc' | 'ptf' | 'crasc'>('osc');
+  const params = useLocalSearchParams();
+  const [activeTab, setActiveTab] = useState<'osc' | 'ptf' | 'crasc'>((params.tab as any) || 'osc');
   const [searchQuery, setSearchQuery] = useState('');
 
   const { data: oscList, isLoading: oscLoading } = useQuery({
