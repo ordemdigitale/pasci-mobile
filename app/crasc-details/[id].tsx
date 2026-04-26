@@ -60,7 +60,7 @@ export default function CrascDetailsScreen() {
   const renderHeader = () => {
     if (!data) return null;
     const regionsList = typeof data.regions === 'string' ? data.regions.split(', ') : data.regions?.map((r: any) => r.name) || [];
-    const count = data.count || data.region_count || 0;
+    const count = regionsList.length || data.count || data.region_count || 0;
     const regionName = data.region_name || data.name || '';
     const oscCount = data.osc_count || oscMembers.length || 0;
 
