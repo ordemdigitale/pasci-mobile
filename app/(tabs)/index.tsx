@@ -120,9 +120,6 @@ export default function HomeScreen() {
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
 
-        {/* HERO SLIDER SECTION - ANIMATED */}
-        <HeroSlider />
-
         {/* HERO SECTION */}
         <View className="px-4 mt-4">
           {/* Titre principal */}
@@ -134,12 +131,10 @@ export default function HomeScreen() {
           <View className="bg-white rounded-[32px] overflow-hidden border border-gray-100"
             style={{ shadowColor: '#000', shadowOpacity: 0.08, shadowOffset: { width: 0, height: 4 }, shadowRadius: 16, elevation: 4 }}
           >
-            {/* Image */}
-            <Image
-              source={heroImage}
-              style={{ width: '100%', height: 200 }}
-              resizeMode="cover"
-            />
+            {/* HERO SLIDER - ANIMATED CAROUSEL */}
+            <View style={{ overflow: 'hidden' }}>
+              <HeroSlider />
+            </View>
             {/* Contenu */}
             <View className="px-6 py-5">
               <Text style={{ fontFamily: 'Poppins_700Bold', fontSize: 15 }} className="text-gray-900 mb-3">
