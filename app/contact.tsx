@@ -39,7 +39,7 @@ export default function ContactScreen() {
         <TouchableOpacity onPress={() => router.back()} className="mr-3 p-1">
           <ArrowLeft size={22} color="#111827" />
         </TouchableOpacity>
-        <Text className="text-lg font-bold text-gray-900" style={{ fontFamily: 'Poppins-Bold' }}>
+        <Text className="text-lg font-bold text-gray-900" style={{ fontFamily: 'Poppins_700Bold' }}>
           Contactez-nous
         </Text>
       </View>
@@ -47,10 +47,10 @@ export default function ContactScreen() {
       <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 40 }}>
         {/* Hero banner */}
         <View className="bg-[#E05017] px-6 py-8">
-          <Text className="text-white text-xl font-bold mb-1" style={{ fontFamily: 'Poppins-Bold' }}>
+          <Text className="text-white text-xl font-bold mb-1" style={{ fontFamily: 'Poppins_700Bold' }}>
             Contactez-nous
           </Text>
-          <Text className="text-orange-100 text-sm" style={{ fontFamily: 'Karla-Regular' }}>
+          <Text className="text-orange-100 text-sm" style={{ fontFamily: 'Karla_400Regular' }}>
             Nous sommes à votre écoute
           </Text>
         </View>
@@ -58,18 +58,18 @@ export default function ContactScreen() {
         <View className="px-4 pt-6 space-y-6">
           {/* Contact Form */}
           <View className="border border-gray-200 rounded-xl p-4 space-y-4">
-            <Text className="text-gray-900 font-bold text-base mb-2" style={{ fontFamily: 'Poppins-SemiBold' }}>
+            <Text className="text-gray-900 font-bold text-base mb-2" style={{ fontFamily: 'Poppins_600SemiBold' }}>
               Envoyez-nous un message
             </Text>
 
             {/* Name */}
             <View>
-              <Text className="text-gray-700 text-sm mb-1" style={{ fontFamily: 'Karla-Regular' }}>
+              <Text className="text-gray-700 text-sm mb-1" style={{ fontFamily: 'Karla_400Regular' }}>
                 Nom complet
               </Text>
               <TextInput
                 className="border border-gray-200 rounded-lg px-4 py-3 text-gray-900 bg-gray-50"
-                style={{ fontFamily: 'Karla-Regular' }}
+                style={{ fontFamily: 'Karla_400Regular' }}
                 placeholder="Votre nom complet"
                 placeholderTextColor="#9ca3af"
                 value={form.name}
@@ -80,12 +80,12 @@ export default function ContactScreen() {
 
             {/* Email */}
             <View>
-              <Text className="text-gray-700 text-sm mb-1" style={{ fontFamily: 'Karla-Regular' }}>
+              <Text className="text-gray-700 text-sm mb-1" style={{ fontFamily: 'Karla_400Regular' }}>
                 Adresse e-mail
               </Text>
               <TextInput
                 className="border border-gray-200 rounded-lg px-4 py-3 text-gray-900 bg-gray-50"
-                style={{ fontFamily: 'Karla-Regular' }}
+                style={{ fontFamily: 'Karla_400Regular' }}
                 placeholder="votre@email.com"
                 placeholderTextColor="#9ca3af"
                 value={form.email}
@@ -97,12 +97,12 @@ export default function ContactScreen() {
 
             {/* Message */}
             <View>
-              <Text className="text-gray-700 text-sm mb-1" style={{ fontFamily: 'Karla-Regular' }}>
+              <Text className="text-gray-700 text-sm mb-1" style={{ fontFamily: 'Karla_400Regular' }}>
                 Message
               </Text>
               <TextInput
                 className="border border-gray-200 rounded-lg px-4 py-3 text-gray-900 bg-gray-50"
-                style={{ fontFamily: 'Karla-Regular', textAlignVertical: 'top' }}
+                style={{ fontFamily: 'Karla_400Regular', textAlignVertical: 'top' }}
                 placeholder="Votre message..."
                 placeholderTextColor="#9ca3af"
                 value={form.message}
@@ -131,7 +131,7 @@ export default function ContactScreen() {
 
           {/* Contact Info */}
           <View className="border border-gray-200 rounded-xl p-4 space-y-5">
-            <Text className="text-gray-900 font-bold text-base mb-2" style={{ fontFamily: 'Poppins-SemiBold' }}>
+            <Text className="text-gray-900 font-bold text-base mb-2" style={{ fontFamily: 'Poppins_600SemiBold' }}>
               Nos coordonnées
             </Text>
 
@@ -142,7 +142,7 @@ export default function ContactScreen() {
               </Text>
               <View className="flex-row items-start gap-3">
                 <MapPin size={18} color="#E05017" style={{ marginTop: 2 }} />
-                <Text className="text-gray-600 text-sm flex-1" style={{ fontFamily: 'Karla-Regular' }}>
+                <Text className="text-gray-600 text-sm flex-1" style={{ fontFamily: 'Karla_400Regular' }}>
                   15, avenue Jean-Mermoz, Cocody Abidjan, Côte d'Ivoire
                 </Text>
               </View>
@@ -158,7 +158,7 @@ export default function ContactScreen() {
                 onPress={() => Linking.openURL('tel:+2252722404720')}
               >
                 <Phone size={18} color="#E05017" style={{ marginTop: 2 }} />
-                <Text className="text-gray-600 text-sm flex-1" style={{ fontFamily: 'Karla-Regular' }}>
+                <Text className="text-gray-600 text-sm flex-1" style={{ fontFamily: 'Karla_400Regular' }}>
                   (+225) 27 22 40 47 20 / 07 08 26 67 68
                 </Text>
               </TouchableOpacity>
@@ -174,7 +174,7 @@ export default function ContactScreen() {
                 onPress={() => Linking.openURL('mailto:contact@plateforme-crasci.org')}
               >
                 <Mail size={18} color="#E05017" style={{ marginTop: 2 }} />
-                <Text className="text-[#E05017] text-sm flex-1" style={{ fontFamily: 'Karla-Regular' }}>
+                <Text className="text-[#E05017] text-sm flex-1" style={{ fontFamily: 'Karla_400Regular' }}>
                   contact@plateforme-crasci.org
                 </Text>
               </TouchableOpacity>
