@@ -183,7 +183,10 @@ export default function AproposScreen() {
 
         {/* Contact Button */}
         <View className="px-6 mt-12 mb-6">
-          <TouchableOpacity className="bg-brand-orange py-5 rounded-[24px] flex-row items-center justify-center shadow-lg shadow-orange-300">
+          <TouchableOpacity 
+            onPress={() => router.push('/contact')}
+            className="bg-brand-orange py-5 rounded-[24px] flex-row items-center justify-center shadow-lg shadow-orange-300"
+          >
             <Mail size={20} color="white" />
             <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-white text-lg ml-3">Nous Contacter</Text>
           </TouchableOpacity>
