@@ -39,7 +39,7 @@ interface HeroSlide {
 export default function HeroSlider() {
   const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [autoplayTimer, setAutoplayTimer] = useState<NodeJS.Timeout | null>(null);
+  const [autoplayTimer, setAutoplayTimer] = useState<ReturnType<typeof setInterval> | null>(null);
   const scrollViewRef = useRef<ScrollView>(null);
   const isUserScrolling = useRef(false);
 
@@ -127,7 +127,7 @@ export default function HeroSlider() {
               resizeMode="cover"
             />
             {/* Overlay */}
-            <View className="absolute inset-0 bg-black/50" />
+            <View className="absolute inset-0 bg-black/70" />
             
             {/* Text Overlay */}
             <View className="absolute inset-0 flex items-center justify-center px-4">
