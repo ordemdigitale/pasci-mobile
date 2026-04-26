@@ -103,6 +103,10 @@ export default function HeroSlider() {
         onScroll={handleScroll}
         scrollEventThrottle={16}
         style={{ width }}
+        nestedScrollEnabled={true}
+        decelerationRate={0}
+        snapToInterval={width}
+        snapToAlignment="center"
         onScrollBeginDrag={() => {
           isUserScrolling.current = true;
           if (autoplayTimer) clearInterval(autoplayTimer);
