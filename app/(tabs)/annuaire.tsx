@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, FlatList, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { Search, MapPin } from 'lucide-react-native';
+import { Search, MapPin, Phone } from 'lucide-react-native';
 import { useQuery } from '@tanstack/react-query';
 import { dataService } from '../../services/dataService';
 import { CRASC_DATA } from '../../constants/crasc';
@@ -106,6 +106,12 @@ export default function AnnuaireScreen() {
                         </View>
                       )}
                     </View>
+                    <TouchableOpacity
+                      onPress={() => router.push('/contact')}
+                      className="ml-2 p-2"
+                    >
+                      <Phone size={18} color="#E05017" />
+                    </TouchableOpacity>
                   </View>
                   {item.description && (
                     <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 text-xs leading-5 mb-3">
