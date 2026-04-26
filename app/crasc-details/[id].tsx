@@ -208,7 +208,11 @@ export default function CrascDetailsScreen() {
             </View>
 
             {/* OSC Items */}
-            {paginatedOscMembers.map((item: any) => renderOscItem({ item }))}
+            {paginatedOscMembers.map((item: any, idx: number) => (
+              <React.Fragment key={item.id || item.slug || idx}>
+                {renderOscItem({ item })}
+              </React.Fragment>
+            ))}
 
             {/* Pagination */}
             {totalPages > 1 && (
