@@ -9,23 +9,35 @@ const FALLBACK_IMAGE = require('../assets/hero-image.png');
 const FALLBACK_SLIDES = [
   {
     id: 1,
-    image_url: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&auto=format&fit=crop',
+    image_url: 'https://api.plateforme-osci.org/static/9057d4a1-531d-4e15-a82c-850215270748.jpeg',
   },
   {
     id: 2,
-    image_url: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&auto=format&fit=crop',
+    image_url: 'https://api.plateforme-osci.org/static/12118406-2ecf-4191-b8e1-32384e93d71f.jpeg',
   },
   {
     id: 3,
-    image_url: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&auto=format&fit=crop',
+    image_url: 'https://api.plateforme-osci.org/static/e2cd0c47-7089-4215-81dc-44f557bfb0c6.jpg',
   },
   {
     id: 4,
-    image_url: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&auto=format&fit=crop',
+    image_url: 'https://api.plateforme-osci.org/static/3432bddc-5ea1-4430-a30a-953af6b1ee8f.jpeg',
   },
   {
     id: 5,
-    image_url: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&auto=format&fit=crop',
+    image_url: 'https://api.plateforme-osci.org/static/1beda0d2-214e-4e7d-be46-901dcac176b9.jpeg',
+  },
+  {
+    id: 6,
+    image_url: 'https://api.plateforme-osci.org/static/dc64e767-c52d-4a92-8194-45ce8a5111be.jpeg',
+  },
+  {
+    id: 7,
+    image_url: 'https://api.plateforme-osci.org/static/b5ea6f5f-5916-4434-b510-2e41472a9626.jpeg',
+  },
+  {
+    id: 8,
+    image_url: 'https://api.plateforme-osci.org/static/9f9cbcf3-b269-4adc-a0e8-e6bdaf9d3a72.jpg',
   },
 ];
 
