@@ -44,36 +44,41 @@ export default function HeroSlider() {
     setCurrentIndex(index);
   };
 
-  const startAutoplay = () => {
+  const startAutoplay = (slidesCount: number) => {
     if (autoplayTimer) {
       clearInterval(autoplayTimer);
     }
+    if (slidesCount === 0) return;
+
     const timer = setInterval(() => {
       setCurrentIndex((prevIndex) => {
-        const nextIndex = (prevIndex + 1) % HERO_SLIDES.length;
-        return nextIndex;
+        return (prevIndex + 1) % slidesCount;
       });
     }, 5000);
     setAutoplayTimer(timer);
   };
 
   useEffect(() => {
-    if (!isUserScrolling.current && scrollViewRef.current) {
+    if (!isUserScrolling.current && scrollViewRef.current && displaySlides.length > 0) {
       scrollViewRef.current.scrollTo({
         x: currentIndex * width,
         animated: true,
       });
     }
-  }, [currentIndex]);
+  }, [currentIndex, displaySlides.length]);
 
   useEffect(() => {
-    startAutoplay();
+    if (displaySlides.length > 0) {
+      startAutoplay(displaySlides.length);
+    }
     return () => {
       if (autoplayTimer) {
         clearInterval(autoplayTimer);
       }
     };
-  }, []);
+  }, [displaySlides.length]);
+
+  const displaySlides = heroSlides.length > 0 ? heroSlides : [];
 
   const handleDotPress = (index: number) => {
     isUserScrolling.current = true;
@@ -81,13 +86,11 @@ export default function HeroSlider() {
     if (autoplayTimer) {
       clearInterval(autoplayTimer);
     }
-    startAutoplay();
+    startAutoplay(displaySlides.length);
     setTimeout(() => {
       isUserScrolling.current = false;
     }, 100);
   };
-
-  const displaySlides = heroSlides.length > 0 ? heroSlides : [];
 
   if (slidesLoading) {
     return (
