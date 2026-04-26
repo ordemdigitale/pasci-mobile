@@ -11,15 +11,10 @@ const { width } = Dimensions.get('window');
 export default function AnnuaireScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const [activeTab, setActiveTab] = useState<'osc' | 'ptf' | 'crasc'>((params.tab as any) || 'osc');
+  const [activeTab, setActiveTab] = useState<'ptf' | 'crasc'>((params.tab as any) || 'crasc');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const { data: oscList, isLoading: oscLoading } = useQuery({
-    queryKey: ['osc-list'],
-    queryFn: () => dataService.getOscList(),
-  });
-
-  const { data: ptfList, isLoading: ptfLoading } = useQuery({
+    const { data: ptfList, isLoading: ptfLoading } = useQuery({
     queryKey: ['ptf-list'],
     queryFn: () => dataService.getPtfList(),
   });
@@ -39,8 +34,7 @@ export default function AnnuaireScreen() {
 
   const getDisplayData = () => {
     let data = [];
-    if (activeTab === 'osc') data = oscList || [];
-    else if (activeTab === 'ptf') data = ptfList || [];
+    if (activeTab === 'ptf') data = ptfList || [];
     else if (activeTab === 'crasc') data = crascList || [];
     
     return data.filter((item: any) => 
@@ -49,7 +43,7 @@ export default function AnnuaireScreen() {
   };
 
   const displayData = getDisplayData();
-  const isLoading = activeTab === 'osc' ? oscLoading : activeTab === 'ptf' ? ptfLoading : crascLoading;
+  const isLoading = activeTab === 'ptf' ? ptfLoading : crascLoading;
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -74,10 +68,10 @@ export default function AnnuaireScreen() {
         {/* Tabs */}
         <View className="px-6 pb-6">
           <View className="bg-gray-100 rounded-2xl p-1 flex-row">
-            {['osc', 'crasc', 'ptf'].map((tab) => (
+            {['crasc', 'ptf'].map((tab) => (
               <TouchableOpacity
                 key={tab}
-                onPress={() => setActiveTab(tab as 'osc' | 'ptf' | 'crasc')}
+                onPress={() => setActiveTab(tab as 'ptf' | 'crasc')}
                 className={`flex-1 py-2 rounded-xl ${
                   activeTab === tab ? 'bg-white' : 'bg-transparent'
                 }`}
@@ -87,7 +81,7 @@ export default function AnnuaireScreen() {
                     activeTab === tab ? 'text-gray-900' : 'text-gray-400'
                   }`}
                 >
-                  {tab === 'osc' ? 'OSC' : tab === 'crasc' ? 'CRASC' : 'Partenaires'}
+                  {tab === 'crasc' ? 'CRASC' : 'Partenaires'}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -105,8 +99,7 @@ export default function AnnuaireScreen() {
               <TouchableOpacity
                 key={idx}
                 onPress={() => {
-                  if (activeTab === 'osc') router.push(`/osc-details/${item.id}`);
-                  else if (activeTab === 'crasc') router.push(`/crasc-details/${item.id}`);
+                  if (activeTab === 'crasc') router.push(`/crasc-details/${item.id}`);
                   else if (activeTab === 'ptf') router.push(`/annuaire-partenaires/${item.id}`);
                 }}
                 className="bg-gray-50 rounded-2xl p-4 mb-3 border border-gray-100"
