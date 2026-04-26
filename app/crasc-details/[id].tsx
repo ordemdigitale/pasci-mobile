@@ -50,23 +50,26 @@ export default function CrascDetailsScreen() {
 
   const renderHeader = () => {
     if (!data) return null;
-    const regionsList = data.regions?.split(', ') || [];
+    const regionsList = typeof data.regions === 'string' ? data.regions.split(', ') : data.regions?.map((r: any) => r.name) || [];
+    const count = data.count || data.region_count || 0;
+    const regionName = data.region_name || data.name || '';
+
     return (
       <View className="mb-4">
         {/* Stats Row */}
         <View className="flex-row justify-between mb-6">
           <View className="bg-blue-50 rounded-3xl p-4 flex-1 items-center mr-2">
             <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-blue-600 text-[9px] uppercase mb-1">Régions</Text>
-            <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-blue-700 text-2xl">{data.count || 0}</Text>
+            <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-blue-700 text-2xl">{count}</Text>
           </View>
           <View className="bg-green-50 rounded-3xl p-4 flex-1 items-center">
             <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-green-600 text-[9px] uppercase mb-1">Zone</Text>
-            <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-green-700 text-base text-center">{data.region_name}</Text>
+            <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-green-700 text-base text-center">{regionName}</Text>
           </View>
         </View>
 
         {/* Régions couvertes */}
-        {regionsList.length > 0 && (
+        {regionsList && regionsList.length > 0 && (
           <View className="bg-white rounded-[28px] p-5 border border-gray-100 shadow-sm mb-4">
             <View className="flex-row items-center mb-4">
               <View className="w-9 h-9 bg-green-100 rounded-xl items-center justify-center mr-3">
@@ -74,10 +77,10 @@ export default function CrascDetailsScreen() {
               </View>
               <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-base">Régions Couvertes</Text>
             </View>
-            {regionsList.map((region, idx) => (
+            {regionsList.map((region: any, idx: number) => (
               <View key={idx} className="flex-row items-center py-2 border-b border-gray-50">
                 <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#22C55E', marginRight: 10 }} />
-                <Text style={{ fontFamily: 'Karla_700Bold' }} className="text-gray-700 text-sm">{region.trim()}</Text>
+                <Text style={{ fontFamily: 'Karla_700Bold' }} className="text-gray-700 text-sm">{typeof region === 'string' ? region.trim() : region}</Text>
               </View>
             ))}
           </View>
@@ -108,7 +111,7 @@ export default function CrascDetailsScreen() {
             <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-base">À Propos</Text>
           </View>
           <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-600 text-sm leading-5">
-            Le {data.title} est un centre régional d'appui à la société civile couvrant {data.count} région{data.count > 1 ? 's' : ''} en Côte d'Ivoire.
+            Le {data.title || data.name} est un centre régional d'appui à la société civile couvrant {count} région{count > 1 ? 's' : ''} en Côte d'Ivoire.
           </Text>
         </View>
       </View>
