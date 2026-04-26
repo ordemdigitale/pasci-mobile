@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, Image, Share, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
@@ -10,6 +10,7 @@ import {
   Calendar,
   Target,
   Newspaper,
+  ChevronRight,
 } from 'lucide-react-native';
 import Skeleton from '../../components/ui/Skeleton';
 import { useQuery } from '@tanstack/react-query';
@@ -24,10 +25,13 @@ const domainesIntervention = [
   'Cohésion sociale',
 ];
 
+const OSC_PER_PAGE = 5;
+
 export default function CrascDetailsScreen() {
   const params = useLocalSearchParams();
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
   const router = useRouter();
+  const [currentPage, setCurrentPage] = useState(1);
 
   const { data: apiData, isLoading } = useQuery({
     queryKey: ['crasc-details', id],
@@ -38,6 +42,10 @@ export default function CrascDetailsScreen() {
   const localData = CRASC_DATA.find(c => c.id === id);
   const data = apiData || localData;
   const oscMembers = apiData?.oscs || [];
+  const totalPages = Math.ceil(oscMembers.length / OSC_PER_PAGE);
+  const startIdx = (currentPage - 1) * OSC_PER_PAGE;
+  const endIdx = startIdx + OSC_PER_PAGE;
+  const paginatedOscMembers = oscMembers.slice(startIdx, endIdx);
 
   const onShare = async () => {
     if (!data) return;
@@ -170,7 +178,40 @@ export default function CrascDetailsScreen() {
                 </Text>
               </View>
             </View>
-            {oscMembers.map((item: any) => renderOscItem({ item }))}
+
+            {/* OSC Items */}
+            {paginatedOscMembers.map((item: any) => renderOscItem({ item }))}
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <View className="flex-row items-center justify-between mt-6 px-2">
+                <TouchableOpacity
+                  onPress={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  disabled={currentPage === 1}
+                  className={`flex-row items-center px-4 py-2 rounded-lg ${currentPage === 1 ? 'bg-gray-100' : 'bg-brand-orange'}`}
+                >
+                  <ChevronLeft size={18} color={currentPage === 1 ? '#9CA3AF' : 'white'} />
+                  <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className={`text-sm ml-1 ${currentPage === 1 ? 'text-gray-400' : 'text-white'}`}>
+                    Précédent
+                  </Text>
+                </TouchableOpacity>
+
+                <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-gray-600 text-sm">
+                  Page {currentPage} / {totalPages}
+                </Text>
+
+                <TouchableOpacity
+                  onPress={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                  disabled={currentPage === totalPages}
+                  className={`flex-row items-center px-4 py-2 rounded-lg ${currentPage === totalPages ? 'bg-gray-100' : 'bg-brand-orange'}`}
+                >
+                  <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className={`text-sm mr-1 ${currentPage === totalPages ? 'text-gray-400' : 'text-white'}`}>
+                    Suivant
+                  </Text>
+                  <ChevronRight size={18} color={currentPage === totalPages ? '#9CA3AF' : 'white'} />
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         )}
 
