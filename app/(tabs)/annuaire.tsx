@@ -100,7 +100,12 @@ export default function AnnuaireScreen() {
                 key={idx}
                 onPress={() => {
                   if (activeTab === 'crasc') router.push(`/crasc-details/${item.id}`);
-                  else if (activeTab === 'ptf') router.push(`/annuaire-partenaires/${item.id}`);
+                  else if (activeTab === 'ptf') {
+                    router.push({ 
+                      pathname: `/annuaire-partenaires/${item.id}`,
+                      params: { partner: JSON.stringify(item) }
+                    });
+                  }
                 }}
                 className="bg-gray-50 rounded-2xl p-4 mb-3 border border-gray-100"
               >

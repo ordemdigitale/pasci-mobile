@@ -18,15 +18,21 @@ import { useQuery } from '@tanstack/react-query';
 import { dataService } from '../../services/dataService';
 
 export default function PartnerDetailsScreen() {
-  const { id } = useLocalSearchParams();
+  const { id, partner } = useLocalSearchParams();
   const router = useRouter();
   const slug = id as string;
 
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ['ptf', slug],
-    queryFn: () => dataService.getPtfBySlug(slug),
-    enabled: !!slug,
-  });
+  let data = null;
+  let isLoading = false;
+  let isError = false;
+
+  if (partner) {
+    try {
+      data = JSON.parse(partner as string);
+    } catch (e) {
+      isError = true;
+    }
+  }
 
   const onShare = async () => {
     if (!data) return;
