@@ -94,28 +94,61 @@ export default function AnnuaireScreen() {
             <Text className="text-center text-gray-400">Chargement...</Text>
           ) : displayData.length === 0 ? (
             <Text className="text-center text-gray-400">Aucun résultat trouvé</Text>
+          ) : activeTab === 'crasc' ? (
+            <View>
+              {displayData.map((item: any, idx: number) => (
+                <TouchableOpacity
+                  key={idx}
+                  onPress={() => router.push(`/crasc-details/${item.id}`)}
+                  className="bg-white rounded-2xl p-6 mb-4 border border-gray-100 shadow-sm"
+                >
+                  <View className="flex-row items-start justify-between mb-3">
+                    <View className="flex-1">
+                      <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-lg mb-2">
+                        {item.name}
+                      </Text>
+                      {item.region_name && (
+                        <View className="flex-row items-center">
+                          <MapPin size={14} color="#E05017" />
+                          <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-600 text-sm ml-1">
+                            {item.region_name}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                  </View>
+                  {item.description && (
+                    <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 text-xs leading-5 mb-3">
+                      {item.description}
+                    </Text>
+                  )}
+                  <TouchableOpacity className="bg-orange-50 py-2 rounded-lg items-center">
+                    <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-brand-orange text-xs">
+                      Voir les détails
+                    </Text>
+                  </TouchableOpacity>
+                </TouchableOpacity>
+              ))}
+            </View>
           ) : (
             displayData.map((item: any, idx: number) => (
               <TouchableOpacity
                 key={idx}
                 onPress={() => {
-                  if (activeTab === 'crasc') router.push(`/crasc-details/${item.id}`);
-                  else if (activeTab === 'ptf') {
-                    router.push({ 
-                      pathname: `/annuaire-partenaires/${item.id}`,
-                      params: { partner: JSON.stringify(item) }
-                    });
-                  }
+                  router.push({ 
+                    pathname: `/annuaire-partenaires/${item.id}`,
+                    params: { partner: JSON.stringify(item) }
+                  });
                 }}
                 className="bg-gray-50 rounded-2xl p-4 mb-3 border border-gray-100"
               >
                 <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-gray-900">
                   {item.name}
                 </Text>
-                {item.region_name && (
+                {item.pays && (
                   <View className="flex-row items-center mt-2">
                     <MapPin size={14} color="#9CA3AF" />
-                    <Text className="text-gray-400 text-sm ml-1">{item.region_name}</Text>
+                    <Text className="text-gray-400 text-sm ml-1">{item.pays}</Text>
                   </View>
                 )}
               </TouchableOpacity>
