@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, Image, TouchableOpacity, FlatList, Dimensions, Platform, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Search, Download, Building2, Mail } from 'lucide-react-native';
+import { Search, Download, Building2, Mail, Heart, Users, Briefcase } from 'lucide-react-native';
 import CrascMap from '../../components/CrascMap';
 import DirectoryModal from '../../components/DirectoryModal';
 import { useQuery } from '@tanstack/react-query';
@@ -420,6 +420,50 @@ export default function HomeScreen() {
             <Mail size={20} color="white" />
             <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-white text-lg ml-3">Nous Contacter</Text>
           </TouchableOpacity>
+        </View>
+
+        {/* AUTRES SERVICES */}
+        <View className="mt-10 px-4 mb-6">
+          <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-lg mb-4">
+            Autres Services
+          </Text>
+          <View className="flex-row justify-between">
+            <TouchableOpacity
+              onPress={() => router.push('/services')}
+              className="flex-1 bg-white rounded-[24px] p-4 items-center mr-2 border border-gray-100 shadow-sm"
+            >
+              <View className="bg-blue-100 w-12 h-12 rounded-full items-center justify-center mb-2">
+                <Briefcase size={24} color="#2563EB" />
+              </View>
+              <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-gray-900 text-xs text-center">
+                Services
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => router.push('/faire-un-don')}
+              className="flex-1 bg-white rounded-[24px] p-4 items-center mx-1 border border-gray-100 shadow-sm"
+            >
+              <View className="bg-red-100 w-12 h-12 rounded-full items-center justify-center mb-2">
+                <Heart size={24} color="#DC2626" />
+              </View>
+              <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-gray-900 text-xs text-center">
+                Faire un don
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => router.push('/etre-volontaire')}
+              className="flex-1 bg-white rounded-[24px] p-4 items-center ml-2 border border-gray-100 shadow-sm"
+            >
+              <View className="bg-green-100 w-12 h-12 rounded-full items-center justify-center mb-2">
+                <Users size={24} color="#16A34A" />
+              </View>
+              <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-gray-900 text-xs text-center">
+                Bénévolat
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
       </ScrollView>

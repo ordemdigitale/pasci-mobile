@@ -1,153 +1,120 @@
-import React from 'react';
-import { View, Text, FlatList, TouchableOpacity, Image, TextInput, Dimensions } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { Search, ChevronLeft } from 'lucide-react-native';
+import { useRouter, Stack } from 'expo-router';
+import { ChevronLeft, CheckCircle } from 'lucide-react-native';
+import { useQuery } from '@tanstack/react-query';
+import { dataService } from '../services/dataService';
 
-const { width } = Dimensions.get('window');
-const COLUMN_WIDTH = (width - 60) / 2;
-
-// Service Icons
-const iconAppui = require('../assets/icons/icon-appui-conseil.png');
-const iconAccompagnement = require('../assets/icons/icon-accompagnement.png');
-const iconAdmin = require('../assets/icons/icon-soutien-administratif.png');
-const iconRedaction = require('../assets/icons/icon-redaction.png');
-const iconFormation = require('../assets/icons/icon-formation.png');
-const iconSuivi = require('../assets/icons/icon-suivi-evaluation.png');
-
-const SERVICES_DATA = [
-  {
-    id: '1',
-    title: 'Appui-Conseil',
-    description: 'Des conseils stratégiques pour des décisions éclairées et une croissance durable.',
-    longDescription: "Dans le cadre des appuis et conseils, le CERAP organisé une tournée d'explication sur processus de soumission et les conditions d'éligibilité aux microfinancements et aux subventions. À cette occasion, les équipes ont mis l’accent sur les erreurs à éviter.",
-    icon: iconAppui,
-    color: '#E0EEFF',
-  },
-  {
-    id: '2',
-    title: 'Accompagnement',
-    description: 'Un soutien personnalisé à chaque étape de la mise en œuvre de vos projets.',
-    longDescription: "L'accompagnement de PASCI va au-delà du simple conseil. Nous marchons à vos côtés pour la mise en œuvre concrète de vos plans d'action. Cet accompagnement peut prendre la forme de coaching d'équipes, de renforcement des capacités, de mentorat pour les leaders ou de gestion déléguée de certaines fonctions clés. Notre objectif est de transférer des compétences et de garantir l'autonomie de vos structures à long terme.",
-    icon: iconAccompagnement,
-    color: '#E0FBEA',
-  },
-  {
-    id: '3',
-    title: 'Soutien Administratif',
-    description: 'Formalisation et mise en conformité pour une structure solide et transparente.',
-    longDescription: 'Nous vous assistons dans la formalisation de vos statuts, la rédaction de vos règlements intérieurs et la mise en conformité avec les exigences légales et réglementaires. Notre objectif est de structurer votre organisation pour qu\'elle opère en toute légalité et efficacité, en minimisant les risques.',
-    icon: iconAdmin,
-    color: '#FFF4E0',
-  },
-  {
-    id: '4',
-    title: 'Rédaction',
-    description: 'Rédaction de documents professionnels : statuts, règlements, projets, manuels.',
-    longDescription: 'Qu’il s’agisse de rapports, de notes de synthèse ou de propositions de projets, notre équipe rédige des documents professionnels qui captent l’attention de vos partenaires.',
-    icon: iconRedaction,
-    color: '#FFF0F0',
-  },
-  {
-    id: '5',
-    title: 'Formation',
-    description: "Un processus d'apprentissage structuré qui permet à un individu ou à un groupe d'acquérir des connaissances.",
-    longDescription: "En s'appuyant sur une démarche structurée, ce type d'apprentissage permet non seulement de transmettre des connaissances, mais aussi de développer l'esprit critique, l'autonomie et la capacité à appliquer les acquis dans des contextes réels. Il favorise également l'apprentissage collectif, en encourageant le partage d'expériences et la collaboration entre les participants.",
-    icon: iconFormation,
-    color: '#F3E8FF',
-  },
-  {
-    id: '6',
-    title: 'Suivi-Évaluation',
-    description: "Mise en place d'outils et d'indicateurs de performance pour mesurer l’avancement et l’impact des actions menées.",
-    longDescription: "Au-delà de la mesure, le suivi-évaluation constitue un véritable outil d'aide à la décision. Il permet d'ajuster les stratégies en temps réel, d'optimiser l'utilisation des ressources et de renforcer l'impact des interventions. En assurant une traçabilité des résultats et une évaluation rigoureuse des effets produits, ce service contribue à la transparence, à la redevabilité et à l'amélioration continue des actions menées.",
-    icon: iconSuivi,
-    color: '#E0F7F7',
-  },
-];
+const logo = require('../assets/logo.png');
 
 export default function ServicesScreen() {
   const router = useRouter();
-  const [searchQuery, setSearchQuery] = React.useState('');
 
-  const filteredServices = SERVICES_DATA.filter(service => 
-    service.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    service.description.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const { data: services } = useQuery({
+    queryKey: ['services'],
+    queryFn: () => dataService.getServices?.() || Promise.resolve([]),
+  });
 
-  const renderServiceItem = ({ item }) => (
-    <View 
-      className="bg-white rounded-[32px] p-6 mb-6 border border-gray-100 shadow-sm shadow-gray-200 elevation-2"
-    >
-      <View className="flex-row items-center mb-4">
-        <View style={{ backgroundColor: item.color }} className="w-16 h-16 rounded-[20px] items-center justify-center mr-4">
-          <Image source={item.icon} style={{ width: 32, height: 32 }} resizeMode="contain" />
-        </View>
-        <View className="flex-1">
-          <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-lg leading-6">
-            {item.title}
-          </Text>
-        </View>
-      </View>
-      
-      <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-gray-900 text-[13px] mb-3 leading-5">
-        {item.description}
-      </Text>
-      
-      <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 text-sm leading-6">
-        {item.longDescription}
-      </Text>
-    </View>
-  );
+  const defaultServices = [
+    {
+      id: 1,
+      title: 'Appui-Conseil',
+      description: 'Bénéficiez d\'un accompagnement personnalisé pour développer votre organisation',
+      features: ['Diagnostic stratégique', 'Plan de développement', 'Suivi régulier']
+    },
+    {
+      id: 2,
+      title: 'Renforcement des Capacités',
+      description: 'Améliorez les compétences de votre équipe avec nos formations spécialisées',
+      features: ['Formations sur mesure', 'Ateliers pratiques', 'Mentorat']
+    },
+    {
+      id: 3,
+      title: 'Ressources Documentaires',
+      description: 'Accédez à une bibliothèque complète de documents et guides utiles',
+      features: ['Templates', 'Guides pratiques', 'Cas d\'étude']
+    },
+    {
+      id: 4,
+      title: 'Mise en Réseau',
+      description: 'Connectez-vous avec d\'autres organisations et partenaires',
+      features: ['Réseautage', 'Collaborations', 'Partenariats']
+    },
+  ];
 
-  const renderHeader = () => (
-    <View>
-      {/* Search bar */}
-      <View className="bg-gray-100 flex-row items-center px-4 py-3 rounded-2xl mb-8">
-        <Search size={20} color="#9CA3AF" />
-        <TextInput
-          placeholder="Rechercher un service..."
-          className="flex-1 ml-3 font-bold text-gray-700"
-          placeholderTextColor="#9CA3AF"
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-      </View>
-
-      {/* Titles */}
-      <View className="mb-8">
-        <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-brand-orange text-[10px] uppercase tracking-[2px] mb-2">
-          NOS EXPERTISES
-        </Text>
-        <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-3xl leading-9">
-          Des Services Stratégiques
-        </Text>
-        <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 text-sm mt-2">
-          Au CRASC, nous vous offrons un accompagnement sur mesure pour garantir la conformité et l'efficacité de vos initiatives.
-        </Text>
-      </View>
-    </View>
-  );
+  const displayServices = services && services.length > 0 ? services : defaultServices;
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      {/* Custom Bar Header */}
+      <Stack.Screen options={{ headerShown: false }} />
+
+      {/* Header */}
       <View className="px-6 py-4 flex-row items-center bg-white border-b border-gray-50">
-        <TouchableOpacity onPress={() => router.back()} className="p-2 -ml-2">
+        <TouchableOpacity onPress={() => router.back()} className="mr-4">
           <ChevronLeft size={24} color="#E05017" />
         </TouchableOpacity>
-        <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-lg text-gray-900 flex-1 text-center pr-8">Catalogue des Services</Text>
+        <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-lg flex-1">
+          Nos Services
+        </Text>
       </View>
 
-      <FlatList
-        data={filteredServices}
-        renderItem={renderServiceItem}
-        keyExtractor={(item, index) => index.toString()}
-        numColumns={1}
-        contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 20, paddingBottom: 40 }}
-        showsVerticalScrollIndicator={false}
-        ListHeaderComponent={renderHeader}
-      />
+      <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
+        {/* Hero Section */}
+        <View className="px-6 pt-6 pb-4">
+          <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-2xl text-gray-900 mb-2">
+            Services Stratégiques PDOC
+          </Text>
+          <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 text-sm">
+            Des accompagnements adaptés à vos besoins pour renforcer votre organisation
+          </Text>
+        </View>
+
+        {/* Services List */}
+        <View className="px-6 pb-6">
+          {displayServices.map((service: any) => (
+            <View key={service.id} className="bg-gray-50 rounded-[32px] p-6 mb-4 border border-gray-100">
+              <View className="flex-row items-center mb-3">
+                <View className="bg-brand-orange/10 w-10 h-10 rounded-full items-center justify-center mr-3">
+                  <CheckCircle size={20} color="#E05017" />
+                </View>
+                <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-base flex-1">
+                  {service.title}
+                </Text>
+              </View>
+              
+              <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-600 text-sm leading-5 mb-4">
+                {service.description}
+              </Text>
+
+              {(service.features || []).length > 0 && (
+                <View className="bg-white rounded-xl p-3">
+                  {service.features.map((feature: string, idx: number) => (
+                    <View key={idx} className="flex-row items-center mb-2">
+                      <View className="w-1.5 h-1.5 rounded-full bg-brand-orange mr-2" />
+                      <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-600 text-xs">
+                        {feature}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
+          ))}
+        </View>
+
+        {/* CTA Section */}
+        <View className="px-6 pb-6">
+          <TouchableOpacity
+            onPress={() => router.push('/contact')}
+            className="bg-brand-orange py-4 rounded-[24px] flex-row items-center justify-center shadow-lg"
+          >
+            <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-white text-base">
+              Nous Contacter
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }

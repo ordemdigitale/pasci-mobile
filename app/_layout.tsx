@@ -62,6 +62,9 @@ export default function RootLayout() {
             <Stack.Screen name="login" />
             <Stack.Screen name="register" />
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="services" />
+            <Stack.Screen name="faire-un-don" />
+            <Stack.Screen name="etre-volontaire" />
           </Stack>
         </KeyboardAvoidingView>
       </SafeAreaProvider>
