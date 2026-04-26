@@ -22,10 +22,58 @@ export default function AnnuaireScreen() {
     queryKey: ['ptf-list'],
     queryFn: () => dataService.getPtfList(),
   });
-
-  const { data: crascList, isLoading: crascLoading } = useQuery({
-    queryKey: ['crasc-list'],
-    queryFn: () => dataService.getCrascList?.(),
+  const { data: crascList = [], isLoading: crascLoading } = useQuery({
+    queryKey: ["crasc-list"],
+    queryFn: async () => {
+      try {
+        if (dataService.getCrascList) {
+          return await dataService.getCrascList();
+        }
+        return [];
+      } catch {
+        return [];
+      }
+    },
+  });
+  const { data: crascList = [], isLoading: crascLoading } = useQuery({
+    queryKey: ["crasc-list"],
+    queryFn: async () => {
+      try {
+        if (dataService.getCrascList) {
+          return await dataService.getCrascList();
+        }
+        return [];
+      } catch {
+        return [];
+      }
+    },
+  });
+  const { data: crascList = [], isLoading: crascLoading } = useQuery({
+    queryKey: ["crasc-list"],
+    queryFn: async () => {
+      try {
+        if (dataService.getCrascList) {
+          return await dataService.getCrascList();
+        }
+        return [];
+      } catch {
+        return [];
+      }
+    },
+  });
+  const { data: crascList = [], isLoading: crascLoading } = useQuery({
+    queryKey: ["crasc-list"],
+    queryFn: async () => {
+      try {
+        if (dataService.getCrascList) {
+          return await dataService.getCrascList();
+        }
+        return [];
+      } catch {
+        return [];
+      }
+    },
+  });
   });
 
   const getDisplayData = () => {
