@@ -305,7 +305,7 @@ export default function CrascDetailsScreen() {
         </TouchableOpacity>
         <View className="items-center">
           <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-lg" numberOfLines={1}>{data.name}</Text>
-          <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-brand-orange text-[10px] font-bold uppercase tracking-widest">Détails du pôle</Text>
+          <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-brand-orange text-[10px] font-bold uppercase tracking-widest">Détails</Text>
         </View>
         <View className="flex-row gap-2">
           <TouchableOpacity onPress={() => router.push('/contact')} className="bg-gray-50 p-2 rounded-full">

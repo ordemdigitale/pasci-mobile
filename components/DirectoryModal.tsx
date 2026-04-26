@@ -136,7 +136,7 @@ const DirectoryModal: React.FC<DirectoryModalProps> = ({ visible, onClose, selec
           {selectedRegion ? `Résultats pour ${selectedRegion}` : 'Tous les CRASC'}
         </Text>
         {!isLoading && (
-          <Text className="text-brand-orange font-bold text-xs">{filteredCrascs.length} pôle{filteredCrascs.length !== 1 ? 's' : ''}</Text>
+          <Text className="text-brand-orange font-bold text-xs">{filteredCrascs.length} zone{filteredCrascs.length !== 1 ? 's' : ''}</Text>
         )}
       </View>
     </View>
