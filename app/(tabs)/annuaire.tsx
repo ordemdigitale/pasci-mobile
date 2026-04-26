@@ -5,6 +5,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Search, MapPin } from 'lucide-react-native';
 import { useQuery } from '@tanstack/react-query';
 import { dataService } from '../../services/dataService';
+import { CRASC_DATA } from '../../constants/crasc';
 
 const { width } = Dimensions.get('window');
 
@@ -18,16 +19,8 @@ export default function AnnuaireScreen() {
     queryKey: ['ptf-list'],
     queryFn: () => dataService.getPtfList(),
   });
-  const { data: crascList = [], isLoading: crascLoading } = useQuery({
-    queryKey: ["crasc-list"],
-    queryFn: async () => {
-      try {
-        return await dataService.getCrascs();
-      } catch {
-        return [];
-      }
-    },
-  });
+  const crascList = CRASC_DATA;
+  const crascLoading = false;
 
   const getDisplayData = () => {
     let data = [];
