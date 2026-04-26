@@ -192,7 +192,7 @@ export default function EspaceCollabScreen() {
           className={`flex-1 py-3 rounded-[20px] items-center ${activeTab === 'Pôles' ? 'bg-white shadow-sm' : ''}`}
         >
           <Text style={{ fontFamily: 'Poppins_700Bold' }} className={`text-xs ${activeTab === 'Pôles' ? 'text-gray-900' : 'text-gray-400'}`}>
-            Pôles CRASC
+            Pôles de concertation
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -209,7 +209,7 @@ export default function EspaceCollabScreen() {
       <View className="bg-white flex-row items-center px-4 py-3 rounded-2xl border border-gray-100 mb-6 shadow-sm">
         <Search size={20} color="#9CA3AF" />
         <TextInput
-          placeholder={activeTab === 'Pôles' ? "Rechercher un pôle CRASC..." : "Poste, employeur ou ville..."}
+          placeholder={activeTab === 'Pôles' ? "Rechercher un pôle..." : "Poste, employeur ou ville..."}
           className="flex-1 ml-3 font-bold text-gray-700"
           placeholderTextColor="#9CA3AF"
           value={searchQuery}
