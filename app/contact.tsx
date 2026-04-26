@@ -14,12 +14,18 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, MapPin, Phone, Mail, Facebook, Linkedin } from 'lucide-react-native';
 
 export default function ContactScreen() {
-  const [form, setForm] = useState({ name: '', email: '', message: '' });
+  const [form, setForm] = useState({ 
+    name: '', 
+    email: '', 
+    phone: '',
+    subject: '',
+    message: '' 
+  });
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
-    if (!form.name.trim() || !form.email.trim() || !form.message.trim()) {
-      Alert.alert('Champs requis', 'Veuillez remplir tous les champs.');
+    if (!form.name.trim() || !form.email.trim() || !form.subject.trim() || !form.message.trim()) {
+      Alert.alert('Champs requis', 'Veuillez remplir tous les champs obligatoires (marqués *).');
       return;
     }
 
@@ -27,7 +33,7 @@ export default function ContactScreen() {
     // TODO: remplacer par un vrai endpoint API quand disponible
     setTimeout(() => {
       setLoading(false);
-      setForm({ name: '', email: '', message: '' });
+      setForm({ name: '', email: '', phone: '', subject: '', message: '' });
       Alert.alert('Message envoyé !', 'Votre message a bien été envoyé. Nous vous répondrons dans les plus brefs délais.');
     }, 1000);
   };
@@ -46,7 +52,7 @@ export default function ContactScreen() {
 
       <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 40 }}>
         {/* Hero banner */}
-        <View className="bg-[#E05017] px-6 py-8">
+        <View className="bg-brand-orange px-6 py-8">
           <Text className="text-white text-xl font-bold mb-1" style={{ fontFamily: 'Poppins_700Bold' }}>
             Contactez-nous
           </Text>
@@ -55,23 +61,66 @@ export default function ContactScreen() {
           </Text>
         </View>
 
-        <View className="px-4 pt-6 space-y-6">
+        <View className="px-6 pt-6">
+          {/* Contact Info Section */}
+          <View className="bg-gray-50 rounded-2xl p-6 mb-8">
+            <Text className="text-gray-900 font-bold text-base mb-4" style={{ fontFamily: 'Poppins_700Bold' }}>
+              Nos coordonnées
+            </Text>
+            
+            <TouchableOpacity className="flex-row items-start mb-4">
+              <Mail size={20} color="#E05017" style={{ marginRight: 12, marginTop: 2 }} />
+              <View className="flex-1">
+                <Text className="text-gray-600 text-xs mb-1" style={{ fontFamily: 'Karla_400Regular' }}>
+                  Email
+                </Text>
+                <Text className="text-brand-orange font-bold" style={{ fontFamily: 'Karla_400Regular' }}>
+                  contact@pdoc.org
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity className="flex-row items-start mb-4">
+              <Phone size={20} color="#E05017" style={{ marginRight: 12, marginTop: 2 }} />
+              <View className="flex-1">
+                <Text className="text-gray-600 text-xs mb-1" style={{ fontFamily: 'Karla_400Regular' }}>
+                  Téléphone
+                </Text>
+                <Text className="text-brand-orange font-bold" style={{ fontFamily: 'Karla_400Regular' }}>
+                  +225 XX XX XX XX
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity className="flex-row items-start">
+              <MapPin size={20} color="#E05017" style={{ marginRight: 12, marginTop: 2 }} />
+              <View className="flex-1">
+                <Text className="text-gray-600 text-xs mb-1" style={{ fontFamily: 'Karla_400Regular' }}>
+                  Adresse
+                </Text>
+                <Text className="text-gray-700 font-bold text-sm" style={{ fontFamily: 'Karla_400Regular' }}>
+                  Abidjan, Côte d'Ivoire
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+
           {/* Contact Form */}
-          <View className="border border-gray-200 rounded-xl p-4 space-y-4">
-            <Text className="text-gray-900 font-bold text-base mb-2" style={{ fontFamily: 'Poppins_600SemiBold' }}>
+          <View className="border border-gray-200 rounded-2xl p-6 mb-6">
+            <Text className="text-gray-900 font-bold text-base mb-6" style={{ fontFamily: 'Poppins_700Bold' }}>
               Envoyez-nous un message
             </Text>
 
             {/* Name */}
-            <View>
-              <Text className="text-gray-700 text-sm mb-1" style={{ fontFamily: 'Karla_400Regular' }}>
-                Nom complet
+            <View className="mb-5">
+              <Text className="text-gray-700 text-sm mb-2 font-bold" style={{ fontFamily: 'Poppins_600SemiBold' }}>
+                Nom complet *
               </Text>
               <TextInput
-                className="border border-gray-200 rounded-lg px-4 py-3 text-gray-900 bg-gray-50"
+                className="border border-gray-300 rounded-lg px-4 py-3 text-gray-900 bg-white"
                 style={{ fontFamily: 'Karla_400Regular' }}
                 placeholder="Votre nom complet"
-                placeholderTextColor="#9ca3af"
+                placeholderTextColor="#d1d5db"
                 value={form.name}
                 onChangeText={(v) => setForm((p) => ({ ...p, name: v }))}
                 autoCapitalize="words"
@@ -79,15 +128,15 @@ export default function ContactScreen() {
             </View>
 
             {/* Email */}
-            <View>
-              <Text className="text-gray-700 text-sm mb-1" style={{ fontFamily: 'Karla_400Regular' }}>
-                Adresse e-mail
+            <View className="mb-5">
+              <Text className="text-gray-700 text-sm mb-2 font-bold" style={{ fontFamily: 'Poppins_600SemiBold' }}>
+                Adresse e-mail *
               </Text>
               <TextInput
-                className="border border-gray-200 rounded-lg px-4 py-3 text-gray-900 bg-gray-50"
+                className="border border-gray-300 rounded-lg px-4 py-3 text-gray-900 bg-white"
                 style={{ fontFamily: 'Karla_400Regular' }}
                 placeholder="votre@email.com"
-                placeholderTextColor="#9ca3af"
+                placeholderTextColor="#d1d5db"
                 value={form.email}
                 onChangeText={(v) => setForm((p) => ({ ...p, email: v }))}
                 keyboardType="email-address"
@@ -95,16 +144,47 @@ export default function ContactScreen() {
               />
             </View>
 
-            {/* Message */}
-            <View>
-              <Text className="text-gray-700 text-sm mb-1" style={{ fontFamily: 'Karla_400Regular' }}>
-                Message
+            {/* Phone */}
+            <View className="mb-5">
+              <Text className="text-gray-700 text-sm mb-2 font-bold" style={{ fontFamily: 'Poppins_600SemiBold' }}>
+                Téléphone
               </Text>
               <TextInput
-                className="border border-gray-200 rounded-lg px-4 py-3 text-gray-900 bg-gray-50"
+                className="border border-gray-300 rounded-lg px-4 py-3 text-gray-900 bg-white"
+                style={{ fontFamily: 'Karla_400Regular' }}
+                placeholder="+225 XX XX XX XX"
+                placeholderTextColor="#d1d5db"
+                value={form.phone}
+                onChangeText={(v) => setForm((p) => ({ ...p, phone: v }))}
+                keyboardType="phone-pad"
+              />
+            </View>
+
+            {/* Subject */}
+            <View className="mb-5">
+              <Text className="text-gray-700 text-sm mb-2 font-bold" style={{ fontFamily: 'Poppins_600SemiBold' }}>
+                Objet du message *
+              </Text>
+              <TextInput
+                className="border border-gray-300 rounded-lg px-4 py-3 text-gray-900 bg-white"
+                style={{ fontFamily: 'Karla_400Regular' }}
+                placeholder="Sujet de votre demande"
+                placeholderTextColor="#d1d5db"
+                value={form.subject}
+                onChangeText={(v) => setForm((p) => ({ ...p, subject: v }))}
+              />
+            </View>
+
+            {/* Message */}
+            <View className="mb-6">
+              <Text className="text-gray-700 text-sm mb-2 font-bold" style={{ fontFamily: 'Poppins_600SemiBold' }}>
+                Message *
+              </Text>
+              <TextInput
+                className="border border-gray-300 rounded-lg px-4 py-3 text-gray-900 bg-white"
                 style={{ fontFamily: 'Karla_400Regular', textAlignVertical: 'top' }}
                 placeholder="Votre message..."
-                placeholderTextColor="#9ca3af"
+                placeholderTextColor="#d1d5db"
                 value={form.message}
                 onChangeText={(v) => setForm((p) => ({ ...p, message: v }))}
                 multiline
@@ -112,97 +192,26 @@ export default function ContactScreen() {
               />
             </View>
 
-            {/* Submit */}
+            {/* Submit Button */}
             <TouchableOpacity
-              className="bg-[#E05017] rounded-lg py-4 items-center mt-2"
               onPress={handleSubmit}
               disabled={loading}
-              activeOpacity={0.85}
+              className="bg-brand-orange py-4 rounded-lg items-center"
             >
               {loading ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color="white" />
               ) : (
-                <Text className="text-white font-bold text-sm" style={{ fontFamily: 'Karla-Bold' }}>
+                <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-white font-bold text-base">
                   Envoyer le message
                 </Text>
               )}
             </TouchableOpacity>
           </View>
 
-          {/* Contact Info */}
-          <View className="border border-gray-200 rounded-xl p-4 space-y-5">
-            <Text className="text-gray-900 font-bold text-base mb-2" style={{ fontFamily: 'Poppins_600SemiBold' }}>
-              Nos coordonnées
-            </Text>
-
-            {/* Address */}
-            <View className="space-y-1">
-              <Text className="text-gray-900 text-sm font-semibold mb-1" style={{ fontFamily: 'Karla-Bold' }}>
-                Adresse du bureau
-              </Text>
-              <View className="flex-row items-start gap-3">
-                <MapPin size={18} color="#E05017" style={{ marginTop: 2 }} />
-                <Text className="text-gray-600 text-sm flex-1" style={{ fontFamily: 'Karla_400Regular' }}>
-                  15, avenue Jean-Mermoz, Cocody Abidjan, Côte d'Ivoire
-                </Text>
-              </View>
-            </View>
-
-            {/* Phone */}
-            <View className="space-y-1">
-              <Text className="text-gray-900 text-sm font-semibold mb-1" style={{ fontFamily: 'Karla-Bold' }}>
-                Numéro de téléphone
-              </Text>
-              <TouchableOpacity
-                className="flex-row items-start gap-3"
-                onPress={() => Linking.openURL('tel:+2252722404720')}
-              >
-                <Phone size={18} color="#E05017" style={{ marginTop: 2 }} />
-                <Text className="text-gray-600 text-sm flex-1" style={{ fontFamily: 'Karla_400Regular' }}>
-                  (+225) 27 22 40 47 20 / 07 08 26 67 68
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Email */}
-            <View className="space-y-1">
-              <Text className="text-gray-900 text-sm font-semibold mb-1" style={{ fontFamily: 'Karla-Bold' }}>
-                Contact par e-mail
-              </Text>
-              <TouchableOpacity
-                className="flex-row items-start gap-3"
-                onPress={() => Linking.openURL('mailto:contact@plateforme-crasci.org')}
-              >
-                <Mail size={18} color="#E05017" style={{ marginTop: 2 }} />
-                <Text className="text-[#E05017] text-sm flex-1" style={{ fontFamily: 'Karla_400Regular' }}>
-                  contact@plateforme-crasci.org
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Social */}
-            <View className="space-y-1">
-              <Text className="text-gray-900 text-sm font-semibold mb-2" style={{ fontFamily: 'Karla-Bold' }}>
-                Suivez-nous
-              </Text>
-              <View className="flex-row gap-3">
-                <TouchableOpacity
-                  className="w-10 h-10 rounded-full bg-gray-100 items-center justify-center"
-                  onPress={() => Linking.openURL('https://facebook.com')}
-                  accessibilityLabel="Facebook"
-                >
-                  <Facebook size={18} color="#374151" />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  className="w-10 h-10 rounded-full bg-gray-100 items-center justify-center"
-                  onPress={() => Linking.openURL('https://linkedin.com')}
-                  accessibilityLabel="LinkedIn"
-                >
-                  <Linkedin size={18} color="#374151" />
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
+          {/* Note */}
+          <Text className="text-gray-400 text-xs text-center px-4" style={{ fontFamily: 'Karla_400Regular' }}>
+            * Champs obligatoires
+          </Text>
         </View>
       </ScrollView>
     </SafeAreaView>
