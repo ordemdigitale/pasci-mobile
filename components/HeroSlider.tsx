@@ -56,20 +56,6 @@ export default function HeroSlider() {
     setCurrentIndex(index);
   };
 
-  const startAutoplay = (slidesCount: number) => {
-    if (autoplayTimer) {
-      clearInterval(autoplayTimer);
-    }
-    if (slidesCount === 0) return;
-
-    const timer = setInterval(() => {
-      setCurrentIndex((prevIndex) => {
-        return (prevIndex + 1) % slidesCount;
-      });
-    }, 5000);
-    setAutoplayTimer(timer);
-  };
-
   useEffect(() => {
     if (!isUserScrolling.current && scrollViewRef.current && displaySlides.length > 0) {
       scrollViewRef.current.scrollTo({
@@ -80,15 +66,34 @@ export default function HeroSlider() {
   }, [currentIndex, displaySlides.length]);
 
   useEffect(() => {
-    if (displaySlides.length > 0) {
-      startAutoplay(displaySlides.length);
+    if (displaySlides.length === 0 || isUserScrolling.current) return;
+
+    if (autoplayTimer) {
+      clearInterval(autoplayTimer);
     }
+
+    const timer = setInterval(() => {
+      setCurrentIndex((prevIndex) => {
+        return (prevIndex + 1) % displaySlides.length;
+      });
+    }, 5000);
+
+    setAutoplayTimer(timer);
+
     return () => {
-      if (autoplayTimer) {
-        clearInterval(autoplayTimer);
-      }
+      if (timer) clearInterval(timer);
     };
-  }, [displaySlides.length, autoplayTimer]);
+  }, [displaySlides.length]);
+
+  const startAutoplay = (slidesCount: number) => {
+    if (slidesCount === 0) return;
+    if (autoplayTimer) clearInterval(autoplayTimer);
+
+    const timer = setInterval(() => {
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % slidesCount);
+    }, 5000);
+    setAutoplayTimer(timer);
+  };
 
   const handleDotPress = (index: number) => {
     isUserScrolling.current = true;
