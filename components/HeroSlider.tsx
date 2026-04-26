@@ -9,6 +9,15 @@ const { width } = Dimensions.get('window');
 
 const FALLBACK_IMAGE = require('../assets/hero-image.png');
 
+const FALLBACK_SLIDES = [
+  {
+    id: 1,
+    title: 'Plateforme Digitale',
+    description: 'Centre Régional d\'Appui à la Société Civile',
+    image_url: null,
+  },
+];
+
 interface HeroSlide {
   id: number;
   image_url?: string;
@@ -30,15 +39,16 @@ export default function HeroSlider() {
       try {
         const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
         const response = await fetch(`${API_BASE}/api/v1/hero-slides?active_only=true`);
-        if (!response.ok) return [];
-        return await response.json();
+        if (!response.ok) return FALLBACK_SLIDES;
+        const data = await response.json();
+        return data?.length > 0 ? data : FALLBACK_SLIDES;
       } catch {
-        return [];
+        return FALLBACK_SLIDES;
       }
     },
   });
 
-  const displaySlides = heroSlides?.length > 0 ? heroSlides : [];
+  const displaySlides = heroSlides?.length > 0 ? heroSlides : FALLBACK_SLIDES;
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const contentOffsetX = event.nativeEvent.contentOffset.x;
