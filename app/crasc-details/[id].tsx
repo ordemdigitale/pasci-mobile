@@ -29,7 +29,11 @@ export default function CrascDetailsScreen() {
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
   const router = useRouter();
 
+  console.log('CRASC Details - ID from params:', id);
+  console.log('CRASC_DATA IDs available:', CRASC_DATA.map(c => c.id));
+
   const data = CRASC_DATA.find(c => c.id === id);
+  console.log('Found data:', data);
   const isLoading = false;
 
   const { data: news } = useQuery({
@@ -180,7 +184,24 @@ export default function CrascDetailsScreen() {
     );
   }
 
-  if (!data) return null;
+  if (!data) {
+    return (
+      <SafeAreaView className="flex-1 bg-white">
+        <View className="px-6 py-4 flex-row justify-between items-center bg-white">
+          <TouchableOpacity onPress={() => router.back()} className="bg-gray-50 p-2 rounded-full">
+            <ChevronLeft size={24} color="#1F2937" />
+          </TouchableOpacity>
+          <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-lg">Erreur</Text>
+          <View style={{ width: 40 }} />
+        </View>
+        <View className="flex-1 items-center justify-center px-6">
+          <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-gray-900 text-base mb-2">CRASC non trouvé</Text>
+          <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 text-sm text-center">ID: {id}</Text>
+          <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-400 text-xs text-center mt-4">IDs disponibles: {CRASC_DATA.map(c => c.id).join(', ')}</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-white">
