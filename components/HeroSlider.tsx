@@ -9,7 +9,23 @@ const FALLBACK_IMAGE = require('../assets/hero-image.png');
 const FALLBACK_SLIDES = [
   {
     id: 1,
-    image_url: null,
+    image_url: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&auto=format&fit=crop',
+  },
+  {
+    id: 2,
+    image_url: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&auto=format&fit=crop',
+  },
+  {
+    id: 3,
+    image_url: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&auto=format&fit=crop',
+  },
+  {
+    id: 4,
+    image_url: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&auto=format&fit=crop',
+  },
+  {
+    id: 5,
+    image_url: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&auto=format&fit=crop',
   },
 ];
 
