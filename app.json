@@ -21,7 +21,8 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.angel_code.pascimobileIdrys"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -30,6 +31,13 @@
       "expo-router",
       "expo-font",
       "expo-secure-store"
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "9c40930a-68f7-4dcd-bca2-1cc46a4b7150"
+      }
+    },
+    "owner": "angel_code"
   }
 }
