@@ -61,18 +61,23 @@ export default function CrascDetailsScreen() {
     const regionsList = typeof data.regions === 'string' ? data.regions.split(', ') : data.regions?.map((r: any) => r.name) || [];
     const count = data.count || data.region_count || 0;
     const regionName = data.region_name || data.name || '';
+    const oscCount = data.osc_count || oscMembers.length || 0;
 
     return (
       <View className="mb-4">
         {/* Stats Row */}
-        <View className="flex-row justify-between mb-6">
-          <View className="bg-blue-50 rounded-3xl p-4 flex-1 items-center mr-2">
-            <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-blue-600 text-[9px] uppercase mb-1">Régions</Text>
-            <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-blue-700 text-2xl">{count}</Text>
+        <View className="flex-row justify-between gap-3 mb-6">
+          <View className="bg-blue-50 rounded-3xl p-4 flex-1 items-center">
+            <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-blue-600 text-[9px] uppercase mb-1">OSC Membres</Text>
+            <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-blue-700 text-2xl">{oscCount}</Text>
           </View>
           <View className="bg-green-50 rounded-3xl p-4 flex-1 items-center">
-            <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-green-600 text-[9px] uppercase mb-1">Zone</Text>
-            <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-green-700 text-base text-center">{regionName}</Text>
+            <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-green-600 text-[9px] uppercase mb-1">Régions</Text>
+            <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-green-700 text-2xl">{count}</Text>
+          </View>
+          <View className="bg-orange-50 rounded-3xl p-4 flex-1 items-center">
+            <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-orange-600 text-[9px] uppercase mb-1">Zone</Text>
+            <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-orange-700 text-base text-center">{regionName}</Text>
           </View>
         </View>
 
