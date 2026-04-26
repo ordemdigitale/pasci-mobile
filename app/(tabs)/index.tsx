@@ -114,12 +114,23 @@ export default function HomeScreen() {
       </View>
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        
+
+        {/* HERO SLIDER SECTION */}
+        <View className="px-4 mt-4 mb-6">
+          <View className="bg-white rounded-[32px] overflow-hidden border border-gray-100" style={{ shadowColor: '#000', shadowOpacity: 0.08, shadowOffset: { width: 0, height: 4 }, shadowRadius: 16, elevation: 4 }}>
+            <Image
+              source={heroImage}
+              style={{ width: '100%', height: 200 }}
+              resizeMode="cover"
+            />
+          </View>
+        </View>
+
         {/* HERO SECTION */}
-        <View className="px-4 mt-4">
+        <View className="px-4">
           {/* Titre principal */}
           <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-[#2a591d] text-2xl text-center mb-5 leading-8">
-            Plateforme digitale des OSC membres du CRASC
+            Plateforme Digitale des OSC membres du CRASC (PDOC)
           </Text>
 
           {/* Card CRASC */}
