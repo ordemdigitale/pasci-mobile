@@ -128,7 +128,7 @@ export default function HeroSlider() {
         }}
         onScrollEndDrag={() => {
           isUserScrolling.current = false;
-          startAutoplay();
+          startAutoplay(displaySlides.length);
         }}
       >
         {displaySlides.map((slide: any, index: number) => (
