@@ -1,9 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Image, ScrollView, Dimensions, NativeScrollEvent, NativeSyntheticEvent, TouchableOpacity, Text, ActivityIndicator } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
+import { View, Image, ScrollView, Dimensions, NativeScrollEvent, NativeSyntheticEvent, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
-import { dataService } from '../services/dataService';
 
 const { width } = Dimensions.get('window');
 
@@ -12,8 +9,6 @@ const FALLBACK_IMAGE = require('../assets/hero-image.png');
 const FALLBACK_SLIDES = [
   {
     id: 1,
-    title: 'Plateforme Digitale',
-    description: 'Centre Régional d\'Appui à la Société Civile',
     image_url: null,
   },
 ];
@@ -21,13 +16,9 @@ const FALLBACK_SLIDES = [
 interface HeroSlide {
   id: number;
   image_url?: string;
-  localImage?: any;
-  title: string;
-  description: string;
 }
 
 export default function HeroSlider() {
-  const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [autoplayTimer, setAutoplayTimer] = useState<ReturnType<typeof setInterval> | null>(null);
   const scrollViewRef = useRef<ScrollView>(null);
@@ -68,14 +59,10 @@ export default function HeroSlider() {
   useEffect(() => {
     if (displaySlides.length === 0 || isUserScrolling.current) return;
 
-    if (autoplayTimer) {
-      clearInterval(autoplayTimer);
-    }
+    if (autoplayTimer) clearInterval(autoplayTimer);
 
     const timer = setInterval(() => {
-      setCurrentIndex((prevIndex) => {
-        return (prevIndex + 1) % displaySlides.length;
-      });
+      setCurrentIndex((prev) => (prev + 1) % displaySlides.length);
     }, 5000);
 
     setAutoplayTimer(timer);
@@ -85,23 +72,9 @@ export default function HeroSlider() {
     };
   }, [displaySlides.length]);
 
-  const startAutoplay = (slidesCount: number) => {
-    if (slidesCount === 0) return;
-    if (autoplayTimer) clearInterval(autoplayTimer);
-
-    const timer = setInterval(() => {
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % slidesCount);
-    }, 5000);
-    setAutoplayTimer(timer);
-  };
-
   const handleDotPress = (index: number) => {
     isUserScrolling.current = true;
     setCurrentIndex(index);
-    if (autoplayTimer) {
-      clearInterval(autoplayTimer);
-    }
-    startAutoplay(displaySlides.length);
     setTimeout(() => {
       isUserScrolling.current = false;
     }, 100);
@@ -121,7 +94,7 @@ export default function HeroSlider() {
 
   return (
     <View className="relative">
-      {/* Slider */}
+      {/* Carousel - Images Only */}
       <ScrollView
         ref={scrollViewRef}
         horizontal
@@ -133,9 +106,7 @@ export default function HeroSlider() {
         nestedScrollEnabled={true}
         onMomentumScrollEnd={({ nativeEvent }) => {
           const index = Math.round(nativeEvent.contentOffset.x / width);
-          if (index !== currentIndex) {
-            setCurrentIndex(index);
-          }
+          setCurrentIndex(index);
         }}
         onScrollBeginDrag={() => {
           isUserScrolling.current = true;
@@ -143,68 +114,33 @@ export default function HeroSlider() {
         }}
         onScrollEndDrag={() => {
           isUserScrolling.current = false;
-          startAutoplay(displaySlides.length);
         }}
       >
         {displaySlides.map((slide: any, index: number) => (
-          <View key={slide.id || index} style={{ width }} className="relative">
-            {slide.image_url ? (
-              <Image
-                source={{ uri: slide.image_url }}
-                style={{ width: '100%', height: 200 }}
-                resizeMode="cover"
-              />
-            ) : (
-              <Image
-                source={FALLBACK_IMAGE}
-                style={{ width: '100%', height: 200 }}
-                resizeMode="cover"
-              />
-            )}
-
-            {/* Gradient Overlay - Bottom to Top */}
-            <LinearGradient
-              colors={['rgba(0, 0, 0, 0.8)', 'rgba(0, 0, 0, 0.4)', 'transparent']}
-              start={{ x: 0.5, y: 1 }}
-              end={{ x: 0.5, y: 0 }}
-              style={{ position: 'absolute', inset: 0 }}
+          <View key={slide.id || index} style={{ width, height: 200 }}>
+            <Image
+              source={slide.image_url ? { uri: slide.image_url } : FALLBACK_IMAGE}
+              style={{ width: '100%', height: 200 }}
+              resizeMode="cover"
             />
-
-            {/* Text Content */}
-            <View className="absolute bottom-0 left-0 right-0 px-4 py-6">
-              <Text
-                style={{ fontFamily: 'Poppins_700Bold' }}
-                className="text-white text-xl text-center mb-2"
-                numberOfLines={2}
-              >
-                {slide.title}
-              </Text>
-              {slide.description && (
-                <Text
-                  style={{ fontFamily: 'Karla_400Regular' }}
-                  className="text-white text-sm text-center"
-                  numberOfLines={2}
-                >
-                  {slide.description}
-                </Text>
-              )}
-            </View>
           </View>
         ))}
       </ScrollView>
 
       {/* Dots Indicator */}
-      <View className="flex-row justify-center items-center py-3 bg-gray-50">
-        {displaySlides.map((_: any, index: number) => (
-          <TouchableOpacity
-            key={index}
-            onPress={() => handleDotPress(index)}
-            className={`w-2 h-2 rounded-full mx-1.5 ${
-              index === currentIndex ? 'bg-brand-orange' : 'bg-gray-300'
-            }`}
-          />
-        ))}
-      </View>
+      {displaySlides.length > 1 && (
+        <View className="flex-row justify-center items-center py-3 bg-gray-50">
+          {displaySlides.map((_: any, index: number) => (
+            <TouchableOpacity
+              key={index}
+              onPress={() => handleDotPress(index)}
+              className={`w-2 h-2 rounded-full mx-1.5 ${
+                index === currentIndex ? 'bg-brand-orange' : 'bg-gray-300'
+              }`}
+            />
+          ))}
+        </View>
+      )}
     </View>
   );
 }
