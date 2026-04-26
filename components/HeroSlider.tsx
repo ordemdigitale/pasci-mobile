@@ -1,40 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Image, ScrollView, Dimensions, NativeScrollEvent, NativeSyntheticEvent, TouchableOpacity, Text } from 'react-native';
+import { View, Image, ScrollView, Dimensions, NativeScrollEvent, NativeSyntheticEvent, TouchableOpacity, Text, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
+import { useQuery } from '@tanstack/react-query';
+import { dataService } from '../services/dataService';
 
 const { width } = Dimensions.get('window');
 
-const HERO_SLIDES = [
-  {
-    id: 1,
-    image: require('../assets/hero-image.png'),
-    title: 'Plateforme Digitale',
-    description: 'PDOC',
-    action: null,
-  },
-  {
-    id: 2,
-    image: require('../assets/images/service-hero.jpg'),
-    title: 'Nos Services',
-    description: 'Découvrez',
-    action: { route: '/services', label: 'Voir' },
-  },
-  {
-    id: 3,
-    image: require('../assets/hero-image.png'),
-    title: 'Soutenir PDOC',
-    description: 'Faire un don',
-    action: { route: '/faire-un-don', label: 'Donner' },
-  },
-];
+const FALLBACK_IMAGE = require('../assets/hero-image.png');
 
 interface HeroSlide {
   id: number;
-  image: any;
+  image_url?: string;
+  localImage?: any;
   title: string;
   description: string;
-  action: { route: string; label: string } | null;
 }
 
 export default function HeroSlider() {
@@ -43,6 +23,20 @@ export default function HeroSlider() {
   const [autoplayTimer, setAutoplayTimer] = useState<ReturnType<typeof setInterval> | null>(null);
   const scrollViewRef = useRef<ScrollView>(null);
   const isUserScrolling = useRef(false);
+
+  const { data: heroSlides = [], isLoading: slidesLoading } = useQuery({
+    queryKey: ['hero-slides'],
+    queryFn: async () => {
+      try {
+        const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
+        const response = await fetch(`${API_BASE}/api/v1/hero-slides?active_only=true`);
+        if (!response.ok) return [];
+        return await response.json();
+      } catch {
+        return [];
+      }
+    },
+  });
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const contentOffsetX = event.nativeEvent.contentOffset.x;
@@ -93,6 +87,20 @@ export default function HeroSlider() {
     }, 100);
   };
 
+  const displaySlides = heroSlides.length > 0 ? heroSlides : [];
+
+  if (slidesLoading) {
+    return (
+      <View style={{ width, height: 200 }} className="flex items-center justify-center bg-gray-100">
+        <ActivityIndicator size="large" color="#E05017" />
+      </View>
+    );
+  }
+
+  if (displaySlides.length === 0) {
+    return null;
+  }
+
   return (
     <View className="relative">
       {/* Slider */}
@@ -120,13 +128,21 @@ export default function HeroSlider() {
           startAutoplay();
         }}
       >
-        {HERO_SLIDES.map((slide: HeroSlide) => (
-          <View key={slide.id} style={{ width }} className="relative">
-            <Image
-              source={slide.image}
-              style={{ width: '100%', height: 200 }}
-              resizeMode="cover"
-            />
+        {displaySlides.map((slide: any, index: number) => (
+          <View key={slide.id || index} style={{ width }} className="relative">
+            {slide.image_url ? (
+              <Image
+                source={{ uri: slide.image_url }}
+                style={{ width: '100%', height: 200 }}
+                resizeMode="cover"
+              />
+            ) : (
+              <Image
+                source={FALLBACK_IMAGE}
+                style={{ width: '100%', height: 200 }}
+                resizeMode="cover"
+              />
+            )}
 
             {/* Gradient Overlay - Bottom to Top */}
             <LinearGradient
@@ -140,28 +156,19 @@ export default function HeroSlider() {
             <View className="absolute bottom-0 left-0 right-0 px-4 py-6">
               <Text
                 style={{ fontFamily: 'Poppins_700Bold' }}
-                className="text-white text-2xl text-center mb-2"
+                className="text-white text-xl text-center mb-2"
+                numberOfLines={2}
               >
                 {slide.title}
               </Text>
-              <Text
-                style={{ fontFamily: 'Karla_400Regular' }}
-                className="text-white text-sm text-center mb-4"
-              >
-                {slide.description}
-              </Text>
-              {slide.action && (
-                <TouchableOpacity
-                  onPress={() => router.push(slide.action!.route)}
-                  className="bg-brand-orange px-6 py-2 rounded-full self-center"
+              {slide.description && (
+                <Text
+                  style={{ fontFamily: 'Karla_400Regular' }}
+                  className="text-white text-sm text-center"
+                  numberOfLines={2}
                 >
-                  <Text
-                    style={{ fontFamily: 'Poppins_600SemiBold' }}
-                    className="text-white text-xs"
-                  >
-                    {slide.action.label}
-                  </Text>
-                </TouchableOpacity>
+                  {slide.description}
+                </Text>
               )}
             </View>
           </View>
@@ -170,7 +177,7 @@ export default function HeroSlider() {
 
       {/* Dots Indicator */}
       <View className="flex-row justify-center items-center py-3 bg-gray-50">
-        {HERO_SLIDES.map((_, index) => (
+        {displaySlides.map((_, index) => (
           <TouchableOpacity
             key={index}
             onPress={() => handleDotPress(index)}
