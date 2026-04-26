@@ -35,46 +35,6 @@ export default function AnnuaireScreen() {
       }
     },
   });
-  const { data: crascList = [], isLoading: crascLoading } = useQuery({
-    queryKey: ["crasc-list"],
-    queryFn: async () => {
-      try {
-        if (dataService.getCrascList) {
-          return await dataService.getCrascList();
-        }
-        return [];
-      } catch {
-        return [];
-      }
-    },
-  });
-  const { data: crascList = [], isLoading: crascLoading } = useQuery({
-    queryKey: ["crasc-list"],
-    queryFn: async () => {
-      try {
-        if (dataService.getCrascList) {
-          return await dataService.getCrascList();
-        }
-        return [];
-      } catch {
-        return [];
-      }
-    },
-  });
-  const { data: crascList = [], isLoading: crascLoading } = useQuery({
-    queryKey: ["crasc-list"],
-    queryFn: async () => {
-      try {
-        if (dataService.getCrascList) {
-          return await dataService.getCrascList();
-        }
-        return [];
-      } catch {
-        return [];
-      }
-    },
-  });
-  });
 
   const getDisplayData = () => {
     let data = [];
