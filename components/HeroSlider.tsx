@@ -177,7 +177,7 @@ export default function HeroSlider() {
 
       {/* Dots Indicator */}
       <View className="flex-row justify-center items-center py-3 bg-gray-50">
-        {displaySlides.map((_, index) => (
+        {displaySlides.map((_: any, index: number) => (
           <TouchableOpacity
             key={index}
             onPress={() => handleDotPress(index)}
