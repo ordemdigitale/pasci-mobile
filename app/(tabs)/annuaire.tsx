@@ -22,10 +22,7 @@ export default function AnnuaireScreen() {
     queryKey: ["crasc-list"],
     queryFn: async () => {
       try {
-        if (dataService.getCrascList) {
-          return await dataService.getCrascList();
-        }
-        return [];
+        return await dataService.getCrascs();
       } catch {
         return [];
       }
