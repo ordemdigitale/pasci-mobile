@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Image, ScrollView, Dimensions, NativeScrollEvent, NativeSyntheticEvent, TouchableOpacity, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 
@@ -40,28 +40,36 @@ export default function HeroSlider() {
   const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [autoplayTimer, setAutoplayTimer] = useState<NodeJS.Timeout | null>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
+  const isUserScrolling = useRef(false);
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const contentOffsetX = event.nativeEvent.contentOffset.x;
     const index = Math.round(contentOffsetX / width);
     setCurrentIndex(index);
-
-    // Reset autoplay timer when user scrolls
-    if (autoplayTimer) {
-      clearInterval(autoplayTimer);
-    }
-    startAutoplay();
   };
 
   const startAutoplay = () => {
+    if (autoplayTimer) {
+      clearInterval(autoplayTimer);
+    }
     const timer = setInterval(() => {
       setCurrentIndex((prevIndex) => {
         const nextIndex = (prevIndex + 1) % HERO_SLIDES.length;
         return nextIndex;
       });
-    }, 5000); // Change slide every 5 seconds
+    }, 5000);
     setAutoplayTimer(timer);
   };
+
+  useEffect(() => {
+    if (!isUserScrolling.current && scrollViewRef.current) {
+      scrollViewRef.current.scrollTo({
+        x: currentIndex * width,
+        animated: true,
+      });
+    }
+  }, [currentIndex]);
 
   useEffect(() => {
     startAutoplay();
@@ -73,23 +81,36 @@ export default function HeroSlider() {
   }, []);
 
   const handleDotPress = (index: number) => {
+    isUserScrolling.current = true;
     setCurrentIndex(index);
     if (autoplayTimer) {
       clearInterval(autoplayTimer);
     }
     startAutoplay();
+    setTimeout(() => {
+      isUserScrolling.current = false;
+    }, 100);
   };
 
   return (
     <View className="relative">
       {/* Slider */}
       <ScrollView
+        ref={scrollViewRef}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         onScroll={handleScroll}
         scrollEventThrottle={16}
         style={{ width }}
+        onScrollBeginDrag={() => {
+          isUserScrolling.current = true;
+          if (autoplayTimer) clearInterval(autoplayTimer);
+        }}
+        onScrollEndDrag={() => {
+          isUserScrolling.current = false;
+          startAutoplay();
+        }}
       >
         {HERO_SLIDES.map((slide: HeroSlide) => (
           <View key={slide.id} style={{ width }} className="relative">
@@ -99,7 +120,7 @@ export default function HeroSlider() {
               resizeMode="cover"
             />
             {/* Overlay */}
-            <View className="absolute inset-0 bg-black/30" />
+            <View className="absolute inset-0 bg-black/50" />
             
             {/* Text Overlay */}
             <View className="absolute inset-0 flex items-center justify-center px-4">
