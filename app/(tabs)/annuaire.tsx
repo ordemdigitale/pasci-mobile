@@ -106,6 +106,7 @@ export default function AnnuaireScreen() {
                 onPress={() => {
                   if (activeTab === 'osc') router.push(`/osc-details/${item.id}`);
                   else if (activeTab === 'crasc') router.push(`/crasc-details/${item.id}`);
+                  else if (activeTab === 'ptf') router.push(`/annuaire-partenaires/${item.id}`);
                 }}
                 className="bg-gray-50 rounded-2xl p-4 mb-3 border border-gray-100"
               >
