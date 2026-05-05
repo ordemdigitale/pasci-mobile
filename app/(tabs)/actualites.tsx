@@ -62,7 +62,7 @@ export default function ActualitesScreen() {
       edges={['top']}
     >
       <View className="px-6 py-4 bg-white flex-row justify-between items-center border-b border-gray-50">
-        <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-xl text-gray-900">Actualités</Text>
+        <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-xl text-gray-900">Toutes les Actualités</Text>
         <View className="flex-row gap-3">
           <TouchableOpacity className="p-2 bg-gray-100 rounded-full">
             <Search size={20} color="#4B5563" />

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, ScrollView, Image, TouchableOpacity, FlatList, Dimensions, Platform, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -38,13 +38,14 @@ export default function HomeScreen() {
     queryFn: () => dataService.getFormations({ limit: 6 }),
   });
 
-  const MOCK_STATS: KeyStats[] = [
-    { id: 1, name: 'CRASC', number: 5 },
-    { id: 2, name: 'Régions', number: 33 },
-    { id: 3, name: 'OSC', number: 3201 },
-    { id: 4, name: 'Projets', number: 120 },
-  ];
-  const displayStats = keyStats && keyStats.length > 0 ? keyStats : MOCK_STATS;
+  const displayStats = useMemo(
+    () =>
+      (keyStats ?? []).filter(
+        (stat): stat is KeyStats =>
+          typeof stat?.name === 'string' && typeof stat?.number === 'number' && Number.isFinite(stat.number)
+      ),
+    [keyStats]
+  );
 
   const STAT_COLORS: Record<string, { bg: string; text: string; border: string }> = {
     osc:     { bg: '#DBEAFE', text: '#1D4ED8', border: '#BFDBFE' },
@@ -124,7 +125,7 @@ export default function HomeScreen() {
         <View className="px-4 mt-4">
           {/* Titre principal */}
           <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-[#2a591d] text-2xl text-center mb-5 leading-8">
-            Plateforme Digitale des OSC membres du CRASC (PDOC)
+            Plateforme Digitale des Organisations de la Société Civile - PDOC
           </Text>
 
           {/* Card CRASC */}
@@ -233,28 +234,36 @@ export default function HomeScreen() {
           <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 text-sm text-center mb-6">
             Notre impact en quelques chiffres
           </Text>
-          <View className="flex-row flex-wrap justify-between">
-            {displayStats.map((stat) => {
-              const cfg = STAT_COLORS[stat.name] ?? { bg: '#F3F4F6', text: '#6B7280', border: '#E5E7EB' };
-              return (
-                <View
-                  key={stat.id}
-                  className="bg-white rounded-3xl p-5 items-center mb-4"
-                  style={{ width: '48%', borderWidth: 2, borderColor: cfg.border, shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 8, elevation: 2 }}
-                >
-                  <View className="w-12 h-12 rounded-2xl items-center justify-center mb-3" style={{ backgroundColor: cfg.bg }}>
-                    <Text style={{ fontFamily: 'Poppins_700Bold', fontSize: 14, color: cfg.text }}>{ stat.name.substring(0, 3).toUpperCase() }</Text>
+          {displayStats.length > 0 ? (
+            <View className="flex-row flex-wrap justify-between">
+              {displayStats.map((stat) => {
+                const cfg = STAT_COLORS[stat.name] ?? { bg: '#F3F4F6', text: '#6B7280', border: '#E5E7EB' };
+                return (
+                  <View
+                    key={stat.id}
+                    className="bg-white rounded-3xl p-5 items-center mb-4"
+                    style={{ width: '48%', borderWidth: 2, borderColor: cfg.border, shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 8, elevation: 2 }}
+                  >
+                    <View className="w-12 h-12 rounded-2xl items-center justify-center mb-3" style={{ backgroundColor: cfg.bg }}>
+                      <Text style={{ fontFamily: 'Poppins_700Bold', fontSize: 14, color: cfg.text }}>{stat.name.substring(0, 3).toUpperCase()}</Text>
+                    </View>
+                    <Text style={{ fontFamily: 'Poppins_700Bold', fontSize: 32, color: '#1F2937' }}>
+                      {stat.number.toLocaleString('fr-FR')}
+                    </Text>
+                    <Text style={{ fontFamily: 'Karla_700Bold', fontSize: 11, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 1, marginTop: 2 }}>
+                      {stat.name}
+                    </Text>
                   </View>
-                  <Text style={{ fontFamily: 'Poppins_700Bold', fontSize: 32, color: '#1F2937' }}>
-                    {stat.number.toLocaleString('fr-FR')}
-                  </Text>
-                  <Text style={{ fontFamily: 'Karla_700Bold', fontSize: 11, color: '#6B7280', textTransform: 'uppercase', letterSpacing: 1, marginTop: 2 }}>
-                    {stat.name}
-                  </Text>
-                </View>
-              );
-            })}
-          </View>
+                );
+              })}
+            </View>
+          ) : (
+            <View className="bg-white rounded-3xl p-6 border border-gray-100 items-center">
+              <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 text-sm text-center">
+                Les statistiques seront affichées dès que les données seront disponibles.
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* REJOIGNEZ-NOUS CTA */}
@@ -335,7 +344,7 @@ export default function HomeScreen() {
           <View className="mt-10">
             <View className="flex-row justify-between items-center px-6 mb-4">
               <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-lg text-gray-900">Partenaires Techniques</Text>
-              <TouchableOpacity onPress={() => router.push('/annuaire-partenaires')}>
+              <TouchableOpacity onPress={() => router.push('/annuaire?tab=PTF')}>
                 <Text className="text-brand-orange font-bold">Tout voir</Text>
               </TouchableOpacity>
             </View>
@@ -365,7 +374,7 @@ export default function HomeScreen() {
         <View className="mt-10">
             <View className="flex-row justify-between items-center px-6 mb-4">
                 <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-lg text-gray-900">Dernières Actualités</Text>
-                <TouchableOpacity><Text className="text-brand-orange font-bold">Voir tout</Text></TouchableOpacity>
+                <TouchableOpacity onPress={() => router.push('/actualites')}><Text className="text-brand-orange font-bold">Voir tout</Text></TouchableOpacity>
             </View>
             <FlatList
               data={news}

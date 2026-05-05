@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, TextInput, ScrollView, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft, Search, Bell, UserCircle, MapPin, ChevronRight, Building2 } from 'lucide-react-native';
 import Skeleton from '../../components/ui/Skeleton';
 import { useQuery } from '@tanstack/react-query';
@@ -10,9 +10,21 @@ import { Partner, PTF } from '../../services/types';
 
 export default function AnnuairePartenairesScreen() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'OSC' | 'PTF'>('OSC');
+  const params = useLocalSearchParams<{ tab?: string }>();
+  const initialTab: 'OSC' | 'PTF' = params.tab?.toUpperCase() === 'PTF' ? 'PTF' : 'OSC';
+  const [activeTab, setActiveTab] = useState<'OSC' | 'PTF'>(initialTab);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRegion, setSelectedRegion] = useState('Tous');
+
+  useEffect(() => {
+    if (params.tab?.toUpperCase() === 'PTF') {
+      setActiveTab('PTF');
+      return;
+    }
+    if (params.tab?.toUpperCase() === 'OSC') {
+      setActiveTab('OSC');
+    }
+  }, [params.tab]);
 
   // Données OSC
   const { data: regions = [] } = useQuery({
