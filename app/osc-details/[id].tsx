@@ -17,6 +17,7 @@ import {
 import Skeleton from '../../components/ui/Skeleton';
 import { useQuery } from '@tanstack/react-query';
 import { dataService } from '../../services/dataService';
+import OscEvaluationBadge from '../../components/OscEvaluationBadge';
 
 export default function OscDetailsScreen() {
   const { id } = useLocalSearchParams();
@@ -95,6 +96,9 @@ export default function OscDetailsScreen() {
             )}
 
             <View className="flex-1">
+              <View className="mb-2">
+                <OscEvaluationBadge score={data.score_autoevaluation} color={data.couleur_autoevaluation} hex={data.couleur_autoevaluation_hex} />
+              </View>
               <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-base mb-1" numberOfLines={3}>
                 {data.name}
               </Text>

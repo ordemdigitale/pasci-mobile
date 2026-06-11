@@ -17,6 +17,7 @@ import Skeleton from '../../components/ui/Skeleton';
 import { useQuery } from '@tanstack/react-query';
 import { dataService } from '../../services/dataService';
 import { CRASC_DATA } from '../../constants/crasc';
+import OscEvaluationBadge from '../../components/OscEvaluationBadge';
 
 const domainesIntervention = [
   'Gouvernance',
@@ -148,6 +149,9 @@ export default function CrascDetailsScreen() {
           </View>
         )}
         <View className="p-4">
+          <View className="mb-2">
+            <OscEvaluationBadge score={item.score_autoevaluation} color={item.couleur_autoevaluation} hex={item.couleur_autoevaluation_hex} compact />
+          </View>
           <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-gray-900 text-sm mb-1" numberOfLines={1}>
             {item.name}
           </Text>

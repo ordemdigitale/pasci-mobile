@@ -7,6 +7,7 @@ import Skeleton from '../../components/ui/Skeleton';
 import { useQuery } from '@tanstack/react-query';
 import { dataService } from '../../services/dataService';
 import { Partner, PTF } from '../../services/types';
+import OscEvaluationBadge from '../../components/OscEvaluationBadge';
 
 export default function AnnuairePartenairesScreen() {
   const router = useRouter();
@@ -86,6 +87,9 @@ export default function AnnuairePartenairesScreen() {
             <UserCircle size={24} color="#9CA3AF" />
           )}
         </View>
+      </View>
+      <View className="mb-3">
+        <OscEvaluationBadge score={item.score_autoevaluation} color={item.couleur_autoevaluation} hex={item.couleur_autoevaluation_hex} />
       </View>
       <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-base mb-2 leading-6">{item.name}</Text>
       <Text numberOfLines={2} style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-400 text-xs mb-6 leading-5">

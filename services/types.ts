@@ -123,6 +123,15 @@ export interface Partner {
   crasc?: { id: number; name: string; slug: string };
   news_items?: { id: number; title: string; slug: string; thumbnail_url?: string; created_at: string }[];
   tags?: string[];
+  type_document_formalisation?: string | null;
+  existence_siege?: boolean | null;
+  manuel_procedures?: boolean | null;
+  plan_action?: boolean | null;
+  rapports_annuels?: boolean | null;
+  adhesion_crasc?: boolean | null;
+  score_autoevaluation?: number;
+  couleur_autoevaluation?: 'gris' | 'rouge' | 'orange' | 'jaune' | 'bleu' | 'vert';
+  couleur_autoevaluation_hex?: string;
 }
 
 export interface Crasc {
