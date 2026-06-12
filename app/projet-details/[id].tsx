@@ -8,7 +8,7 @@ import {
   Calendar,
   Coins,
   CheckCircle2,
-  FileDown,
+  ExternalLink,
   Clock,
   MapPin,
   TrendingUp,
@@ -88,6 +88,7 @@ export default function ProjetDetailsScreen() {
   }
 
   const statutStyle = getStatutStyle(data.statut);
+  const offreLink = data.offre_url || data.dossier_url;
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top', 'bottom']}>
@@ -273,12 +274,12 @@ export default function ProjetDetailsScreen() {
 
           {/* CTA */}
           <TouchableOpacity
-            onPress={() => data.dossier_url ? Linking.openURL(data.dossier_url) : null}
-            disabled={!data.dossier_url}
-            className={`border-2 border-brand-orange py-5 rounded-[24px] items-center flex-row justify-center mb-6 ${!data.dossier_url ? 'opacity-40' : ''}`}
+            onPress={() => offreLink ? Linking.openURL(offreLink) : null}
+            disabled={!offreLink}
+            className={`border-2 border-brand-orange py-5 rounded-[24px] items-center flex-row justify-center mb-6 ${!offreLink ? 'opacity-40' : ''}`}
           >
-            <FileDown size={20} color="#E05017" />
-            <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-brand-orange text-lg ml-2">Télécharger le dossier</Text>
+            <ExternalLink size={20} color="#E05017" />
+            <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-brand-orange text-lg ml-2">Voir l'offre</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

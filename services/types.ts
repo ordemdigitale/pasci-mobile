@@ -186,6 +186,7 @@ export interface OffreProjet {
   partenaires_list?: string[];
   image_url?: string;
   image_path?: string;
+  offre_url?: string | null;
   dossier_url?: string;
   date_publication: string;
   created_at: string;
