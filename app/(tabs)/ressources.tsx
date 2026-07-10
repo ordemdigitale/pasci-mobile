@@ -25,10 +25,10 @@ function formatFileSize(bytes?: number): string {
 export default function RessourcesScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('Documentation');
-  const [downloadState, setDownloadState] = useState({ 
-    visible: false, 
-    progress: 0, 
-    fileName: '' 
+  const [downloadState, setDownloadState] = useState({
+    visible: false,
+    progress: 0,
+    fileName: ''
   });
 
   const { data: docs, isLoading } = useQuery({
@@ -49,18 +49,18 @@ export default function RessourcesScreen() {
   });
 
   const handleDownload = async (doc: Documentation) => {
-    const targetUrl = doc.download_url || doc.file_url;
+    const targetUrl = (doc as any).download_url || doc.file_url;
     if (targetUrl) {
       const rawTitle = doc.title || 'document';
       const safeTitle = rawTitle
-        .normalize("NFD").replace(/[\u0300-\u036f]/g, "") 
-        .replace(/[^a-z0-9]/gi, '_') 
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]/gi, '_')
         .toLowerCase();
-      
+
       const fileName = `${safeTitle}.pdf`;
-      
+
       setDownloadState({ visible: true, progress: 0, fileName: doc.title });
-      
+
       try {
         await downloadAndOpenDocument(targetUrl, fileName, (progress) => {
           setDownloadState(prev => ({ ...prev, progress }));
@@ -167,7 +167,7 @@ export default function RessourcesScreen() {
       className="flex-1 bg-white"
       edges={['top']}
     >
-      <FlatList
+      <FlatList<any>
         data={isLoading ? [1, 2, 3] : (filtered || [])}
         renderItem={({ item }) => isLoading ? renderSkeleton() : renderResourceItem({ item: item as Documentation })}
         keyExtractor={(item, index) => (typeof item === 'number' ? `skeleton-${item}` : `${(item as Documentation).id}-${index}`)}
@@ -185,10 +185,10 @@ export default function RessourcesScreen() {
         showsVerticalScrollIndicator={false}
         style={{ backgroundColor: '#FAFAFA' }}
       />
-      
-      <DownloadProgressModal 
-        visible={downloadState.visible} 
-        progress={downloadState.progress} 
+
+      <DownloadProgressModal
+        visible={downloadState.visible}
+        progress={downloadState.progress}
         fileName={downloadState.fileName}
       />
     </SafeAreaView>

@@ -22,8 +22,8 @@ export default function InboxScreen() {
       : null;
     const timeLabel =
       daysAgo === 0 ? "Aujourd'hui" :
-      daysAgo === 1 ? 'Hier' :
-      daysAgo !== null ? `Il y a ${daysAgo}j` : '';
+        daysAgo === 1 ? 'Hier' :
+          daysAgo !== null ? `Il y a ${daysAgo}j` : '';
 
     return (
       <TouchableOpacity
@@ -69,7 +69,7 @@ export default function InboxScreen() {
         <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-lg text-gray-900 ml-3">Actualités récentes</Text>
       </View>
 
-      <FlatList
+      <FlatList<any>
         data={isLoading ? [1, 2, 3, 4, 5] : (news || [])}
         renderItem={({ item }) => isLoading ? renderSkeleton() : renderItem({ item: item as News })}
         keyExtractor={(item, index) => (typeof item === 'number' ? `sk-${item}` : `${(item as News).id}-${index}`)}

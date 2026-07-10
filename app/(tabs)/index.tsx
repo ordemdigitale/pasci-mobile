@@ -1,15 +1,15 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { View, Text, ScrollView, Image, TouchableOpacity, FlatList, Dimensions, Platform, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Search, Download, Building2, Mail, Heart, Users, Briefcase } from 'lucide-react-native';
+import { Search, Download, Building2, Mail, Heart, Users, Briefcase, Phone } from 'lucide-react-native';
 import CrascMap from '../../components/CrascMap';
 import DirectoryModal from '../../components/DirectoryModal';
 import HeroSlider from '../../components/HeroSlider';
 import HeaderMenu from '../../components/HeaderMenu';
 import { useQuery } from '@tanstack/react-query';
 import { dataService } from '../../services/dataService';
-import { News, PTF, Documentation, KeyStats, Formation } from '../../services/types';
+import { News, PTF, Documentation, Formation } from '../../services/types';
 
 const { width } = Dimensions.get('window');
 
@@ -17,20 +17,36 @@ const { width } = Dimensions.get('window');
 const logo = require('../../assets/logo.png');
 const heroImage = require('../../assets/hero-image.png');
 
+const FALLBACK_HERO_TEXT = {
+  title: "Centre Régional d'Appui à la Société Civile - CRASC",
+  description:
+    "Cette Plateforme digitale est la résultante d'une démarche alliant à la fois, inclusivité, représentativité, accessibilité et pérennité. Multifonctionnelle et dynamique, elle vise à accroître la visibilité des OSC, la synergie d'action, le partage d'expérience et la professionnalisation.",
+};
 
 export default function HomeScreen() {
   const router = useRouter();
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState<string | undefined>(undefined);
+  const [heroText, setHeroText] = useState(FALLBACK_HERO_TEXT);
 
   const { data: news } = useQuery({
     queryKey: ['news-spotlight'],
     queryFn: () => dataService.getNews({ limit: 10 }),
   });
 
-  const { data: keyStats } = useQuery({
-    queryKey: ['key-stats'],
-    queryFn: dataService.getKeyStats,
+  const { data: dashboardStats } = useQuery({
+    queryKey: ['dashboard-stats'],
+    queryFn: dataService.getDashboardStats,
+  });
+
+  const { data: offreProjets } = useQuery({
+    queryKey: ['home-offre-projets'],
+    queryFn: dataService.getOffreProjets,
+  });
+
+  const { data: visiteStats } = useQuery({
+    queryKey: ['visite-stats'],
+    queryFn: dataService.getVisiteStats,
   });
 
   const { data: formations } = useQuery({
@@ -38,24 +54,45 @@ export default function HomeScreen() {
     queryFn: () => dataService.getFormations({ limit: 6 }),
   });
 
-  const displayStats = useMemo(
-    () =>
-      (keyStats ?? []).filter(
-        (stat): stat is KeyStats =>
-          typeof stat?.name === 'string' && typeof stat?.number === 'number' && Number.isFinite(stat.number)
-      ),
-    [keyStats]
-  );
+  const displayStats = useMemo(() => ([
+    {
+      key: 'crasc',
+      name: 'Nombre de CRASC',
+      short: 'CRASC',
+      number: dashboardStats?.crasc?.total ?? 0,
+    },
+    {
+      key: 'regions',
+      name: "Régions et districts d'intervention",
+      short: 'RÉG',
+      number: dashboardStats?.regions?.total ?? 0,
+    },
+    {
+      key: 'osc',
+      name: 'OSC inscrites',
+      short: 'OSC',
+      number: dashboardStats?.osc?.total ?? 0,
+    },
+    {
+      key: 'projets',
+      name: 'Offres de projets disponibles',
+      short: 'PRO',
+      number: offreProjets?.length ?? 0,
+    },
+    {
+      key: 'visites',
+      name: 'Nombre de visites',
+      short: 'VUE',
+      number: visiteStats?.total ?? 0,
+    },
+  ]).filter((stat) => Number.isFinite(stat.number)), [dashboardStats, offreProjets, visiteStats]);
 
   const STAT_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-    osc:     { bg: '#DBEAFE', text: '#1D4ED8', border: '#BFDBFE' },
-    crasc:   { bg: '#FFEDD5', text: '#E05017', border: '#FED7AA' },
-    OSC:     { bg: '#DBEAFE', text: '#1D4ED8', border: '#BFDBFE' },
-    CRASC:   { bg: '#FFEDD5', text: '#E05017', border: '#FED7AA' },
-    régions: { bg: '#DCFCE7', text: '#166534', border: '#BBF7D0' },
+    osc: { bg: '#DBEAFE', text: '#1D4ED8', border: '#BFDBFE' },
+    crasc: { bg: '#FFEDD5', text: '#E05017', border: '#FED7AA' },
+    regions: { bg: '#DCFCE7', text: '#166534', border: '#BBF7D0' },
     projets: { bg: '#F3E8FF', text: '#6B21A8', border: '#E9D5FF' },
-    Régions: { bg: '#DCFCE7', text: '#166534', border: '#BBF7D0' },
-    Projets: { bg: '#F3E8FF', text: '#6B21A8', border: '#E9D5FF' },
+    visites: { bg: '#FEE2E2', text: '#DC2626', border: '#FECACA' },
   };
 
   const { data: ptfList } = useQuery({
@@ -76,22 +113,26 @@ export default function HomeScreen() {
     setModalVisible(true);
   };
 
+  const handleHeroSlideChange = useCallback((slide: { title: string; description: string }) => {
+    setHeroText({ title: slide.title, description: slide.description });
+  }, []);
+
 
   const renderNewsItem = ({ item }: { item: News }) => (
-    <TouchableOpacity 
+    <TouchableOpacity
       onPress={() => router.push(`/news-details/${item.slug}`)}
       className="mr-4 w-72 bg-white rounded-[32px] overflow-hidden shadow-sm border border-gray-100"
     >
-      <Image 
-        source={item.thumbnail_url ? { uri: item.thumbnail_url } : heroImage} 
-        className="w-full h-40" 
-        resizeMode="cover" 
+      <Image
+        source={item.thumbnail_url ? { uri: item.thumbnail_url } : heroImage}
+        className="w-full h-40"
+        resizeMode="cover"
       />
       <View className="p-4">
         <View className="bg-orange-50 self-start px-2 py-1 rounded-lg mb-2">
-            <Text className="text-brand-orange text-[10px] font-bold">
-              {item.crasc_id ? `CRASC ${item.crasc_id}` : 'INFO'}
-            </Text>
+          <Text className="text-brand-orange text-[10px] font-bold">
+            {item.crasc_id ? `CRASC ${item.crasc_id}` : 'INFO'}
+          </Text>
         </View>
         <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-gray-900 text-sm leading-5 mb-2" numberOfLines={2}>
           {item.title}
@@ -104,8 +145,8 @@ export default function HomeScreen() {
   );
 
   return (
-    <SafeAreaView 
-      className="flex-1 bg-gray-50" 
+    <SafeAreaView
+      className="flex-1 bg-gray-50"
       edges={['top']}
     >
       {/* Custom Header */}
@@ -125,7 +166,7 @@ export default function HomeScreen() {
         <View className="px-4 mt-4">
           {/* Titre principal */}
           <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-[#2a591d] text-2xl text-center mb-5 leading-8">
-            Plateforme Digitale des Organisations de la Société Civile - PDOC
+            Plateforme Digitale des Organisations de la Société Civile - PdoC
           </Text>
 
           {/* Card CRASC */}
@@ -134,15 +175,15 @@ export default function HomeScreen() {
           >
             {/* HERO SLIDER - ANIMATED CAROUSEL */}
             <View style={{ overflow: 'hidden' }}>
-              <HeroSlider />
+              <HeroSlider onSlideChange={handleHeroSlideChange} />
             </View>
             {/* Contenu */}
             <View className="px-6 py-5">
               <Text style={{ fontFamily: 'Poppins_700Bold', fontSize: 15 }} className="text-gray-900 mb-3">
-                Centre Régional d’Appui à la Société Civile (CRASC)
+                {heroText.title}
               </Text>
               <Text style={{ fontFamily: 'Karla_400Regular', fontSize: 13, lineHeight: 20 }} className="text-gray-600 mb-5">
-                Cette Plateforme digitale est la résultante d’une démarche alliant à la fois, inclusivité, représentativité, accessibilité et pérennité. Multifonctionnelle et dynamique, elle vise à accroître la visibilité des OSC, la synergie d’action, le partage d’expérience et la professionnalisation.
+                {heroText.description}
               </Text>
               <TouchableOpacity
                 onPress={() => router.push('/a-propos')}
@@ -157,39 +198,39 @@ export default function HomeScreen() {
 
         {/* MAP SECTION */}
         <View className="mt-10 px-4">
-            <View className="flex-row justify-between items-center mb-4 px-2">
-                <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-lg text-gray-900">Carte des CRASC</Text>
-                <View className="bg-brand-green/10 px-3 py-1 rounded-full">
-                    <Text className="text-[10px] font-bold text-brand-green">Cliquer sur la carte</Text>
-                </View>
+          <View className="flex-row justify-between items-center mb-4 px-2">
+            <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-lg text-gray-900">Carte des CRASC</Text>
+            <View className="bg-brand-green/10 px-3 py-1 rounded-full">
+              <Text className="text-[10px] font-bold text-brand-green">Cliquer sur la carte</Text>
             </View>
-            <View className="bg-white rounded-[40px] p-6 shadow-sm border border-gray-100">
-                <View className="bg-gray-50 rounded-3xl p-2 items-center justify-center">
-                    <CrascMap onRegionPress={handleMapPress} />
-                </View>
-                <View className="flex-row flex-wrap justify-between mt-6 px-2">
-                    <View className="flex-row items-center w-1/3 mb-3">
-                        <View className="w-2 h-2 rounded-full bg-[#F59E42] mr-2" />
-                        <Text className="text-[10px] text-gray-600 font-bold">Nord</Text>
-                    </View>
-                    <View className="flex-row items-center w-1/3 mb-3">
-                        <View className="w-2 h-2 rounded-full bg-[#FF6B8A] mr-2" />
-                        <Text className="text-[10px] text-gray-600 font-bold">Est</Text>
-                    </View>
-                    <View className="flex-row items-center w-1/3 mb-3">
-                        <View className="w-2 h-2 rounded-full bg-[#5A7D5A] mr-2" />
-                        <Text className="text-[10px] text-gray-600 font-bold">Centre</Text>
-                    </View>
-                    <View className="flex-row items-center w-1/3">
-                        <View className="w-2 h-2 rounded-full bg-[#4FC3DC] mr-2" />
-                        <Text className="text-[10px] text-gray-600 font-bold">Ouest</Text>
-                    </View>
-                    <View className="flex-row items-center w-1/3">
-                        <View className="w-2 h-2 rounded-full bg-[#2E86C1] mr-2" />
-                        <Text className="text-[10px] text-gray-600 font-bold">Sud</Text>
-                    </View>
-                </View>
+          </View>
+          <View className="bg-white rounded-[40px] p-6 shadow-sm border border-gray-100">
+            <View className="bg-gray-50 rounded-3xl p-2 items-center justify-center">
+              <CrascMap onRegionPress={handleMapPress} />
             </View>
+            <View className="flex-row flex-wrap justify-between mt-6 px-2">
+              <View className="flex-row items-center w-1/3 mb-3">
+                <View className="w-2 h-2 rounded-full bg-[#F59E42] mr-2" />
+                <Text className="text-[10px] text-gray-600 font-bold">Nord</Text>
+              </View>
+              <View className="flex-row items-center w-1/3 mb-3">
+                <View className="w-2 h-2 rounded-full bg-[#FF6B8A] mr-2" />
+                <Text className="text-[10px] text-gray-600 font-bold">Est</Text>
+              </View>
+              <View className="flex-row items-center w-1/3 mb-3">
+                <View className="w-2 h-2 rounded-full bg-[#5A7D5A] mr-2" />
+                <Text className="text-[10px] text-gray-600 font-bold">Centre</Text>
+              </View>
+              <View className="flex-row items-center w-1/3">
+                <View className="w-2 h-2 rounded-full bg-[#4FC3DC] mr-2" />
+                <Text className="text-[10px] text-gray-600 font-bold">Ouest</Text>
+              </View>
+              <View className="flex-row items-center w-1/3">
+                <View className="w-2 h-2 rounded-full bg-[#2E86C1] mr-2" />
+                <Text className="text-[10px] text-gray-600 font-bold">Sud</Text>
+              </View>
+            </View>
+          </View>
         </View>
 
         {/* NOS SERVICES */}
@@ -237,15 +278,15 @@ export default function HomeScreen() {
           {displayStats.length > 0 ? (
             <View className="flex-row flex-wrap justify-between">
               {displayStats.map((stat) => {
-                const cfg = STAT_COLORS[stat.name] ?? { bg: '#F3F4F6', text: '#6B7280', border: '#E5E7EB' };
+                const cfg = STAT_COLORS[stat.key] ?? { bg: '#F3F4F6', text: '#6B7280', border: '#E5E7EB' };
                 return (
                   <View
-                    key={stat.id}
+                    key={stat.key}
                     className="bg-white rounded-3xl p-5 items-center mb-4"
                     style={{ width: '48%', borderWidth: 2, borderColor: cfg.border, shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 8, elevation: 2 }}
                   >
                     <View className="w-12 h-12 rounded-2xl items-center justify-center mb-3" style={{ backgroundColor: cfg.bg }}>
-                      <Text style={{ fontFamily: 'Poppins_700Bold', fontSize: 14, color: cfg.text }}>{stat.name.substring(0, 3).toUpperCase()}</Text>
+                      <Text style={{ fontFamily: 'Poppins_700Bold', fontSize: 14, color: cfg.text }}>{stat.short}</Text>
                     </View>
                     <Text style={{ fontFamily: 'Poppins_700Bold', fontSize: 32, color: '#1F2937' }}>
                       {stat.number.toLocaleString('fr-FR')}
@@ -271,7 +312,7 @@ export default function HomeScreen() {
           <View className="bg-brand-green rounded-[32px] p-6 flex-row items-center justify-between shadow-lg overflow-hidden">
             {/* Décoration de fond */}
             <View className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full" />
-            
+
             <View className="flex-1 pr-4">
               <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-white text-lg mb-1">
                 Votre OSC n'est pas encore listée ?
@@ -372,18 +413,18 @@ export default function HomeScreen() {
 
         {/* ACTUALITÉS (FlatList) */}
         <View className="mt-10">
-            <View className="flex-row justify-between items-center px-6 mb-4">
-                <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-lg text-gray-900">Dernières Actualités</Text>
-                <TouchableOpacity onPress={() => router.push('/actualites')}><Text className="text-brand-orange font-bold">Voir tout</Text></TouchableOpacity>
-            </View>
-            <FlatList
-              data={news}
-              renderItem={renderNewsItem}
-              keyExtractor={item => item.id.toString()}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingLeft: 24, paddingRight: 8 }}
-            />
+          <View className="flex-row justify-between items-center px-6 mb-4">
+            <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-lg text-gray-900">Dernières Actualités</Text>
+            <TouchableOpacity onPress={() => router.push('/actualites')}><Text className="text-brand-orange font-bold">Voir tout</Text></TouchableOpacity>
+          </View>
+          <FlatList
+            data={news}
+            renderItem={renderNewsItem}
+            keyExtractor={item => item.id.toString()}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingLeft: 24, paddingRight: 8 }}
+          />
         </View>
 
         {/* RESSOURCE SECTION */}
@@ -428,10 +469,10 @@ export default function HomeScreen() {
           <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-lg mb-4">
             Autres Services
           </Text>
-          <View className="flex-row justify-between">
+          <View className="flex-row flex-wrap justify-between">
             <TouchableOpacity
               onPress={() => router.push('/services')}
-              className="flex-1 bg-white rounded-[24px] p-4 items-center mr-2 border border-gray-100 shadow-sm"
+              className="w-[48%] bg-white rounded-[24px] p-4 items-center mb-3 border border-gray-100 shadow-sm"
             >
               <View className="bg-blue-100 w-12 h-12 rounded-full items-center justify-center mb-2">
                 <Briefcase size={24} color="#2563EB" />
@@ -443,7 +484,7 @@ export default function HomeScreen() {
 
             <TouchableOpacity
               onPress={() => router.push('/faire-un-don')}
-              className="flex-1 bg-white rounded-[24px] p-4 items-center mx-1 border border-gray-100 shadow-sm"
+              className="w-[48%] bg-white rounded-[24px] p-4 items-center mb-3 border border-gray-100 shadow-sm"
             >
               <View className="bg-red-100 w-12 h-12 rounded-full items-center justify-center mb-2">
                 <Heart size={24} color="#DC2626" />
@@ -455,7 +496,7 @@ export default function HomeScreen() {
 
             <TouchableOpacity
               onPress={() => router.push('/etre-volontaire')}
-              className="flex-1 bg-white rounded-[24px] p-4 items-center ml-2 border border-gray-100 shadow-sm"
+              className="w-[48%] bg-white rounded-[24px] p-4 items-center border border-gray-100 shadow-sm"
             >
               <View className="bg-green-100 w-12 h-12 rounded-full items-center justify-center mb-2">
                 <Users size={24} color="#16A34A" />
@@ -464,15 +505,27 @@ export default function HomeScreen() {
                 Bénévolat
               </Text>
             </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => router.push('/numeros-utiles')}
+              className="w-[48%] bg-white rounded-[24px] p-4 items-center border border-gray-100 shadow-sm"
+            >
+              <View className="bg-teal-100 w-12 h-12 rounded-full items-center justify-center mb-2">
+                <Phone size={24} color="#0F766E" />
+              </View>
+              <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-gray-900 text-xs text-center">
+                Numéros utiles
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
 
       </ScrollView>
 
       {/* MODAL ANNUAIRE */}
-      <DirectoryModal 
-        visible={modalVisible} 
-        onClose={() => setModalVisible(false)} 
+      <DirectoryModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
         selectedRegion={selectedRegion}
       />
     </SafeAreaView>

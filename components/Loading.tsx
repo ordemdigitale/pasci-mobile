@@ -1,10 +1,15 @@
-import { theme } from '@/constants/theme'
+import { theme } from '../constants/theme'
 import React from 'react'
-import { ActivityIndicator, View } from 'react-native'
+import { ActivityIndicator, ActivityIndicatorProps, View } from 'react-native'
 
-const Loading = ({size='large', color=theme.colors.primary}) => {
+type LoadingProps = {
+  size?: ActivityIndicatorProps['size'];
+  color?: string;
+};
+
+const Loading = ({ size = 'large', color = theme.colors.primary }: LoadingProps) => {
   return (
-    <View style={{justifyContent: 'center', alignItems: 'center'}}>
+    <View style={{ justifyContent: 'center', alignItems: 'center' }}>
       <ActivityIndicator
         size={size}
         color={color}

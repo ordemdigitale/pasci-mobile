@@ -13,6 +13,8 @@ import {
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, ChevronDown, Check } from 'lucide-react-native';
+import { useQuery } from '@tanstack/react-query';
+import { dataService } from '../services/dataService';
 
 const ORGANIZATION_TYPES = [
   { value: 'Association', label: 'Association' },
@@ -58,6 +60,44 @@ const REGIONS = [
   { value: 'Tchologo', label: 'Tchologo' },
   { value: 'Tonkpi', label: 'Tonkpi' },
   { value: 'Worodougou', label: 'Worodougou' },
+];
+
+const ORIGINE_OPTIONS = [
+  { value: 'cote_ivoire', label: "Côte d'Ivoire" },
+  { value: 'etranger', label: "À l'étranger" },
+];
+
+const BOOLEAN_OPTIONS = [
+  { value: 'true', label: 'Oui' },
+  { value: 'false', label: 'Non' },
+];
+
+const FORMALISATION_OPTIONS = [
+  { value: 'statuts_reglement', label: 'Statut et règlement' },
+  { value: 'recepisse_depot', label: 'Récépissé de dépôt' },
+  { value: 'recepisse_declaration', label: 'Récépissé de déclaration' },
+  { value: 'agrement_decret', label: 'Agrément / décret' },
+  { value: 'journal_officiel', label: 'Déclaration au journal officiel' },
+];
+
+const CATEGORIE_OPTIONS = [
+  { value: 'organisation_jeune', label: 'Organisation de jeune (ODJ)' },
+  { value: 'organisation_femme', label: 'Organisation de femme' },
+  { value: 'organisation_mixte', label: 'Organisation mixte' },
+];
+
+const NIVEAU_REGROUPEMENT_OPTIONS = [
+  { value: 'Simple', label: 'Simple' },
+  { value: 'Réseau', label: 'Réseau' },
+  { value: 'Fédération', label: 'Fédération' },
+  { value: 'Plateforme', label: 'Plateforme' },
+  { value: 'Confédération', label: 'Confédération' },
+];
+
+const ADHESION_CRASC_OPTIONS = [
+  { value: 'oui', label: 'Oui' },
+  { value: 'non', label: 'Non' },
+  { value: 'en_cours', label: 'En cours' },
 ];
 
 type SelectPickerProps = {
@@ -132,24 +172,112 @@ function SelectPicker({ label, required, placeholder, value, options, onChange }
 
 type FormState = {
   organizationName: string;
+  sigle: string;
   organizationType: string;
+  crascNom: string;
+  typeOsc: string;
   region: string;
+  departement: string;
+  sousPrefecture: string;
   city: string;
+  origineOrganisation: string;
   email: string;
   phone: string;
   description: string;
   motivation: string;
+  typeDocumentFormalisation: string;
+  existenceSiege: string;
+  categorie: string;
+  niveauRegroupement: string;
+  domainePrioritaire: string;
+  domainePrioritaire2: string;
+  domainePrioritaire3: string;
+  domainePrioritaire4: string;
+  domainePrioritaire5: string;
+  nbMembres: string;
+  nbFemmesMembres: string;
+  nbHommesMembres: string;
+  nbMembresJeunes: string;
+  nbMembresHandicap: string;
+  nbMembresBe: string;
+  nombreMandatsBe: string;
+  dureeMandatBe: string;
+  nbBeneficiaires: string;
+  nbFemmesBeneficiaires: string;
+  nbJeunesBeneficiaires: string;
+  nbBeneficiairesHandicap: string;
+  adhesionCrascStatut: string;
+  organesGouvernance: string;
+  paysCouverture: string;
+  nbPersonnesEngagees: string;
+  nbCdi: string;
+  nbCdd: string;
+  dateDesignationResponsable: string;
+  dateProchaineDesignation: string;
+  manuelProcedures: string;
+  planActionAnneeCours: string;
+  planActionAnneeCoursDetails: string;
+  planAction: string;
+  nbActivites: string;
+  dateDerniereActivite: string;
+  rapportsAnnuels: string;
+  recommandations: string;
+  recommandations2: string;
 };
 
 const INITIAL_FORM: FormState = {
   organizationName: '',
+  sigle: '',
   organizationType: '',
+  crascNom: '',
+  typeOsc: '',
   region: '',
+  departement: '',
+  sousPrefecture: '',
   city: '',
+  origineOrganisation: '',
   email: '',
   phone: '',
   description: '',
   motivation: '',
+  typeDocumentFormalisation: '',
+  existenceSiege: '',
+  categorie: '',
+  niveauRegroupement: '',
+  domainePrioritaire: '',
+  domainePrioritaire2: '',
+  domainePrioritaire3: '',
+  domainePrioritaire4: '',
+  domainePrioritaire5: '',
+  nbMembres: '',
+  nbFemmesMembres: '',
+  nbHommesMembres: '',
+  nbMembresJeunes: '',
+  nbMembresHandicap: '',
+  nbMembresBe: '',
+  nombreMandatsBe: '',
+  dureeMandatBe: '',
+  nbBeneficiaires: '',
+  nbFemmesBeneficiaires: '',
+  nbJeunesBeneficiaires: '',
+  nbBeneficiairesHandicap: '',
+  adhesionCrascStatut: '',
+  organesGouvernance: '',
+  paysCouverture: '',
+  nbPersonnesEngagees: '',
+  nbCdi: '',
+  nbCdd: '',
+  dateDesignationResponsable: '',
+  dateProchaineDesignation: '',
+  manuelProcedures: '',
+  planActionAnneeCours: '',
+  planActionAnneeCoursDetails: '',
+  planAction: '',
+  nbActivites: '',
+  dateDerniereActivite: '',
+  rapportsAnnuels: '',
+  recommandations: '',
+  recommandations2: '',
 };
 
 type FormErrors = Partial<Record<keyof FormState, string>>;
@@ -169,17 +297,97 @@ function validate(form: FormState): FormErrors {
   return errors;
 }
 
+const emptyToNull = (value: string) => {
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+};
+
+const toNumber = (value: string) => {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  const parsed = Number(trimmed);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
+const toBool = (value: string) => {
+  if (value === 'true') return true;
+  if (value === 'false') return false;
+  return null;
+};
+
 export default function RejoindreScreen() {
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const [errors, setErrors] = useState<FormErrors>({});
   const [loading, setLoading] = useState(false);
+
+  const { data: crascs = [] } = useQuery({
+    queryKey: ['adhesion-crascs'],
+    queryFn: dataService.getCrascs,
+  });
+
+  const { data: oscTypes = [] } = useQuery({
+    queryKey: ['adhesion-osc-types'],
+    queryFn: dataService.getOscTypes,
+  });
+
+  const crascOptions = crascs.map((c) => ({ value: c.name, label: c.name }));
+  const oscTypeOptions = oscTypes.map((t) => ({ value: t.name, label: t.name }));
 
   const set = (field: keyof FormState) => (value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
   };
 
-  const handleSubmit = () => {
+  const getErrorMessage = (error: unknown): string => {
+    const detail = (error as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
+    if (typeof detail === 'string') return detail;
+    if (Array.isArray(detail) && detail.length > 0) {
+      return detail[0]?.msg || 'Impossible de soumettre votre demande.';
+    }
+    return 'Impossible de soumettre votre demande. Verifiez votre connexion et reessayez.';
+  };
+
+  const renderInput = (
+    field: keyof FormState,
+    label: string,
+    placeholder = '',
+    keyboardType: 'default' | 'number-pad' = 'default'
+  ) => (
+    <View>
+      <Text className="text-gray-700 text-sm mb-1" style={{ fontFamily: 'Karla-Regular' }}>
+        {label}
+      </Text>
+      <TextInput
+        className="border border-gray-200 rounded-lg px-4 py-3 text-gray-900 bg-gray-50"
+        style={{ fontFamily: 'Karla-Regular' }}
+        placeholder={placeholder}
+        placeholderTextColor="#9ca3af"
+        value={form[field]}
+        onChangeText={set(field)}
+        keyboardType={keyboardType}
+      />
+    </View>
+  );
+
+  const renderTextarea = (field: keyof FormState, label: string, placeholder = '') => (
+    <View>
+      <Text className="text-gray-700 text-sm mb-1" style={{ fontFamily: 'Karla-Regular' }}>
+        {label}
+      </Text>
+      <TextInput
+        className="border border-gray-200 rounded-lg px-4 py-3 text-gray-900 bg-gray-50"
+        style={{ fontFamily: 'Karla-Regular', textAlignVertical: 'top' }}
+        placeholder={placeholder}
+        placeholderTextColor="#9ca3af"
+        value={form[field]}
+        onChangeText={set(field)}
+        multiline
+        numberOfLines={4}
+      />
+    </View>
+  );
+
+  const handleSubmit = async () => {
     const e = validate(form);
     if (Object.keys(e).length > 0) {
       setErrors(e);
@@ -187,13 +395,70 @@ export default function RejoindreScreen() {
     }
 
     setLoading(true);
-    // TODO: remplacer par l'endpoint API quand disponible
-    setTimeout(() => {
+    try {
+      await dataService.submitAdhesion({
+        nom_organisation: form.organizationName.trim(),
+        sigle: emptyToNull(form.sigle),
+        type_organisation: form.organizationType,
+        crasc_nom: form.crascNom || undefined,
+        type_osc: form.typeOsc || undefined,
+        region: form.region,
+        departement: emptyToNull(form.departement),
+        sous_prefecture: emptyToNull(form.sousPrefecture),
+        ville: form.city.trim() || undefined,
+        origine_organisation: emptyToNull(form.origineOrganisation),
+        email: form.email.trim(),
+        telephone: form.phone.trim(),
+        description: form.description.trim() || undefined,
+        motivation: form.motivation.trim(),
+        type_document_formalisation: emptyToNull(form.typeDocumentFormalisation),
+        existence_siege: toBool(form.existenceSiege),
+        categorie: emptyToNull(form.categorie),
+        niveau_regroupement: emptyToNull(form.niveauRegroupement),
+        domaine_prioritaire: emptyToNull(form.domainePrioritaire),
+        domaine_prioritaire_2: emptyToNull(form.domainePrioritaire2),
+        domaine_prioritaire_3: emptyToNull(form.domainePrioritaire3),
+        domaine_prioritaire_4: emptyToNull(form.domainePrioritaire4),
+        domaine_prioritaire_5: emptyToNull(form.domainePrioritaire5),
+        nb_membres: toNumber(form.nbMembres),
+        nb_femmes_membres: toNumber(form.nbFemmesMembres),
+        nb_hommes_membres: toNumber(form.nbHommesMembres),
+        nb_membres_jeunes: toNumber(form.nbMembresJeunes),
+        nb_membres_handicap: toNumber(form.nbMembresHandicap),
+        nb_membres_be: toNumber(form.nbMembresBe),
+        nombre_mandats_be: toNumber(form.nombreMandatsBe),
+        duree_mandat_be: emptyToNull(form.dureeMandatBe),
+        nb_beneficiaires: toNumber(form.nbBeneficiaires),
+        nb_femmes_beneficiaires: toNumber(form.nbFemmesBeneficiaires),
+        nb_jeunes_beneficiaires: toNumber(form.nbJeunesBeneficiaires),
+        nb_beneficiaires_handicap: toNumber(form.nbBeneficiairesHandicap),
+        adhesion_crasc_statut: emptyToNull(form.adhesionCrascStatut),
+        organes_gouvernance: emptyToNull(form.organesGouvernance),
+        pays_couverture: emptyToNull(form.paysCouverture),
+        nb_personnes_engagees: toNumber(form.nbPersonnesEngagees),
+        nb_cdi: toNumber(form.nbCdi),
+        nb_cdd: toNumber(form.nbCdd),
+        date_designation_responsable: emptyToNull(form.dateDesignationResponsable),
+        date_prochaine_designation: emptyToNull(form.dateProchaineDesignation),
+        manuel_procedures: toBool(form.manuelProcedures),
+        plan_action_annee_cours: toBool(form.planActionAnneeCours),
+        plan_action_annee_cours_details: emptyToNull(form.planActionAnneeCoursDetails),
+        plan_action: toBool(form.planAction),
+        nb_activites: toNumber(form.nbActivites),
+        date_derniere_activite: emptyToNull(form.dateDerniereActivite),
+        rapports_annuels: toBool(form.rapportsAnnuels),
+        recommandations: emptyToNull(form.recommandations),
+        recommandations_2: emptyToNull(form.recommandations2),
+      });
+
       setLoading(false);
       setForm(INITIAL_FORM);
       setErrors({});
-      Alert.alert('Demande soumise !', 'Votre demande d\'adhésion a bien été soumise. Nous vous contacterons prochainement.');
-    }, 1200);
+      Alert.alert('Demande soumise', 'Votre demande d\'adhesion a bien ete soumise. Nous vous contacterons prochainement.');
+    } catch (error: unknown) {
+      setLoading(false);
+      Alert.alert('Echec de la soumission', getErrorMessage(error));
+    }
   };
 
   return (
@@ -240,6 +505,8 @@ export default function RejoindreScreen() {
             )}
           </View>
 
+          {renderInput('sigle', 'Sigle ou abréviation', 'Ex: APD')}
+
           {/* Type d'organisation */}
           <SelectPicker
             label="Type d'organisation"
@@ -255,6 +522,22 @@ export default function RejoindreScreen() {
             </Text>
           )}
 
+          <SelectPicker
+            label="CRASC"
+            placeholder="Selectionnez un CRASC"
+            value={form.crascNom}
+            options={crascOptions}
+            onChange={set('crascNom')}
+          />
+
+          <SelectPicker
+            label="Type OSC"
+            placeholder="Selectionnez un type OSC"
+            value={form.typeOsc}
+            options={oscTypeOptions}
+            onChange={set('typeOsc')}
+          />
+
           {/* Région */}
           <SelectPicker
             label="Région"
@@ -269,6 +552,17 @@ export default function RejoindreScreen() {
               {errors.region}
             </Text>
           )}
+
+          {renderInput('departement', 'Département', 'Département')}
+          {renderInput('sousPrefecture', 'Sous-préfecture', 'Sous-préfecture')}
+
+          <SelectPicker
+            label="L'organisation est née où ?"
+            placeholder="Sélectionnez"
+            value={form.origineOrganisation}
+            options={ORIGINE_OPTIONS}
+            onChange={set('origineOrganisation')}
+          />
 
           {/* Ville */}
           <View>
@@ -329,6 +623,128 @@ export default function RejoindreScreen() {
             )}
           </View>
 
+          <View className="pt-3 border-t border-gray-100">
+            <Text className="text-lg font-bold text-gray-900 mb-3" style={{ fontFamily: 'Poppins-Bold' }}>
+              Formalisation et autoévaluation
+            </Text>
+            <View className="space-y-4">
+              <SelectPicker
+                label="L'organisation a-t-elle un siège ?"
+                placeholder="Sélectionnez"
+                value={form.existenceSiege}
+                options={BOOLEAN_OPTIONS}
+                onChange={set('existenceSiege')}
+              />
+              <SelectPicker
+                label="Document de formalisation"
+                placeholder="Sélectionnez un document"
+                value={form.typeDocumentFormalisation}
+                options={FORMALISATION_OPTIONS}
+                onChange={set('typeDocumentFormalisation')}
+              />
+              <SelectPicker
+                label="Catégorie d'organisation"
+                placeholder="Sélectionnez une catégorie"
+                value={form.categorie}
+                options={CATEGORIE_OPTIONS}
+                onChange={set('categorie')}
+              />
+              <SelectPicker
+                label="Niveau de regroupement"
+                placeholder="Sélectionnez un niveau"
+                value={form.niveauRegroupement}
+                options={NIVEAU_REGROUPEMENT_OPTIONS}
+                onChange={set('niveauRegroupement')}
+              />
+              <SelectPicker
+                label="Adhésion au CRASC"
+                placeholder="Sélectionnez un statut"
+                value={form.adhesionCrascStatut}
+                options={ADHESION_CRASC_OPTIONS}
+                onChange={set('adhesionCrascStatut')}
+              />
+              <SelectPicker
+                label="Existence de manuel de procédures"
+                placeholder="Sélectionnez"
+                value={form.manuelProcedures}
+                options={BOOLEAN_OPTIONS}
+                onChange={set('manuelProcedures')}
+              />
+              <SelectPicker
+                label="Plan d'action pour l'année en cours ?"
+                placeholder="Sélectionnez"
+                value={form.planActionAnneeCours}
+                options={BOOLEAN_OPTIONS}
+                onChange={set('planActionAnneeCours')}
+              />
+              <SelectPicker
+                label="L'organisation a-t-elle un plan d'action ?"
+                placeholder="Sélectionnez"
+                value={form.planAction}
+                options={BOOLEAN_OPTIONS}
+                onChange={set('planAction')}
+              />
+              <SelectPicker
+                label="Rédigez-vous des rapports annuels d'activités ?"
+                placeholder="Sélectionnez"
+                value={form.rapportsAnnuels}
+                options={BOOLEAN_OPTIONS}
+                onChange={set('rapportsAnnuels')}
+              />
+              {renderTextarea('planActionAnneeCoursDetails', "Plan d'action pour l'année en cours et activités/initiatives à venir", 'Décrivez le plan et les activités à venir...')}
+            </View>
+          </View>
+
+          <View className="pt-3 border-t border-gray-100">
+            <Text className="text-lg font-bold text-gray-900 mb-3" style={{ fontFamily: 'Poppins-Bold' }}>
+              Domaines prioritaires
+            </Text>
+            <View className="space-y-4">
+              {renderInput('domainePrioritaire', '1er domaine prioritaire', 'Domaine prioritaire')}
+              {renderInput('domainePrioritaire2', '2ème domaine prioritaire', 'Domaine prioritaire')}
+              {renderInput('domainePrioritaire3', '3ème domaine prioritaire', 'Domaine prioritaire')}
+              {renderInput('domainePrioritaire4', '4ème domaine prioritaire', 'Domaine prioritaire')}
+              {renderInput('domainePrioritaire5', '5ème domaine prioritaire', 'Domaine prioritaire')}
+            </View>
+          </View>
+
+          <View className="pt-3 border-t border-gray-100">
+            <Text className="text-lg font-bold text-gray-900 mb-3" style={{ fontFamily: 'Poppins-Bold' }}>
+              Membres et bénéficiaires
+            </Text>
+            <View className="space-y-4">
+              {renderInput('nbMembres', 'Nombre total de membres', '0', 'number-pad')}
+              {renderInput('nbFemmesMembres', "Nombre de femmes membres de l'OSC", '0', 'number-pad')}
+              {renderInput('nbHommesMembres', "Nombre d'hommes membres de l'OSC", '0', 'number-pad')}
+              {renderInput('nbMembresJeunes', 'Nombre de membres jeunes', '0', 'number-pad')}
+              {renderInput('nbMembresHandicap', 'Nombre de membres en situation de handicap', '0', 'number-pad')}
+              {renderInput('nbMembresBe', 'Nombre de membres du BE', '0', 'number-pad')}
+              {renderInput('nbPersonnesEngagees', "Nombre total de personnes engagées dans l'OSC", '0', 'number-pad')}
+              {renderInput('nbCdi', 'Nombre de personnes sous CDI', '0', 'number-pad')}
+              {renderInput('nbCdd', 'Nombre de personnes sous CDD', '0', 'number-pad')}
+              {renderInput('nbBeneficiaires', "Nombre total de bénéficiaires de l'année précédente", '0', 'number-pad')}
+              {renderInput('nbFemmesBeneficiaires', "Nombre de femmes bénéficiaires de l'année précédente", '0', 'number-pad')}
+              {renderInput('nbJeunesBeneficiaires', "Nombre de jeunes bénéficiaires de l'année précédente", '0', 'number-pad')}
+              {renderInput('nbBeneficiairesHandicap', "Nombre de bénéficiaires en situation de handicap de l'année précédente", '0', 'number-pad')}
+            </View>
+          </View>
+
+          <View className="pt-3 border-t border-gray-100">
+            <Text className="text-lg font-bold text-gray-900 mb-3" style={{ fontFamily: 'Poppins-Bold' }}>
+              Gouvernance et activités
+            </Text>
+            <View className="space-y-4">
+              {renderInput('nombreMandatsBe', 'Nombre de mandat du BE ou DE actuel', '0', 'number-pad')}
+              {renderInput('dureeMandatBe', 'Durée de mandat du BE ou DE actuel (année)', 'Ex: 3 ans')}
+              {renderInput('dateDesignationResponsable', "Date de désignation du/de la responsable actuel(le)", 'AAAA-MM-JJ')}
+              {renderInput('dateProchaineDesignation', 'Prochaine date de désignation', 'AAAA-MM-JJ')}
+              {renderInput('nbActivites', 'Nombre d’activités réalisées dans les 12 derniers mois', '0', 'number-pad')}
+              {renderInput('dateDerniereActivite', 'Date de la dernière activité réalisée', 'AAAA-MM-JJ')}
+              {renderTextarea('organesGouvernance', 'Organes de gouvernance', 'AG, CA, BE, CC, DE, CG, CS...')}
+              {renderTextarea('paysCouverture', "Pays de couverture en plus de la Côte d'Ivoire", 'Citez au moins un pays si applicable...')}
+            </View>
+          </View>
+
           {/* Description */}
           <View>
             <Text className="text-gray-700 text-sm mb-1" style={{ fontFamily: 'Karla-Regular' }}>
@@ -366,6 +782,16 @@ export default function RejoindreScreen() {
                 {errors.motivation}
               </Text>
             )}
+          </View>
+
+          <View className="pt-3 border-t border-gray-100">
+            <Text className="text-lg font-bold text-gray-900 mb-3" style={{ fontFamily: 'Poppins-Bold' }}>
+              Recommandations
+            </Text>
+            <View className="space-y-4">
+              {renderTextarea('recommandations', 'Première recommandation', 'Votre recommandation...')}
+              {renderTextarea('recommandations2', 'Deuxième recommandation', 'Votre recommandation...')}
+            </View>
           </View>
 
           {/* Submit */}

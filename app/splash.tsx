@@ -69,7 +69,7 @@ export default function SplashScreen() {
       >
         <View>
           <View className="bg-orange-50 self-start px-3 py-1 rounded-full mb-4">
-            <Text className="text-brand-orange text-[10px] font-bold uppercase tracking-widest">Bienvenue sur PDOC</Text>
+            <Text className="text-brand-orange text-[10px] font-bold uppercase tracking-widest">Bienvenue sur PdoC</Text>
           </View>
           
           <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-3xl text-gray-900 leading-[42px] mb-4">
@@ -83,7 +83,7 @@ export default function SplashScreen() {
 
         {/* Bouton d'action */}
         <TouchableOpacity 
-          onPress={() => router.push('/login')}
+          onPress={() => router.replace('/(tabs)')}
           className="bg-brand-orange flex-row items-center justify-between p-5 rounded-3xl shadow-xl shadow-orange-200"
         >
           <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-white text-lg ml-2">Commencer</Text>

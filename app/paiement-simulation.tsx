@@ -9,18 +9,35 @@ import { dataService } from '../services/dataService';
 const MODES = ['Orange Money', 'MTN MoMo', 'Wave'];
 
 export default function PaiementSimulationScreen() {
-  const { tid, amount, slug, iid } = useLocalSearchParams();
+  const { tid, amount, slug, iid, did, type, local } = useLocalSearchParams();
   const router = useRouter();
   const [selectedMode, setSelectedMode] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const inscriptionId = iid ? parseInt(iid as string) : null;
+  const donId = did ? parseInt(did as string) : null;
+  const isDonFlow = type === 'don';
+  const isLocalDonFallback = isDonFlow && local === '1' && !donId;
 
   const payMutation = useMutation({
-    mutationFn: () => dataService.confirmerPaiementSimulation(inscriptionId!),
+    mutationFn: () => {
+      if (isLocalDonFallback) {
+        return Promise.resolve({});
+      }
+      if (isDonFlow) {
+        return dataService.confirmerDonSimulation(donId!);
+      }
+      return dataService.confirmerPaiementSimulation(inscriptionId!);
+    },
     onSuccess: () => {
       setSuccess(true);
       setTimeout(() => {
-        router.replace(`/paiement-retour?slug=${slug}&status=success` as any);
+        if (isLocalDonFallback) {
+          router.replace('/paiement-retour?type=don&status=success' as any);
+        } else if (isDonFlow) {
+          router.replace('/paiement-retour?type=don&status=success' as any);
+        } else {
+          router.replace(`/paiement-retour?type=formation&slug=${slug}&status=success` as any);
+        }
       }, 1500);
     },
     onError: (err: any) => {
@@ -29,7 +46,11 @@ export default function PaiementSimulationScreen() {
   });
 
   function handleRefuse() {
-    router.replace(`/paiement-retour?slug=${slug}&status=failed` as any);
+    if (isLocalDonFallback || isDonFlow) {
+      router.replace('/paiement-retour?type=don&status=failed' as any);
+    } else {
+      router.replace(`/paiement-retour?type=formation&slug=${slug}&status=failed` as any);
+    }
   }
 
   return (
@@ -105,7 +126,7 @@ export default function PaiementSimulationScreen() {
                 {/* Boutons */}
                 <TouchableOpacity
                   onPress={() => payMutation.mutate()}
-                  disabled={payMutation.isPending || !inscriptionId}
+                  disabled={payMutation.isPending || (isDonFlow ? (!donId && !isLocalDonFallback) : !inscriptionId)}
                   className="h-14 rounded-2xl items-center justify-center mb-3"
                   style={{ backgroundColor: '#E05017' }}
                 >

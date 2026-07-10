@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Image, Dimensions, ScrollView, Platform, StatusBar } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Image, Dimensions, ScrollView, Platform, StatusBar, Linking, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import {
@@ -7,7 +7,8 @@ import {
   SlidersHorizontal,
   Calendar,
   MapPin,
-  ChevronLeft
+  ChevronLeft,
+  Download,
 } from 'lucide-react-native';
 import Skeleton from '../components/ui/Skeleton';
 import { useQuery } from '@tanstack/react-query';
@@ -29,6 +30,26 @@ export default function FormationsScreen() {
     queryKey: ['formation-rubriques'],
     queryFn: dataService.getFormationRubriques,
   });
+
+  const { data: catalogues = [] } = useQuery({
+    queryKey: ['formation-catalogues-public'],
+    queryFn: () => dataService.getFormationCatalogues(true),
+  });
+
+  const activeCatalogue = catalogues[0];
+
+  const openCatalogue = async () => {
+    if (!activeCatalogue?.fichier_url) {
+      Alert.alert('Catalogue indisponible', 'Aucun catalogue actif n\'est disponible pour le moment.');
+      return;
+    }
+    const canOpen = await Linking.canOpenURL(activeCatalogue.fichier_url);
+    if (!canOpen) {
+      Alert.alert('Ouverture impossible', 'Impossible d\'ouvrir le catalogue sur cet appareil.');
+      return;
+    }
+    await Linking.openURL(activeCatalogue.fichier_url);
+  };
 
   const filteredFormations = React.useMemo(() => {
     if (!formations) return [];
@@ -96,6 +117,20 @@ export default function FormationsScreen() {
           <Text className="text-brand-orange font-bold text-xs">{filteredFormations.length} formation{filteredFormations.length !== 1 ? 's' : ''}</Text>
         )}
       </View>
+
+      <TouchableOpacity
+        onPress={openCatalogue}
+        className={`mb-6 rounded-2xl px-4 py-3 flex-row items-center justify-center ${activeCatalogue ? 'bg-orange-50 border border-orange-200' : 'bg-gray-100 border border-gray-200'}`}
+        disabled={!activeCatalogue}
+      >
+        <Download size={16} color={activeCatalogue ? '#E05017' : '#9CA3AF'} />
+        <Text
+          style={{ fontFamily: 'Poppins_600SemiBold' }}
+          className={`ml-2 text-xs ${activeCatalogue ? 'text-brand-orange' : 'text-gray-400'}`}
+        >
+          {activeCatalogue ? 'Telecharger le catalogue PDF' : 'Aucun catalogue actif'}
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 
@@ -126,7 +161,7 @@ export default function FormationsScreen() {
         )}
       </View>
 
-      <TouchableOpacity 
+      <TouchableOpacity
         onPress={() => router.push({ pathname: `/course-details/${item.slug}` })}
         className="bg-brand-orange py-4 rounded-2xl items-center shadow-lg shadow-orange-200"
       >
@@ -152,12 +187,12 @@ export default function FormationsScreen() {
   );
 
   return (
-    <SafeAreaView 
-      className="flex-1 bg-gray-50" 
+    <SafeAreaView
+      className="flex-1 bg-gray-50"
       edges={['top']}
       style={{ paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }}
     >
-      <FlatList
+      <FlatList<any>
         data={isLoading ? [1, 2, 3] : filteredFormations}
         renderItem={isLoading ? renderSkeleton : renderCourseItem}
         keyExtractor={(item, index) => index.toString()}

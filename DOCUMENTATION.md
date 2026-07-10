@@ -38,8 +38,10 @@ Bienvenue! Voici comment naviguer dans la documentation.
 ## 📖 Tous les guides
 
 ### 1. [`QUICK_START.md`](./QUICK_START.md) ⚡
+
 **Durée**: 2 minutes à lire  
 **Contenu**:
+
 - Installation minimale
 - Commandes essentielles
 - Dépannage rapide
@@ -50,8 +52,10 @@ Bienvenue! Voici comment naviguer dans la documentation.
 ---
 
 ### 2. [`SETUP.md`](./SETUP.md) 🔧
+
 **Durée**: 15-20 minutes pour installer + lire  
 **Contenu**:
+
 - Installation Node.js, Git, Expo
 - Clonage du projet
 - Installation des dépendances
@@ -63,8 +67,10 @@ Bienvenue! Voici comment naviguer dans la documentation.
 ---
 
 ### 3. [`DEVELOPER_GUIDE.md`](./DEVELOPER_GUIDE.md) 📖
+
 **Durée**: 20-30 minutes à lire  
 **Contenu**:
+
 - Prérequis détaillés
 - Structure du projet
 - Commandes principales
@@ -78,8 +84,10 @@ Bienvenue! Voici comment naviguer dans la documentation.
 ---
 
 ### 4. [`ARCHITECTURE.md`](./ARCHITECTURE.md) 🏗️
+
 **Durée**: 30-40 minutes à lire  
 **Contenu**:
+
 - Architecture générale (Layers)
 - Patterns utilisés (Hooks, React Query, etc.)
 - Guide détaillé: Ajouter une page
@@ -93,9 +101,11 @@ Bienvenue! Voici comment naviguer dans la documentation.
 
 ---
 
-### 5. [`README.md`](./README.md) 
+### 5. [`README.md`](./README.md)
+
 **Original**: Documentation de base  
 **Contient**:
+
 - Prérequis
 - Installation (version courte)
 - Lancement
@@ -105,12 +115,53 @@ Bienvenue! Voici comment naviguer dans la documentation.
 ---
 
 ### 6. [`API_CONSUMPTION.md`](./API_CONSUMPTION.md)
+
 **Contenu**:
+
 - Endpoints de l'API
 - Structures de données
 - Comment utiliser chaque endpoint
 
 **Idéal pour**: Intégration API, requêtes HTTP
+
+---
+
+### 7. [`MOBILE_WEB_PARITY_CHECKLIST.md`](./MOBILE_WEB_PARITY_CHECKLIST.md) ✅
+
+**Contenu**:
+
+- Checklist d'alignement web -> mobile
+- Priorisation P0 / P1 / P2
+- Plan de sprints recommandé
+- Critères d'acceptation
+
+**Idéal pour**: Pilotage de roadmap mobile, suivi d'implémentation
+
+---
+
+### 8. [`GUIDE_TECHNIQUE_MOBILE.md`](./GUIDE_TECHNIQUE_MOBILE.md) 🛠
+
+**Contenu**:
+
+- Architecture technique mobile
+- Standards services/types/auth
+- Workflow de développement
+- Checklist qualité avant release
+
+**Idéal pour**: Développeurs mobile, onboarding technique
+
+---
+
+### 9. [`GUIDE_UTILISATION_MOBILE.md`](./GUIDE_UTILISATION_MOBILE.md) 📱
+
+**Contenu**:
+
+- Parcours utilisateur principaux
+- Navigation et fonctionnalités
+- Résolution des problèmes fréquents
+- Guide de support
+
+**Idéal pour**: Utilisateurs finaux, équipe support, formation interne
 
 ---
 
@@ -123,7 +174,7 @@ Vous êtes nouveau? (30 min)
 ├── SETUP.md
 ├── QUICK_START.md
 └── DEVELOPER_GUIDE.md
-    
+
 Vous codez? (au besoin)
 ├── DEVELOPER_GUIDE.md (Dépannage)
 ├── ARCHITECTURE.md (Patterns)
@@ -139,6 +190,7 @@ Vous ajoutez une feature? (30 min)
 ## 🎓 Parcours d'apprentissage
 
 ### Semaine 1 : Fondations
+
 - [ ] Lire `SETUP.md` et installer
 - [ ] Lire `QUICK_START.md`
 - [ ] Lancer l'app sur votre téléphone
@@ -146,12 +198,14 @@ Vous ajoutez une feature? (30 min)
 - [ ] Créer votre première branche Git
 
 ### Semaine 2 : Développement
+
 - [ ] Lire `DEVELOPER_GUIDE.md` (Conventions)
 - [ ] Lire `ARCHITECTURE.md` (Patterns)
 - [ ] Ajouter une nouvelle page simple
 - [ ] Faire votre premier commit
 
 ### Semaine 3+ : Contribution
+
 - [ ] Ajouter des fonctionnalités complexes
 - [ ] Faire des appels API
 - [ ] Créer des Pull Requests
@@ -162,30 +216,39 @@ Vous ajoutez une feature? (30 min)
 ## 🔍 Chercher quelque chose?
 
 ### Installation
+
 → [`SETUP.md`](./SETUP.md) ou [`DEVELOPER_GUIDE.md`](./DEVELOPER_GUIDE.md#-prérequis)
 
 ### Lancer l'app
+
 → [`QUICK_START.md`](./QUICK_START.md) ou [`SETUP.md`](./SETUP.md#étape-6️⃣--lancer-lapplication)
 
 ### Ajouter une page
+
 → [`ARCHITECTURE.md`](./ARCHITECTURE.md#-guide-ajouter-une-nouvelle-page)
 
 ### Ajouter une fonctionnalité
+
 → [`ARCHITECTURE.md`](./ARCHITECTURE.md#-guide-ajouter-une-nouvelle-fonctionnalité)
 
 ### Appels API
+
 → [`ARCHITECTURE.md`](./ARCHITECTURE.md#-appels-api) ou [`API_CONSUMPTION.md`](./API_CONSUMPTION.md)
 
 ### Dépannage
+
 → [`QUICK_START.md`](./QUICK_START.md#-si-ça-casse) ou [`DEVELOPER_GUIDE.md`](./DEVELOPER_GUIDE.md#-dépannage)
 
 ### Git et commits
+
 → [`DEVELOPER_GUIDE.md`](./DEVELOPER_GUIDE.md#-processus-de-contribution)
 
 ### Conventions de code
+
 → [`DEVELOPER_GUIDE.md`](./DEVELOPER_GUIDE.md#-conventions-de-code)
 
 ### Erreur spécifique
+
 → [`DEVELOPER_GUIDE.md`](./DEVELOPER_GUIDE.md#-dépannage) (cherchez l'erreur)
 
 ---
@@ -212,7 +275,10 @@ pasci-mobile-Idrys/
     ├── DEVELOPER_GUIDE.md # Guide complet
     ├── ARCHITECTURE.md   # Technique
     ├── README.md         # Original
-    └── API_CONSUMPTION.md # API
+    ├── API_CONSUMPTION.md # API
+    ├── MOBILE_WEB_PARITY_CHECKLIST.md # Checklist web -> mobile
+    ├── GUIDE_TECHNIQUE_MOBILE.md # Guide technique mobile
+    └── GUIDE_UTILISATION_MOBILE.md # Guide utilisateur mobile
 ```
 
 ---
@@ -261,4 +327,4 @@ pasci-mobile-Idrys/
 
 **Bonne chance! 🚀**
 
-*Dernière mise à jour : 26 avril 2026*
+_Dernière mise à jour : 26 avril 2026_

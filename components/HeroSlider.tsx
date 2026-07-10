@@ -1,10 +1,36 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { View, Image, ScrollView, Dimensions, NativeScrollEvent, NativeSyntheticEvent, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 
 const { width } = Dimensions.get('window');
 
 const FALLBACK_IMAGE = require('../assets/hero-image.png');
+
+const FALLBACK_TITLE = "Centre Régional d'Appui à la Société Civile - CRASC";
+const FALLBACK_DESCRIPTION = "Cette Plateforme digitale est la résultante d'une démarche alliant à la fois, inclusivité, représentativité, accessibilité et pérennité.";
+
+const DEFAULT_SLIDE_TEXTS = [
+  {
+    title: FALLBACK_TITLE,
+    description: FALLBACK_DESCRIPTION,
+  },
+  {
+    title: "Renforcer la visibilité des OSC",
+    description: "Valorisez les initiatives, les expériences et les actions portées par les organisations de la société civile.",
+  },
+  {
+    title: "Partager les opportunités",
+    description: "Retrouvez les informations utiles pour les formations, appels à projets, emplois et activités des CRASC.",
+  },
+  {
+    title: "Créer une synergie d'action",
+    description: "Facilitez la collaboration entre OSC, CRASC et partenaires pour des actions mieux coordonnées.",
+  },
+  {
+    title: "Découvrir les CRASC",
+    description: "Identifiez les centres régionaux et les organisations qui agissent dans chaque zone.",
+  },
+];
 
 const FALLBACK_SLIDES = [
   {
@@ -44,9 +70,42 @@ const FALLBACK_SLIDES = [
 interface HeroSlide {
   id: number;
   image_url?: string;
+  title?: string | null;
+  description?: string | null;
 }
 
-export default function HeroSlider() {
+type NormalizedHeroSlide = {
+  id: number;
+  image_url?: string;
+  title: string;
+  description: string;
+};
+
+type HeroSliderProps = {
+  onSlideChange?: (slide: NormalizedHeroSlide) => void;
+};
+
+const API_ORIGIN = (process.env.EXPO_PUBLIC_API_URL || 'https://api.plateforme-osci.org')
+  .replace(/\/api\/v1\/?$/, '')
+  .replace(/\/$/, '');
+
+function getImageUri(url?: string) {
+  if (!url) return undefined;
+  if (/^https?:\/\//i.test(url)) return url;
+  return `${API_ORIGIN}${url.startsWith('/') ? url : `/${url}`}`;
+}
+
+function normalizeSlide(slide: HeroSlide, index: number): NormalizedHeroSlide {
+  const fallbackText = DEFAULT_SLIDE_TEXTS[index % DEFAULT_SLIDE_TEXTS.length];
+  return {
+    id: slide.id || index + 1,
+    image_url: slide.image_url,
+    title: slide.title || fallbackText.title,
+    description: slide.description || fallbackText.description,
+  };
+}
+
+export default function HeroSlider({ onSlideChange }: HeroSliderProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [autoplayTimer, setAutoplayTimer] = useState<ReturnType<typeof setInterval> | null>(null);
   const scrollViewRef = useRef<ScrollView>(null);
@@ -56,8 +115,7 @@ export default function HeroSlider() {
     queryKey: ['hero-slides'],
     queryFn: async () => {
       try {
-        const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
-        const response = await fetch(`${API_BASE}/api/v1/hero-slides?active_only=true`);
+        const response = await fetch(`${API_ORIGIN}/api/v1/hero-slides?active_only=true&type=haut`);
         if (!response.ok) return FALLBACK_SLIDES;
         const data = await response.json();
         return data?.length > 0 ? data : FALLBACK_SLIDES;
@@ -67,7 +125,16 @@ export default function HeroSlider() {
     },
   });
 
-  const displaySlides = heroSlides?.length > 0 ? heroSlides : FALLBACK_SLIDES;
+  const displaySlides = useMemo(
+    () => (heroSlides?.length > 0 ? heroSlides : FALLBACK_SLIDES).map(normalizeSlide),
+    [heroSlides]
+  );
+
+  useEffect(() => {
+    if (displaySlides.length > 0 && currentIndex >= displaySlides.length) {
+      setCurrentIndex(0);
+    }
+  }, [currentIndex, displaySlides.length]);
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const contentOffsetX = event.nativeEvent.contentOffset.x;
@@ -83,6 +150,11 @@ export default function HeroSlider() {
       });
     }
   }, [currentIndex, displaySlides.length]);
+
+  useEffect(() => {
+    const currentSlide = displaySlides[currentIndex];
+    if (currentSlide) onSlideChange?.(currentSlide);
+  }, [currentIndex, displaySlides, onSlideChange]);
 
   useEffect(() => {
     if (displaySlides.length === 0 || isUserScrolling.current) return;
@@ -147,7 +219,7 @@ export default function HeroSlider() {
         {displaySlides.map((slide: any, index: number) => (
           <View key={slide.id || index} style={{ width, height: 200 }}>
             <Image
-              source={slide.image_url ? { uri: slide.image_url } : FALLBACK_IMAGE}
+              source={slide.image_url ? { uri: getImageUri(slide.image_url) } : FALLBACK_IMAGE}
               style={{ width: '100%', height: 200 }}
               resizeMode="cover"
             />

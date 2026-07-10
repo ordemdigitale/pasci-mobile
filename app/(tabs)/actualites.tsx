@@ -12,27 +12,29 @@ const heroImage = require('../../assets/hero-image.png');
 
 export default function ActualitesScreen() {
   const router = useRouter();
-  
+
   const { data: news, isLoading } = useQuery({
     queryKey: ['news'],
-    queryFn: dataService.getNews,
+    queryFn: () => dataService.getNews(),
   });
 
+  const listData = isLoading ? [1, 2, 3] : (news || []);
+
   const renderNewsItem = ({ item }: { item: News }) => (
-    <TouchableOpacity 
+    <TouchableOpacity
       onPress={() => router.push(`/news-details/${item.slug}`)}
       className="bg-white rounded-[32px] overflow-hidden shadow-sm border border-gray-100 mb-6"
     >
-      <Image 
-        source={item.thumbnail_url ? { uri: item.thumbnail_url } : heroImage} 
-        className="w-full h-48" 
-        resizeMode="cover" 
+      <Image
+        source={item.thumbnail_url ? { uri: item.thumbnail_url } : heroImage}
+        className="w-full h-48"
+        resizeMode="cover"
       />
       <View className="p-5">
         <View className="bg-orange-50 self-start px-3 py-1 rounded-lg mb-3">
-            <Text className="text-brand-orange text-[10px] font-bold">
-              {item.crasc_id ? `CRASC ${item.crasc_id}` : 'SOCIÉTÉ CIVILE'}
-            </Text>
+          <Text className="text-brand-orange text-[10px] font-bold">
+            {item.crasc_id ? `CRASC ${item.crasc_id}` : 'SOCIÉTÉ CIVILE'}
+          </Text>
         </View>
         <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-base leading-6 mb-2">
           {item.title}
@@ -57,8 +59,8 @@ export default function ActualitesScreen() {
   );
 
   return (
-    <SafeAreaView 
-      className="flex-1 bg-gray-50" 
+    <SafeAreaView
+      className="flex-1 bg-gray-50"
       edges={['top']}
     >
       <View className="px-6 py-4 bg-white flex-row justify-between items-center border-b border-gray-50">
@@ -67,7 +69,7 @@ export default function ActualitesScreen() {
           <TouchableOpacity className="p-2 bg-gray-100 rounded-full">
             <Search size={20} color="#4B5563" />
           </TouchableOpacity>
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={() => router.push('/inbox')}
             className="p-2 bg-gray-100 rounded-full"
           >
@@ -76,10 +78,10 @@ export default function ActualitesScreen() {
         </View>
       </View>
 
-      <FlatList
-        data={isLoading ? [1, 2, 3] : news}
+      <FlatList<any>
+        data={listData}
         renderItem={isLoading ? renderSkeleton : renderNewsItem}
-        keyExtractor={(item, index) => (typeof item === 'number' ? `skeleton-${item}` : item.id)}
+        keyExtractor={(item, index) => (typeof item === 'number' ? `skeleton-${item}` : String(item.id ?? index))}
         contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24 }}
         showsVerticalScrollIndicator={false}
       />

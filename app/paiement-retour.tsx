@@ -5,9 +5,10 @@ import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { CheckCircle, XCircle } from 'lucide-react-native';
 
 export default function PaiementRetourScreen() {
-  const { status, slug } = useLocalSearchParams();
+  const { status, slug, type } = useLocalSearchParams();
   const router = useRouter();
   const isSuccess = status === 'success';
+  const isDonFlow = type === 'don';
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50 items-center justify-center px-6" edges={['top']}>
@@ -20,22 +21,29 @@ export default function PaiementRetourScreen() {
           <>
             <CheckCircle size={72} color="#22C55E" />
             <Text style={{ fontFamily: 'Poppins_700Bold', fontSize: 22 }} className="text-gray-800 mt-5 text-center">
-              Paiement confirmé !
+              {isDonFlow ? 'Merci pour votre don !' : 'Paiement confirmé !'}
             </Text>
             <Text style={{ fontFamily: 'Karla_400Regular', fontSize: 14, lineHeight: 22 }} className="text-gray-500 text-center mt-3 mb-8">
-              Votre inscription a bien été enregistrée. Vous recevrez un email de confirmation.
-              Un certificat vous sera délivré à la fin de la formation.
+              {isDonFlow
+                ? "Votre paiement a été reçu avec succès. Votre générosité contribue au renforcement des organisations de la société civile en Côte d'Ivoire."
+                : "Votre inscription a bien été enregistrée. Vous recevrez un email de confirmation. Un certificat vous sera délivré à la fin de la formation."}
             </Text>
             <TouchableOpacity
-              onPress={() => router.replace(`/course-details/${slug}` as any)}
+              onPress={() =>
+                isDonFlow
+                  ? router.replace('/(tabs)' as any)
+                  : router.replace(`/course-details/${slug}` as any)
+              }
               className="w-full h-14 rounded-2xl items-center justify-center mb-3"
               style={{ backgroundColor: '#E05017' }}
             >
-              <Text style={{ fontFamily: 'Poppins_700Bold', color: 'white', fontSize: 15 }}>Retour à la formation</Text>
+              <Text style={{ fontFamily: 'Poppins_700Bold', color: 'white', fontSize: 15 }}>
+                {isDonFlow ? "Retour à l'accueil" : 'Retour à la formation'}
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => router.replace('/formations' as any)}>
               <Text style={{ fontFamily: 'Karla_400Regular', fontSize: 13 }} className="text-gray-400">
-                Voir toutes les formations
+                {isDonFlow ? 'Voir les formations' : 'Voir toutes les formations'}
               </Text>
             </TouchableOpacity>
           </>
@@ -43,22 +51,29 @@ export default function PaiementRetourScreen() {
           <>
             <XCircle size={72} color="#EF4444" />
             <Text style={{ fontFamily: 'Poppins_700Bold', fontSize: 22 }} className="text-gray-800 mt-5 text-center">
-              Paiement non abouti
+              {isDonFlow ? 'Paiement échoué' : 'Paiement non abouti'}
             </Text>
             <Text style={{ fontFamily: 'Karla_400Regular', fontSize: 14, lineHeight: 22 }} className="text-gray-500 text-center mt-3 mb-8">
-              Votre paiement n'a pas pu être finalisé. Aucun montant n'a été débité.
-              Vous pouvez réessayer à tout moment.
+              {isDonFlow
+                ? "Votre paiement n'a pas pu être traité. Veuillez réessayer ou utiliser un autre moyen de paiement."
+                : "Votre paiement n'a pas pu être finalisé. Aucun montant n'a été débité. Vous pouvez réessayer à tout moment."}
             </Text>
             <TouchableOpacity
-              onPress={() => router.replace(`/course-details/${slug}` as any)}
+              onPress={() =>
+                isDonFlow
+                  ? router.replace('/faire-un-don' as any)
+                  : router.replace(`/course-details/${slug}` as any)
+              }
               className="w-full h-14 rounded-2xl items-center justify-center mb-3"
               style={{ backgroundColor: '#E05017' }}
             >
-              <Text style={{ fontFamily: 'Poppins_700Bold', color: 'white', fontSize: 15 }}>Réessayer</Text>
+              <Text style={{ fontFamily: 'Poppins_700Bold', color: 'white', fontSize: 15 }}>
+                {isDonFlow ? 'Réessayer le don' : 'Réessayer'}
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => router.replace('/formations' as any)}>
               <Text style={{ fontFamily: 'Karla_400Regular', fontSize: 13 }} className="text-gray-400">
-                Toutes les formations
+                {isDonFlow ? "Retour aux formations" : 'Toutes les formations'}
               </Text>
             </TouchableOpacity>
           </>

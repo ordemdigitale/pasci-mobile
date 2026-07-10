@@ -7,6 +7,7 @@ import {
   Users,
   MapPin,
   Briefcase,
+  Calendar,
   Clock,
   Bookmark,
   ChevronRight
@@ -106,6 +107,9 @@ export default function EspaceCollabScreen() {
       ? Math.floor((Date.now() - new Date(pubDate).getTime()) / 86400000)
       : null;
     const timeLabel = daysAgo === 0 ? "Aujourd'hui" : daysAgo === 1 ? 'Hier' : daysAgo !== null ? `Il y a ${daysAgo}j` : '';
+    const deadlineLabel = item.expiration_date
+      ? new Date(item.expiration_date).toLocaleDateString('fr-FR')
+      : null;
 
     return (
       <TouchableOpacity
@@ -137,12 +141,22 @@ export default function EspaceCollabScreen() {
           </View>
         </View>
 
-        {timeLabel ? (
-          <View className="flex-row items-center bg-gray-50 self-start px-3 py-1 rounded-lg">
-            <Clock size={12} color="#9CA3AF" />
-            <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-400 text-[10px] ml-1.5">{timeLabel}</Text>
-          </View>
-        ) : null}
+        <View className="flex-row flex-wrap gap-2">
+          {timeLabel ? (
+            <View className="flex-row items-center bg-gray-50 self-start px-3 py-1 rounded-lg">
+              <Clock size={12} color="#9CA3AF" />
+              <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-400 text-[10px] ml-1.5">{timeLabel}</Text>
+            </View>
+          ) : null}
+          {deadlineLabel ? (
+            <View className="flex-row items-center bg-red-50 self-start px-3 py-1 rounded-lg">
+              <Calendar size={12} color="#DC2626" />
+              <Text style={{ fontFamily: 'Karla_700Bold' }} className="text-red-600 text-[10px] ml-1.5">
+                Jusqu'au {deadlineLabel}
+              </Text>
+            </View>
+          ) : null}
+        </View>
       </TouchableOpacity>
     );
   };
@@ -238,15 +252,15 @@ export default function EspaceCollabScreen() {
   const listData = isLoading
     ? [1, 2, 3, 4]
     : activeTab === 'Pôles'
-    ? (filteredPoles || [])
-    : (filteredJobs || []);
+      ? (filteredPoles || [])
+      : (filteredJobs || []);
 
   return (
     <SafeAreaView
       className="flex-1 bg-gray-50"
       edges={['top']}
     >
-      <FlatList
+      <FlatList<any>
         data={listData}
         renderItem={({ item, index }) => {
           if (isLoading) return activeTab === 'Pôles' ? renderPoleSkeleton() : renderJobSkeleton();

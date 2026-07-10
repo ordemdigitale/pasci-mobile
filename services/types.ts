@@ -19,6 +19,11 @@ export interface AuthResponse {
   user?: User;
 }
 
+export interface PaymentNumbers {
+  wave_number: string;
+  orange_money_number: string;
+}
+
 export interface News {
   id: number;
   title: string;
@@ -55,6 +60,7 @@ export interface Job {
   location: string;
   type: string;
   slug: string;
+  offre_url?: string | null;
   is_expired: boolean;
   created_at: string;
   updated_at: string;
@@ -121,7 +127,13 @@ export interface Partner {
   created_at?: string;
   type?: { id: number; name: string; slug: string };
   crasc?: { id: number; name: string; slug: string };
-  news_items?: { id: number; title: string; slug: string; thumbnail_url?: string; created_at: string }[];
+  news_items?: {
+    id: number;
+    title: string;
+    slug: string;
+    thumbnail_url?: string;
+    created_at: string;
+  }[];
   tags?: string[];
   type_document_formalisation?: string | null;
   existence_siege?: boolean | null;
@@ -129,6 +141,8 @@ export interface Partner {
   plan_action?: boolean | null;
   rapports_annuels?: boolean | null;
   adhesion_crasc?: boolean | null;
+  adhesion_crasc_statut?: 'oui' | 'non' | 'en_cours' | null;
+  niveau_regroupement?: 'Simple' | 'Réseau' | 'Fédération' | 'Plateforme' | 'Confédération' | null;
   score_autoevaluation?: number;
   couleur_autoevaluation?: 'gris' | 'rouge' | 'orange' | 'jaune' | 'bleu' | 'vert';
   couleur_autoevaluation_hex?: string;
@@ -143,6 +157,228 @@ export interface Crasc {
   oscs?: any[];
   regions?: any[];
   news?: any[];
+  evenements?: Evenement[];
+  videos?: CrascVideo[];
+}
+
+export interface Evenement {
+  id: number;
+  title: string;
+  description?: string;
+  date_debut: string;
+  date_fin?: string;
+  lieu?: string;
+  crasc_id?: number;
+  created_at?: string;
+}
+
+export interface CrascVideo {
+  id: number;
+  crasc_id: number;
+  titre: string;
+  url: string;
+  description?: string;
+  ordre: number;
+  created_at?: string;
+}
+
+export interface OscType {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string;
+}
+
+export interface ContactPayload {
+  categorie_acteur?: string;
+  nom: string;
+  prenoms: string;
+  fonction?: string;
+  sexe?: string;
+  tranche_age?: string;
+  email: string;
+  contact?: string;
+  pays?: string;
+  lieu_residence?: string;
+  motif: string;
+  message?: string;
+}
+
+export interface AdhesionPayload {
+  nom_organisation: string;
+  sigle?: string | null;
+  type_organisation: string;
+  crasc_nom?: string;
+  type_osc?: string;
+  region: string;
+  departement?: string | null;
+  sous_prefecture?: string | null;
+  ville?: string;
+  origine_organisation?: string | null;
+  email: string;
+  telephone: string;
+  description?: string;
+  motivation: string;
+  type_document_formalisation?: string | null;
+  existence_siege?: boolean | null;
+  categorie?: string | null;
+  niveau_regroupement?: string | null;
+  domaine_prioritaire?: string | null;
+  domaine_prioritaire_2?: string | null;
+  domaine_prioritaire_3?: string | null;
+  domaine_prioritaire_4?: string | null;
+  domaine_prioritaire_5?: string | null;
+  nb_membres?: number | null;
+  nb_femmes_membres?: number | null;
+  nb_hommes_membres?: number | null;
+  nb_membres_jeunes?: number | null;
+  nb_membres_handicap?: number | null;
+  nb_membres_be?: number | null;
+  nombre_mandats_be?: number | null;
+  duree_mandat_be?: string | null;
+  nb_beneficiaires?: number | null;
+  nb_femmes_beneficiaires?: number | null;
+  nb_jeunes_beneficiaires?: number | null;
+  nb_beneficiaires_handicap?: number | null;
+  adhesion_crasc_statut?: string | null;
+  organes_gouvernance?: string | null;
+  pays_couverture?: string | null;
+  nb_personnes_engagees?: number | null;
+  nb_cdi?: number | null;
+  nb_cdd?: number | null;
+  date_designation_responsable?: string | null;
+  date_prochaine_designation?: string | null;
+  manuel_procedures?: boolean | null;
+  plan_action_annee_cours?: boolean | null;
+  plan_action_annee_cours_details?: string | null;
+  plan_action?: boolean | null;
+  nb_activites?: number | null;
+  date_derniere_activite?: string | null;
+  rapports_annuels?: boolean | null;
+  recommandations?: string | null;
+  recommandations_2?: string | null;
+}
+
+export interface CatalogueFormation {
+  id: number;
+  titre: string;
+  description?: string;
+  fichier_path: string;
+  fichier_url: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface NumeroUtile {
+  id: number;
+  categorie: string;
+  label: string;
+  numero: string;
+  description?: string | null;
+  ordre: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Faq {
+  id: number;
+  question: string;
+  answer: string;
+  ordre: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PaiementFormationInitierPayload {
+  participant_nom: string;
+  participant_prenoms: string;
+  participant_email: string;
+  participant_phone?: string;
+  categorie_acteur?: string;
+}
+
+export interface PaiementFormationInitierResponse {
+  inscription_id: number;
+  payment_url: string;
+  transaction_id: string;
+  amount: number;
+  currency: string;
+  cinetpay_configured: boolean;
+}
+
+export interface FormationInscriptionRead {
+  id: number;
+  formation_id: number;
+  user_id?: string | null;
+  participant_name: string;
+  participant_nom?: string | null;
+  participant_prenoms?: string | null;
+  participant_email: string;
+  participant_phone?: string | null;
+  categorie_acteur?: string | null;
+  is_completed: boolean;
+  completed_at?: string | null;
+  certificate_issued: boolean;
+  payment_status: 'gratuite' | 'pending' | 'soumis' | 'confirmed' | 'failed' | 'paid' | string;
+  payment_transaction_id?: string | null;
+  payment_amount?: number | null;
+  payment_date?: string | null;
+  payment_operator?: string | null;
+  created_at: string;
+}
+
+export interface SoumettrePaiementPayload {
+  transaction_id: string;
+  operateur?: 'wave' | 'orange_money' | string | null;
+}
+
+export interface DonCreatePayload {
+  nom: string;
+  prenoms?: string;
+  fonction?: string;
+  sexe?: string;
+  tranche_age?: string;
+  email: string;
+  telephone?: string;
+  pays?: string;
+  lieu_residence?: string;
+  montant: number;
+  message?: string;
+}
+
+export interface DonCreateResponse {
+  don_id: number;
+  statut: string;
+}
+
+export interface DonRead {
+  id: number;
+  nom: string;
+  prenoms?: string | null;
+  fonction?: string | null;
+  sexe?: string | null;
+  tranche_age?: string | null;
+  email: string;
+  telephone?: string | null;
+  pays?: string | null;
+  lieu_residence?: string | null;
+  montant: number;
+  message?: string | null;
+  transaction_id?: string | null;
+  operateur?: string | null;
+  statut: string;
+  created_at: string;
+}
+
+export interface DonInitierPayload extends DonCreatePayload {}
+
+export interface DonInitierResponse {
+  don_id: number;
+  transaction_id: string;
+  payment_url: string;
+  simulated: boolean;
 }
 
 export interface PTF {
@@ -240,6 +476,22 @@ export interface KeyStats {
   id: number;
   name: string;
   number: number;
+}
+
+export interface DashboardStats {
+  crasc?: { total?: number };
+  regions?: { total?: number };
+  osc?: { total?: number };
+  jobs?: { active?: number };
+}
+
+export interface VisiteStats {
+  total: number;
+  visiteurs_uniques?: number;
+  aujourd_hui?: number;
+  hier?: number;
+  semaine?: number;
+  mois?: number;
 }
 
 export interface Documentation {

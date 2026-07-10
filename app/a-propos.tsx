@@ -1,213 +1,366 @@
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image, Dimensions } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter, Stack } from 'expo-router';
-import { ChevronLeft, Eye, Heart, Mail, Building2 } from 'lucide-react-native';
-import { useQuery } from '@tanstack/react-query';
-import { dataService } from '../services/dataService';
-import { PTF } from '../services/types';
+import { Stack, useRouter } from 'expo-router';
+import { BookOpenText, Building2, CheckCircle2, ChevronLeft, FileText, Globe2, Landmark, Users } from 'lucide-react-native';
 
-const { width } = Dimensions.get('window');
+const COLORS = {
+  green: '#2a591d',
+  blue: '#2F5496',
+  orange: '#E05017',
+  paleBlue: '#f0f9ff',
+  border: '#dbeafe',
+  text: '#111827',
+  muted: '#6B7280',
+};
 
-const OBJECTIFS = [
-  { id: 1, title: 'Accès à l\'information', desc: 'Faciliter l\'accès à l\'information sur toutes les opportunités d\'appuis techniques et financiers pour les OSC.' },
-  { id: 2, title: 'Renforcement des capacités', desc: 'Renforcer les capacités techniques, organisationnelles et institutionnelles des Organisations de la Société Civile de sa zone.' },
-  { id: 3, title: 'Appui-conseils et performances', desc: 'Améliorer les conditions et cadres de travail des OSC, les accompagner, leur apporter des appuis-conseils et des connaissances pour améliorer leurs performances, afin qu\'elles deviennent des interlocuteurs crédibles, reconnus, informés et compétents.' },
-  { id: 4, title: 'Cadre d\'échanges', desc: 'Créer un cadre d\'échanges et de mutualisation de différents services au bénéfice des OSC.' },
+const PLATFORM_SECTIONS = [
+  {
+    title: 'Une plateforme pour tous',
+    text: "Cette plateforme digitale est née d'un travail collectif. Elle a été construite avec la participation des associations ivoiriennes, de l'État et de partenaires techniques et financiers.",
+  },
+  {
+    title: 'Un projet partagé',
+    text: "Les acteurs impliqués ont donné leurs idées et leurs propositions lors de rencontres de préparation. C'est grâce à eux que les services et les outils de la plateforme répondent vraiment aux besoins des utilisateurs.",
+  },
+  {
+    title: 'Un outil pratique et vivant',
+    text: "La plateforme s'adresse aux organisations de la société civile et aux Centres Régionaux d'Appui à la Société Civile (CRASC).",
+    bullets: [
+      'rendre les OSC plus visibles',
+      'travailler ensemble plus facilement',
+      'partager des expériences et des bonnes pratiques',
+    ],
+  },
+  {
+    title: 'Un espace pour la cohésion',
+    text: 'Au-delà du numérique, la plateforme veut :',
+    bullets: [
+      'renforcer le vivre ensemble',
+      'aider à préparer le travail en équipe sans conflit',
+      'encourager la participation des femmes et des jeunes',
+    ],
+  },
 ];
 
-const ZONES_COUVERTURE = [
-  { id: 'centre', title: 'CRASC Centre', count: 5, regions: 'Bélier, Gbêkè, Hambol, Marahoué, N\'zi', color: '#F59E42' },
-  { id: 'est', title: 'CRASC Est', count: 4, regions: 'Bounkani, Gontougo, Iffou, Moronou', color: '#FF6B8A' },
-  { id: 'nord', title: 'CRASC Nord', count: 7, regions: 'Bagoué, Béré, Kabadougou, Poro, Folon, Tchologo, Worodougou', color: '#5A7D5A' },
-  { id: 'ouest', title: 'CRASC Ouest', count: 5, regions: 'Bafing, Cavally, Guémon, Haut-Sassandra, Tonkpi', color: '#2E86C1' },
-  { id: 'sud', title: 'CRASC Sud', count: 10, regions: 'Agnéby-Tiassa, Gbokle, Goh, Me, San-Pedro, Grands-Ponts, Indénié-Djuablin, Loh-Djiboua, Nawa, Sud-Comoé, Abidjan', color: '#4FC3DC' },
+const CRASC_SECTIONS = [
+  {
+    title: "Histoire des CRASC en Côte d'Ivoire",
+    bullets: [
+      'En 2010, une étude a montré que les organisations de la société civile avaient beaucoup de difficultés.',
+      "Pour aider, l'État et l'Union Européenne ont lancé le programme LIANE afin de renforcer la démocratie, la gouvernance et le partenariat entre l'État et les OSC.",
+      'En 2015, grâce au projet LIANE I, les premiers Centres Régionaux d’Appui à la Société Civile ont été créés.',
+    ],
+  },
+  {
+    title: 'Pourquoi les CRASC ?',
+    bullets: [
+      'Les OSC sont nombreuses et réparties partout dans le pays.',
+      'Pour mieux les accompagner, cinq CRASC ont été créés : Centre, Est, Nord, Ouest et Sud.',
+      'Chaque CRASC sert de relais pour donner conseils, formations et appuis aux associations de sa région.',
+    ],
+  },
+  {
+    title: 'Leur rôle',
+    bullets: [
+      'Regrouper les forces des OSC.',
+      'Offrir des services utiles : formations, accompagnements et conseils.',
+      'Aider la société civile à être unie, responsable et actrice du développement local.',
+    ],
+  },
+  {
+    title: 'Mission des CRASC',
+    text: "Les CRASC ont pour mission principale d'aider les organisations de la société civile de leur région à mieux fonctionner. Ils aident les organisations à avoir leurs papiers, à bien s'organiser et leur donnent des méthodes efficaces pour bien travailler.",
+  },
+  {
+    title: 'Objectifs des CRASC',
+    bullets: [
+      'Accompagner les OSC dans leur création, leur organisation et leur vie quotidienne.',
+      'Donner accès aux informations sur les aides techniques et financières.',
+      "Former et conseiller les OSC pour qu'elles deviennent des acteurs crédibles et compétents.",
+      'Créer un espace d’échanges et de partage de services entre OSC.',
+    ],
+  },
+  {
+    title: 'Organisation des CRASC',
+    text: 'Les CRASC sont structurés autour de plusieurs organes de gouvernance.',
+    bullets: [
+      'Assemblée Générale',
+      "Conseil d'Administration",
+      'Direction exécutive',
+      'Délégations régionales',
+      'Commissariat aux comptes',
+      'Conseil des sages',
+    ],
+  },
 ];
 
-const STRUCTURATION = [
-  'L\'Assemblée Générale',
-  'Le Conseil d\'Administration',
-  'La Direction Exécutive',
-  'Délégations régionales',
-  'Le Commissariat aux comptes',
+const ZONES = [
+  {
+    title: 'CRASC Centre',
+    meta: '5 régions + 1 district',
+    text: "Bélier (Toumodi), Gbêkè (Bouaké), Hambol (Katiola), Marahoué (Bouaflé), N'Zi (Dimbokro), District autonome de Yamoussoukro.",
+    color: '#F59E0B',
+  },
+  {
+    title: 'CRASC Est',
+    meta: '5 régions',
+    text: 'Bounkani (Bouna), Gontougo (Bondoukou), Iffou (Daoukro), Moronou (Bongouanou), Indénié-Djuablin (Abengourou).',
+    color: '#EC4899',
+  },
+  {
+    title: 'CRASC Nord',
+    meta: '7 régions',
+    text: 'Bagoué (Boundiali), Béré (Mankono), Folon (Minignan), Kabadougou (Odienné), Poro (Korhogo), Tchologo (Ferkessédougou), Worodougou (Séguéla).',
+    color: '#5A7D5A',
+  },
+  {
+    title: 'CRASC Ouest',
+    meta: '5 régions',
+    text: 'Bafing (Touba), Cavally (Guiglo), Guémon (Duékoué), Haut-Sassandra (Daloa), Tonkpi (Man).',
+    color: '#2563EB',
+  },
+  {
+    title: 'CRASC Sud',
+    meta: '9 régions + 1 district',
+    text: "Agnéby-Tiassa (Agboville), Gbôklè (Sassandra), Gôh (Gagnoa), Mé (Adzopé), San Pedro, Grands-Ponts (Dabou), Loh-Djiboua (Divo), Nawa (Soubré), Sud-Comoé (Aboisso), District autonome d'Abidjan.",
+    color: '#06B6D4',
+  },
 ];
+
+const ACHIEVEMENTS = [
+  {
+    title: 'Renforcement des capacités de 5 409 OSC',
+    bullets: [
+      '3 553 OSC formées aux critères de soumission aux appels à projet.',
+      '1 056 organisations formées aux thématiques : gestion de projets, communication digitale, égalité de genre, prévention et gestion des conflits.',
+      '780 organisations appuyées à la création et à la formalisation.',
+      '20 organisations accompagnées techniquement et institutionnellement par semaine.',
+    ],
+  },
+  {
+    title: 'Appui à la gouvernance et à la participation citoyenne',
+    bullets: [
+      "Réalisation d'enquêtes de satisfaction citoyenne sur les services publics.",
+      'Organisation de cafés citoyens et panels de dialogue avec les autorités et les candidats aux élections.',
+      'Contribution à la définition des politiques de développement local.',
+      'Élaboration d’une feuille de route pour les CRASC.',
+    ],
+  },
+  {
+    title: 'Partenariats et projets structurants',
+    bullets: [
+      'Participation au projet de cartographie sectorielle des OSC et redynamisation des CRASC.',
+      'Mise en œuvre du programme LIANE 2 pour le renforcement des capacités et le suivi des micro-initiatives.',
+      "Exécution du projet ECOTER : création d'un centre de services pour les OSC du Gontougo.",
+    ],
+  },
+];
+
+const DGAT_SECTIONS = [
+  {
+    title: 'Rôle principal de la DGAT',
+    bullets: [
+      "Vulgarisation et formation autour de l'ordonnance n° 2024-368.",
+      'Accompagnement juridique et administratif des OSC.',
+      'Mise en conformité des statuts, procédures et modes de fonctionnement.',
+      'Renforcement de la gouvernance financière, comptable et humaine.',
+      'Coordination nationale entre OSC, CRASC et partenaires.',
+    ],
+  },
+  {
+    title: 'Impact concret pour les OSC',
+    bullets: [
+      'Clarté des règles pour être reconnues légalement.',
+      'Crédibilité renforcée auprès des citoyens et des bailleurs.',
+      'Protection contre les dérives et les structures fictives.',
+      'Structuration durable en réseaux et plateformes.',
+    ],
+  },
+  {
+    title: "Articles clés de l'ordonnance n° 2024-368",
+    bullets: [
+      'Article 5 : déclaration auprès de la préfecture ou sous-préfecture.',
+      'Article 15 : droit de recevoir des dons, posséder des biens et ouvrir un compte bancaire.',
+      'Article 28 : comptabilité claire, transparence et obligations fiscales.',
+      "Article 42 : information de l'administration en cas de changement important.",
+      'Articles 64 à 69 : lutte contre le blanchiment et le financement du terrorisme.',
+      'Article 75 : dissolution possible si l’objet est illégal ou contraire à l’ordre public.',
+    ],
+  },
+];
+
+function BulletList({ items }: { items: string[] }) {
+  return (
+    <View className="mt-3 gap-2">
+      {items.map((item) => (
+        <View key={item} className="flex-row items-start">
+          <View className="w-1.5 h-1.5 rounded-full mt-2 mr-3" style={{ backgroundColor: COLORS.orange }} />
+          <Text style={{ fontFamily: 'Karla_400Regular', color: COLORS.muted }} className="flex-1 text-sm leading-5">
+            {item}
+          </Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+function InfoSection({ title, text, bullets }: { title: string; text?: string; bullets?: string[] }) {
+  return (
+    <View className="mb-5">
+      <Text style={{ fontFamily: 'Poppins_700Bold', color: COLORS.blue }} className="text-base mb-2">
+        {title}
+      </Text>
+      {text ? (
+        <Text style={{ fontFamily: 'Karla_400Regular', color: COLORS.muted }} className="text-sm leading-6">
+          {text}
+        </Text>
+      ) : null}
+      {bullets ? <BulletList items={bullets} /> : null}
+    </View>
+  );
+}
+
+function ContentCard({
+  title,
+  icon: Icon,
+  children,
+}: {
+  title: string;
+  icon: React.ComponentType<{ size: number; color: string }>;
+  children: React.ReactNode;
+}) {
+  return (
+    <View className="rounded-3xl border p-5 mb-6" style={{ backgroundColor: COLORS.paleBlue, borderColor: COLORS.border }}>
+      <View className="flex-row items-center mb-5">
+        <View className="w-10 h-10 rounded-2xl items-center justify-center mr-3" style={{ backgroundColor: '#FFFFFF' }}>
+          <Icon size={22} color={COLORS.orange} />
+        </View>
+        <Text style={{ fontFamily: 'Poppins_700Bold', color: COLORS.green }} className="flex-1 text-xl leading-7">
+          {title}
+        </Text>
+      </View>
+      {children}
+    </View>
+  );
+}
 
 export default function AproposScreen() {
   const router = useRouter();
 
-  const { data: ptfList } = useQuery({
-    queryKey: ['ptf'],
-    queryFn: dataService.getPtfList,
-  });
-
   return (
     <SafeAreaView className="flex-1 bg-white">
       <Stack.Screen options={{ headerShown: false }} />
-      
-      {/* Header */}
+
       <View className="px-6 py-4 flex-row items-center bg-white border-b border-gray-50">
         <TouchableOpacity onPress={() => router.back()} className="mr-4">
-          <ChevronLeft size={24} color="#E05017" />
+          <ChevronLeft size={24} color={COLORS.orange} />
         </TouchableOpacity>
-        <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-lg flex-1 text-center pr-8">À Propos de PDOC</Text>
+        <Text style={{ fontFamily: 'Poppins_700Bold', color: COLORS.text }} className="text-lg flex-1 text-center pr-8">
+          À Propos de PdoC
+        </Text>
       </View>
 
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        {/* Hero Section */}
-        <View className="px-6 mt-6">
-          <View className="relative rounded-[40px] overflow-hidden">
-            <Image 
-              source={{ uri: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=800&auto=format&fit=crop' }} 
-              className="w-full h-64" 
-              resizeMode="cover" 
-            />
-            <View className="absolute inset-0 bg-black/20" />
-            <View className="absolute bottom-8 left-8">
-              <Text className="text-white/80 text-[10px] font-bold uppercase tracking-widest mb-1">Impact Côte d'Ivoire</Text>
-              <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-white text-3xl">Le Projet PDOC</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Mission Section */}
-        <View className="px-8 mt-10">
-          <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-brand-orange text-[10px] uppercase tracking-widest mb-4">Présentation</Text>
-          <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-2xl leading-9 mb-6">Présentation de la plateforme</Text>
-          <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 leading-6 text-base mb-6">
-            Cette Plateforme digitale est la résultante d’une démarche alliant à la fois, inclusivité, représentativité, accessibilité et pérennité. Elle vise à accroitre la visibilité des OSC, la synergie d’action et le partage d’expérience.
+      <ScrollView showsVerticalScrollIndicator={false} className="flex-1" contentContainerStyle={{ padding: 24, paddingBottom: 40 }}>
+        <View className="mb-6">
+          <Text style={{ fontFamily: 'Poppins_700Bold', color: COLORS.orange }} className="text-xs uppercase tracking-widest mb-3">
+            Présentation
           </Text>
-          
-          <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-2xl leading-9 mb-6">Présentation du CRASC</Text>
-          <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 leading-6 text-base mb-6">
-            Le Centre Régional d’Appui à la Société Civile (CRASC) est un dispositif régional de mutualisation des compétences et des services au bénéfice des OSC de la Côte d'Ivoire. Sa mission essentielle est de renforcer les capacités techniques, organisationnelles et institutionnelles des OSC.
+          <Text style={{ fontFamily: 'Poppins_700Bold', color: COLORS.text }} className="text-3xl leading-10">
+            Plateforme digitale des organisations de la société civile
           </Text>
-
-          <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-brand-orange text-[10px] uppercase tracking-widest mb-4">Historique de mise en place des CRASC</Text>
-          <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 leading-6 text-base mb-4">
-            En Côte d'Ivoire le Mapping en Juillet 2010 de la société civile a fait ressortir les principales difficultés auxquelles la société civile est confrontée. Pour combler ces multiples insuffisances, les principales stratégies à moyen et long termes identifiées par l'État de Côte d'Ivoire et l'Union Européenne ont conduit à la création d'un programme d'appui aux organisations de la société civile ivoirienne intitulé LIANE (Leadership & Initiatives des Acteurs Non Étatiques).
-          </Text>
-          <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 leading-6 text-base mb-6">
-            L'un des résultats du projet LIANE I, piloté par le CERAP, dans le cadre du processus de renforcement des capacités a été la création du "Centre Régional d'Appui à la Société Civile (CRASC)" en Juillet 2015, pour pérenniser les acquis du projet.
-          </Text>
-
-          <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-xl mb-4">Missions des CRASC</Text>
-          <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 leading-6 text-base">
-            La mission essentielle des CRASC est de renforcer les capacités techniques, organisationnelles et institutionnelles des OSC de leur zone de couverture.
+          <Text style={{ fontFamily: 'Karla_400Regular', color: COLORS.muted }} className="text-base leading-7 mt-4">
+            PdoC met en relation les OSC, les CRASC, l’État et les partenaires afin de faciliter l’information, la visibilité et l’accompagnement de la société civile ivoirienne.
           </Text>
         </View>
 
-        {/* Objectifs Clés Section */}
-        <View className="bg-orange-50/30 mt-12 px-8 py-12">
-          <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-xl mb-10">Objectifs des CRASC</Text>
-          
-          {OBJECTIFS.map((obj, index) => (
-            <View key={obj.id} className="flex-row mb-10 relative">
-              <View className="w-9 h-9 bg-brand-orange rounded-full items-center justify-center z-10">
-                <Text className="text-white font-bold">{obj.id}</Text>
-              </View>
-              <View className="flex-1 ml-6">
-                <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-base mb-2">{obj.title}</Text>
-                <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 text-sm leading-5">{obj.desc}</Text>
-              </View>
-            </View>
+        <ContentCard title="Présentation de la plateforme (PdoC)" icon={Globe2}>
+          {PLATFORM_SECTIONS.map((section) => (
+            <InfoSection key={section.title} {...section} />
           ))}
-        </View>
+        </ContentCard>
 
-        {/* Structuration Section */}
-        <View className="px-8 mt-12">
-          <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-xl mb-6">Structuration</Text>
-          <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 mb-6 leading-6">
-            Les CRASC disposent de 5 organes de gestion pour assurer leur bon fonctionnement et leur transparence :
+        <ContentCard title="Présentation générale de la société civile en CI" icon={Users}>
+          <Text style={{ fontFamily: 'Poppins_700Bold', color: COLORS.green }} className="text-lg mb-4">
+            Présentation du CRASC
           </Text>
-          <View className="bg-white border border-gray-100 rounded-[32px] p-6 shadow-sm">
-            {STRUCTURATION.map((item, index) => (
-              <View key={index} className={`flex-row items-center py-3 ${index !== STRUCTURATION.length - 1 ? 'border-b border-gray-50' : ''}`}>
-                <View className="w-2 h-2 rounded-full bg-brand-orange mr-4" />
-                <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-gray-700 text-sm">{item}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
+          {CRASC_SECTIONS.map((section) => (
+            <InfoSection key={section.title} {...section} />
+          ))}
+        </ContentCard>
 
-        {/* Zones de couverture */}
-        <View className="px-8 mt-12 mb-6">
-          <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-xl mb-6">Zones de couverture</Text>
-          {ZONES_COUVERTURE.map((zone) => (
-            <View key={zone.id} className="bg-white border border-gray-100 p-5 rounded-[32px] mb-4 shadow-sm">
+        <View className="mb-8">
+          <View className="flex-row items-center mb-4">
+            <Building2 size={22} color={COLORS.orange} />
+            <Text style={{ fontFamily: 'Poppins_700Bold', color: COLORS.text }} className="text-xl ml-3">
+              Les zones couvertes par les CRASC
+            </Text>
+          </View>
+
+          {ZONES.map((zone) => (
+            <View key={zone.title} className="bg-white border border-gray-100 rounded-3xl p-5 mb-4">
               <View className="flex-row items-center justify-between mb-3">
-                <View className="flex-row items-center">
-                  <View style={{ backgroundColor: zone.color }} className="w-3 h-3 rounded-full mr-3" />
-                  <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-base">{zone.title}</Text>
+                <View className="flex-row items-center flex-1">
+                  <View className="w-3 h-3 rounded-full mr-3" style={{ backgroundColor: zone.color }} />
+                  <Text style={{ fontFamily: 'Poppins_700Bold', color: COLORS.text }} className="text-base">
+                    {zone.title}
+                  </Text>
                 </View>
                 <View className="bg-gray-100 px-3 py-1 rounded-full">
-                  <Text className="text-[10px] font-bold text-gray-600">{zone.count} Régions</Text>
+                  <Text style={{ fontFamily: 'Karla_700Bold' }} className="text-gray-500 text-[10px]">
+                    {zone.meta}
+                  </Text>
                 </View>
               </View>
-              <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 text-xs leading-5">
-                Régions : {zone.regions}
+              <Text style={{ fontFamily: 'Karla_400Regular', color: COLORS.muted }} className="text-sm leading-6">
+                {zone.text}
               </Text>
             </View>
           ))}
-          
-          {/* Voir tous les CRASC */}
-          <View className="mt-6 mb-6">
-            <TouchableOpacity 
-              onPress={() => router.push({ pathname: '/(tabs)/annuaire', params: { tab: 'crasc' } })}
-              className="bg-brand-orange py-4 rounded-[24px] items-center"
-            >
-              <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-white text-base">
-                Voir tous les CRASC
-              </Text>
-            </TouchableOpacity>
-          </View>
         </View>
 
-        {/* Nos Partenaires */}
-        {ptfList && ptfList.length > 0 && (
-          <View className="mt-12 px-6">
-            <View className="flex-row justify-between items-center mb-8">
-              <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-lg">Nos Partenaires</Text>
-              <TouchableOpacity onPress={() => router.push({ pathname: '/(tabs)/annuaire', params: { tab: 'ptf' } })}>
-                <Text className="text-brand-orange font-bold text-xs uppercase">Voir tout</Text>
-              </TouchableOpacity>
-            </View>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="-mx-2">
-              {ptfList.slice(0, 6).map((ptf: PTF) => (
-                <View key={ptf.id} className="bg-white border border-gray-100 p-5 rounded-[32px] w-40 mx-2 items-center shadow-sm">
-                  <View className="w-16 h-16 bg-gray-50 rounded-full items-center justify-center mb-4">
-                    {ptf.thumbnail_url ? (
-                      <Image source={{ uri: ptf.thumbnail_url }} className="w-10 h-10" resizeMode="contain" />
-                    ) : (
-                      <Building2 size={28} color="#E05017" />
-                    )}
-                  </View>
-                  <Text style={{ fontFamily: 'Poppins_700Bold', fontSize: 10 }} className="text-gray-900 text-center mb-1" numberOfLines={2}>
-                    {ptf.name}
-                  </Text>
-                  {ptf.pays && (
-                    <Text style={{ fontFamily: 'Karla_400Regular', fontSize: 8 }} className="text-gray-400 text-center">{ptf.pays}</Text>
-                  )}
-                </View>
-              ))}
-            </ScrollView>
-          </View>
-        )}
+        <ContentCard title="Réalisations des CRASC" icon={CheckCircle2}>
+          {ACHIEVEMENTS.map((section) => (
+            <InfoSection key={section.title} {...section} />
+          ))}
+        </ContentCard>
 
-        {/* Contact Button */}
-        <View className="px-6 mt-12 mb-6">
-          <TouchableOpacity 
-            onPress={() => router.push('/contact')}
-            className="bg-brand-orange py-5 rounded-[24px] flex-row items-center justify-center shadow-lg shadow-orange-300"
-          >
-            <Mail size={20} color="white" />
-            <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-white text-lg ml-3">Nous Contacter</Text>
-          </TouchableOpacity>
+        <ContentCard title="Le rôle de la DGAT" icon={Landmark}>
+          <Text style={{ fontFamily: 'Karla_400Regular', color: COLORS.muted }} className="text-sm leading-6 mb-5">
+            La DGAT joue un rôle clé dans l’application de l’ordonnance sur les OSC : elle vulgarise le texte, accompagne les organisations dans leur mise en conformité et renforce leur gouvernance.
+          </Text>
+          {DGAT_SECTIONS.map((section) => (
+            <InfoSection key={section.title} {...section} />
+          ))}
+        </ContentCard>
+
+        <View className="bg-white border border-gray-100 rounded-3xl p-5 mb-8">
+          <View className="flex-row items-center mb-3">
+            <FileText size={22} color={COLORS.orange} />
+            <Text style={{ fontFamily: 'Poppins_700Bold', color: COLORS.text }} className="text-lg ml-3">
+              Synthèse de l’ordonnance
+            </Text>
+          </View>
+          <BulletList
+            items={[
+              'Encadre la création des associations et organisations cultuelles.',
+              'Donne des droits : recevoir des dons, posséder des biens, agir légalement.',
+              'Impose des obligations : transparence, fiscalité et gouvernance.',
+              'Prévoit des sanctions en cas de dérive.',
+            ]}
+          />
         </View>
 
-        {/* Footer */}
-        <Text className="text-center text-gray-300 text-[10px] mb-10 uppercase tracking-widest">
-          PDOC CÔTE D'IVOIRE © 2024 - TOUS DROITS RÉSERVÉS
-        </Text>
+        <TouchableOpacity
+          onPress={() => router.push('/services')}
+          className="rounded-3xl py-5 px-5 flex-row items-center justify-center"
+          style={{ backgroundColor: COLORS.orange }}
+        >
+          <BookOpenText size={20} color="#FFFFFF" />
+          <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-white text-base ml-3">
+            Découvrir les services PdoC
+          </Text>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );

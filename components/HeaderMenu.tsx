@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Modal } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Menu, X, Briefcase, Heart, Users } from 'lucide-react-native';
+import { Menu, X, Briefcase, Heart, Users, Phone } from 'lucide-react-native';
 
 export default function HeaderMenu() {
   const router = useRouter();
@@ -9,7 +9,7 @@ export default function HeaderMenu() {
 
   const menuItems = [
     {
-      label: 'Services PDOC',
+      label: 'Services PdoC',
       icon: Briefcase,
       route: '/services',
       color: '#2563EB',
@@ -25,6 +25,12 @@ export default function HeaderMenu() {
       icon: Users,
       route: '/etre-volontaire',
       color: '#16A34A',
+    },
+    {
+      label: 'Numéros utiles',
+      icon: Phone,
+      route: '/numeros-utiles',
+      color: '#0F766E',
     },
   ];
 

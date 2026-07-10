@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, FlatList, Dimensions } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, FlatList, Dimensions, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Search, MapPin, Phone } from 'lucide-react-native';
@@ -15,7 +15,7 @@ export default function AnnuaireScreen() {
   const [activeTab, setActiveTab] = useState<'ptf' | 'crasc'>((params.tab as any) || 'crasc');
   const [searchQuery, setSearchQuery] = useState('');
 
-    const { data: ptfList, isLoading: ptfLoading } = useQuery({
+  const { data: ptfList, isLoading: ptfLoading } = useQuery({
     queryKey: ['ptf-list'],
     queryFn: () => dataService.getPtfList(),
   });
@@ -26,8 +26,8 @@ export default function AnnuaireScreen() {
     let data = [];
     if (activeTab === 'ptf') data = ptfList || [];
     else if (activeTab === 'crasc') data = crascList || [];
-    
-    return data.filter((item: any) => 
+
+    return data.filter((item: any) =>
       item.name?.toLowerCase().includes(searchQuery.toLowerCase())
     );
   };
@@ -47,10 +47,12 @@ export default function AnnuaireScreen() {
           {/* Search Bar */}
           <View className="bg-gray-100 rounded-2xl px-4 py-3 flex-row items-center">
             <Search size={20} color="#9CA3AF" />
-            <Text 
+            <TextInput
               placeholder="Rechercher..."
               className="flex-1 ml-3 text-gray-400"
               placeholderTextColor="#9CA3AF"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
             />
           </View>
         </View>
@@ -62,14 +64,12 @@ export default function AnnuaireScreen() {
               <TouchableOpacity
                 key={tab}
                 onPress={() => setActiveTab(tab as 'ptf' | 'crasc')}
-                className={`flex-1 py-2 rounded-xl ${
-                  activeTab === tab ? 'bg-white' : 'bg-transparent'
-                }`}
+                className={`flex-1 py-2 rounded-xl ${activeTab === tab ? 'bg-white' : 'bg-transparent'
+                  }`}
               >
                 <Text
-                  className={`text-center font-semibold text-sm ${
-                    activeTab === tab ? 'text-gray-900' : 'text-gray-400'
-                  }`}
+                  className={`text-center font-semibold text-sm ${activeTab === tab ? 'text-gray-900' : 'text-gray-400'
+                    }`}
                 >
                   {tab === 'crasc' ? 'CRASC' : 'Partenaires'}
                 </Text>
@@ -131,7 +131,7 @@ export default function AnnuaireScreen() {
               <TouchableOpacity
                 key={idx}
                 onPress={() => {
-                  router.push({ 
+                  router.push({
                     pathname: `/annuaire-partenaires/${item.id}`,
                     params: { partner: JSON.stringify(item) }
                   });

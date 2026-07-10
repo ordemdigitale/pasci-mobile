@@ -120,6 +120,15 @@ export default function OscDetailsScreen() {
                 </Text>
               </View>
             )}
+            {data.niveau_regroupement && (
+              <View className="flex-row items-center gap-2">
+                <Users2 size={14} color="#E05017" />
+                <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-600 text-xs">
+                  <Text style={{ fontFamily: 'Karla_700Bold' }}>Niveau de regroupement : </Text>
+                  {data.niveau_regroupement}
+                </Text>
+              </View>
+            )}
             {(data.ville || data.crasc?.name) && (
               <View className="flex-row items-center gap-2">
                 <MapPin size={14} color="#E05017" />

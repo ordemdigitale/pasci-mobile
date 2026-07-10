@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Share } from 'react-native';
+import { Alert, Linking, View, Text, ScrollView, TouchableOpacity, Share } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import {
@@ -10,7 +10,8 @@ import {
   Calendar,
   CheckCircle2,
   Building2,
-  Clock
+  Clock,
+  ExternalLink
 } from 'lucide-react-native';
 import Skeleton from '../../components/ui/Skeleton';
 import { useQuery } from '@tanstack/react-query';
@@ -31,10 +32,20 @@ export default function JobDetailsScreen() {
     if (!job) return;
     try {
       await Share.share({
-        message: `Offre d'emploi : {{job.title}} — PDOC`,
+        message: `Offre d'emploi : ${job.title} — PdoC${job.offre_url ? `\n${job.offre_url}` : ''}`,
       });
     } catch (error) {
       console.log(error);
+    }
+  };
+
+  const openOfferLink = async () => {
+    if (!job?.offre_url) return;
+
+    try {
+      await Linking.openURL(job.offre_url);
+    } catch {
+      Alert.alert("Lien indisponible", "Impossible d'ouvrir le lien de cette offre pour le moment.");
     }
   };
 
@@ -141,7 +152,7 @@ export default function JobDetailsScreen() {
               <View className="bg-red-50 flex-row items-center px-4 py-2 rounded-2xl">
                 <Clock size={14} color="#DC2626" />
                 <Text style={{ fontFamily: 'Karla_700Bold' }} className="text-red-600 text-xs ml-2">
-                  Expire le {new Date(expirationDate).toLocaleDateString('fr-FR')}
+                  Candidature jusqu'au {new Date(expirationDate).toLocaleDateString('fr-FR')}
                 </Text>
               </View>
             )}
@@ -156,6 +167,19 @@ export default function JobDetailsScreen() {
           <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-600 leading-6 text-base mb-8">
             {job.description}
           </Text>
+
+          {job.offre_url && (
+            <TouchableOpacity
+              onPress={openOfferLink}
+              className="bg-brand-orange rounded-2xl py-4 px-5 mb-8 flex-row items-center justify-center"
+              activeOpacity={0.85}
+            >
+              <ExternalLink size={18} color="#fff" />
+              <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-white text-sm ml-2">
+                Plus d'informations
+              </Text>
+            </TouchableOpacity>
+          )}
 
           {/* Missions */}
           {job.missions_list && job.missions_list.length > 0 && (

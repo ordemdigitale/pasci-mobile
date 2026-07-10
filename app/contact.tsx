@@ -8,35 +8,104 @@ import {
   Linking,
   Alert,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, MapPin, Phone, Mail, Facebook, Linkedin } from 'lucide-react-native';
+import { dataService } from '../services/dataService';
+
+const CATEGORIES = ['OSC', 'PTF', 'Administration', 'Citoyen', 'Autre'];
+const MOTIFS = ['Renseignement', 'Formation', 'Benevolat', 'Recherche', 'Adhesion', 'Autre'];
+const SEXES = ['Homme', 'Femme', 'Autre'];
+const TRANCHES = ['-18 ans', '18 a 35 ans', '+35 ans'];
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function ContactScreen() {
   const [form, setForm] = useState({
-    name: '',
+    categorie_acteur: '',
+    nom: '',
+    prenoms: '',
     email: '',
+    contact: '',
     fonction: '',
     sexe: '',
     tranche_age: '',
+    pays: '',
+    lieu_residence: '',
+    motif: '',
     message: ''
   });
   const [loading, setLoading] = useState(false);
+  const [emailError, setEmailError] = useState('');
+
+  const getErrorMessage = (error: any): string => {
+    const detail = error?.response?.data?.detail;
+    if (typeof detail === 'string') return detail;
+    if (Array.isArray(detail) && detail.length > 0) {
+      return detail[0]?.msg || 'Impossible d\'envoyer votre message.';
+    }
+    return 'Impossible d\'envoyer votre message. Verifiez votre connexion et reessayez.';
+  };
 
   const handleSubmit = async () => {
-    if (!form.name.trim() || !form.email.trim() || !form.message.trim()) {
-      Alert.alert('Champs requis', 'Veuillez remplir tous les champs obligatoires (marqués *).');
+    setEmailError('');
+
+    const trimmedEmail = form.email.trim();
+    const hasInvalidEmail = trimmedEmail.length > 0 && !EMAIL_REGEX.test(trimmedEmail);
+
+    if (hasInvalidEmail) {
+      setEmailError('Veuillez entrer une adresse email valide.');
+    }
+
+    if (!form.nom.trim() || !form.prenoms.trim() || !form.email.trim() || !form.motif.trim() || !form.message.trim()) {
+      Alert.alert('Champs requis', 'Veuillez renseigner nom, prenoms, email, motif et message.');
+      return;
+    }
+
+    if (!EMAIL_REGEX.test(trimmedEmail)) {
+      setEmailError('Veuillez entrer une adresse email valide.');
+      Alert.alert('Email invalide', 'Veuillez entrer une adresse email valide.');
       return;
     }
 
     setLoading(true);
-    // TODO: remplacer par un vrai endpoint API quand disponible
-    setTimeout(() => {
+    try {
+      await dataService.submitContact({
+        categorie_acteur: form.categorie_acteur || undefined,
+        nom: form.nom.trim(),
+        prenoms: form.prenoms.trim(),
+        email: form.email.trim(),
+        contact: form.contact.trim() || undefined,
+        fonction: form.fonction.trim() || undefined,
+        sexe: form.sexe || undefined,
+        tranche_age: form.tranche_age || undefined,
+        pays: form.pays.trim() || undefined,
+        lieu_residence: form.lieu_residence.trim() || undefined,
+        motif: form.motif,
+        message: form.message.trim(),
+      });
+
+      setForm({
+        categorie_acteur: '',
+        nom: '',
+        prenoms: '',
+        email: '',
+        contact: '',
+        fonction: '',
+        sexe: '',
+        tranche_age: '',
+        pays: '',
+        lieu_residence: '',
+        motif: '',
+        message: ''
+      });
+      Alert.alert('Message envoye', 'Votre message a bien ete transmis. Nous vous repondrons dans les plus brefs delais.');
+    } catch (error: any) {
+      Alert.alert('Echec de l\'envoi', getErrorMessage(error));
+    } finally {
       setLoading(false);
-      setForm({ name: '', email: '', fonction: '', sexe: '', tranche_age: '', message: '' });
-      Alert.alert('Message envoyé !', 'Votre message a bien été envoyé. Nous vous répondrons dans les plus brefs délais.');
-    }, 1000);
+    }
   };
 
   return (
@@ -52,35 +121,79 @@ export default function ContactScreen() {
       </View>
 
       <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 40 }}>
-        {/* Hero banner */}
-        <View className="bg-brand-orange px-6 py-8">
-          <Text className="text-white text-xl font-bold mb-1" style={{ fontFamily: 'Poppins_700Bold' }}>
+        {/* Hero section */}
+        <View className="bg-gray-100 px-6 pt-8 pb-6 border-b border-gray-200">
+          <Text className="text-[#2a591d] text-3xl font-bold mb-3" style={{ fontFamily: 'Poppins_700Bold' }}>
             Nous contacter
           </Text>
-          <Text className="text-orange-100 text-sm" style={{ fontFamily: 'Karla_400Regular' }}>
-            Remplissez le formulaire et nous vous répondrons dans les plus brefs délais
+          <Text className="text-gray-600 text-base leading-6" style={{ fontFamily: 'Karla_400Regular' }}>
+            Nous sommes la pour repondre a vos questions et vous fournir toute l'assistance necessaire.
           </Text>
+
+          <View className="mt-5 rounded-2xl overflow-hidden border border-gray-200 bg-white">
+            <Image
+              source={require('../assets/images/service-hero.jpg')}
+              style={{ width: '100%', height: 170 }}
+              resizeMode="cover"
+            />
+          </View>
         </View>
 
-        <View className="px-6 pt-6">
+        <View className="px-6 pt-6 bg-white">
           {/* Contact Form */}
           <View className="border border-gray-200 rounded-2xl p-6 mb-8">
             <Text className="text-gray-900 font-bold text-base mb-6" style={{ fontFamily: 'Poppins_700Bold' }}>
               Envoyez-nous un message
             </Text>
 
-            {/* Name */}
+            {/* Categorie */}
             <View className="mb-5">
               <Text className="text-gray-700 text-sm mb-2 font-bold" style={{ fontFamily: 'Poppins_600SemiBold' }}>
-                Votre nom *
+                Categorie d'acteur
+              </Text>
+              <View className="flex-row flex-wrap gap-2">
+                {CATEGORIES.map((option) => (
+                  <TouchableOpacity
+                    key={option}
+                    onPress={() => setForm((p) => ({ ...p, categorie_acteur: option }))}
+                    className={`px-3 py-2 rounded-full border ${form.categorie_acteur === option ? 'bg-brand-orange border-brand-orange' : 'bg-white border-gray-300'}`}
+                  >
+                    <Text style={{ fontFamily: 'Karla_400Regular' }} className={form.categorie_acteur === option ? 'text-white text-xs' : 'text-gray-700 text-xs'}>
+                      {option}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            {/* Nom */}
+            <View className="mb-5">
+              <Text className="text-gray-700 text-sm mb-2 font-bold" style={{ fontFamily: 'Poppins_600SemiBold' }}>
+                Nom *
               </Text>
               <TextInput
                 className="border border-gray-300 rounded-lg px-4 py-3 text-gray-900 bg-white"
                 style={{ fontFamily: 'Karla_400Regular' }}
                 placeholder="Entrer votre nom"
                 placeholderTextColor="#d1d5db"
-                value={form.name}
-                onChangeText={(v) => setForm((p) => ({ ...p, name: v }))}
+                value={form.nom}
+                onChangeText={(v) => setForm((p) => ({ ...p, nom: v }))}
+                autoCapitalize="words"
+              />
+            </View>
+
+            {/* Prenoms */}
+            <View className="mb-5">
+              <Text className="text-gray-700 text-sm mb-2 font-bold" style={{ fontFamily: 'Poppins_600SemiBold' }}>
+                Prenoms *
+              </Text>
+              <TextInput
+                className="border border-gray-300 rounded-lg px-4 py-3 text-gray-900 bg-white"
+                style={{ fontFamily: 'Karla_400Regular' }}
+                placeholder="Entrer vos prenoms"
+                placeholderTextColor="#d1d5db"
+                value={form.prenoms}
+                onChangeText={(v) => setForm((p) => ({ ...p, prenoms: v }))}
                 autoCapitalize="words"
               />
             </View>
@@ -92,13 +205,57 @@ export default function ContactScreen() {
               </Text>
               <TextInput
                 className="border border-gray-300 rounded-lg px-4 py-3 text-gray-900 bg-white"
-                style={{ fontFamily: 'Karla_400Regular' }}
+                style={{
+                  fontFamily: 'Karla_400Regular',
+                  borderColor: emailError ? '#ef4444' : '#d1d5db',
+                  backgroundColor: emailError ? '#fef2f2' : '#ffffff',
+                }}
                 placeholder="Entrer votre adresse e-mail"
                 placeholderTextColor="#d1d5db"
                 value={form.email}
-                onChangeText={(v) => setForm((p) => ({ ...p, email: v }))}
+                onChangeText={(v) => {
+                  const nextEmail = v.trim();
+                  if (!nextEmail) {
+                    setEmailError('');
+                  } else if (EMAIL_REGEX.test(nextEmail)) {
+                    setEmailError('');
+                  }
+                  setForm((p) => ({ ...p, email: v }));
+                }}
+                onBlur={() => {
+                  const value = form.email.trim();
+                  if (!value) {
+                    setEmailError('');
+                    return;
+                  }
+
+                  if (!EMAIL_REGEX.test(value)) {
+                    setEmailError('Veuillez entrer une adresse email valide.');
+                  }
+                }}
                 keyboardType="email-address"
                 autoCapitalize="none"
+              />
+              {!!emailError && (
+                <Text className="text-red-600 text-xs mt-2" style={{ fontFamily: 'Karla_400Regular' }}>
+                  {emailError}
+                </Text>
+              )}
+            </View>
+
+            {/* Contact */}
+            <View className="mb-5">
+              <Text className="text-gray-700 text-sm mb-2 font-bold" style={{ fontFamily: 'Poppins_600SemiBold' }}>
+                Telephone
+              </Text>
+              <TextInput
+                className="border border-gray-300 rounded-lg px-4 py-3 text-gray-900 bg-white"
+                style={{ fontFamily: 'Karla_400Regular' }}
+                placeholder="Votre numero"
+                placeholderTextColor="#d1d5db"
+                value={form.contact}
+                onChangeText={(v) => setForm((p) => ({ ...p, contact: v }))}
+                keyboardType="phone-pad"
               />
             </View>
 
@@ -117,74 +274,111 @@ export default function ContactScreen() {
               />
             </View>
 
-            {/* Sexe et Tranche d'âge */}
+            {/* Pays et lieu de residence */}
+            <View className="mb-5">
+              <Text className="text-gray-700 text-sm mb-2 font-bold" style={{ fontFamily: 'Poppins_600SemiBold' }}>
+                Pays
+              </Text>
+              <TextInput
+                className="border border-gray-300 rounded-lg px-4 py-3 text-gray-900 bg-white"
+                style={{ fontFamily: 'Karla_400Regular' }}
+                placeholder="Votre pays"
+                placeholderTextColor="#d1d5db"
+                value={form.pays}
+                onChangeText={(v) => setForm((p) => ({ ...p, pays: v }))}
+              />
+            </View>
+
+            <View className="mb-5">
+              <Text className="text-gray-700 text-sm mb-2 font-bold" style={{ fontFamily: 'Poppins_600SemiBold' }}>
+                Lieu de residence
+              </Text>
+              <TextInput
+                className="border border-gray-300 rounded-lg px-4 py-3 text-gray-900 bg-white"
+                style={{ fontFamily: 'Karla_400Regular' }}
+                placeholder="Ville/commune"
+                placeholderTextColor="#d1d5db"
+                value={form.lieu_residence}
+                onChangeText={(v) => setForm((p) => ({ ...p, lieu_residence: v }))}
+              />
+            </View>
+
+            {/* Sexe et Tranche d'age */}
             <View className="flex-row gap-4 mb-5">
               <View className="flex-1">
                 <Text className="text-gray-700 text-sm mb-2 font-bold" style={{ fontFamily: 'Poppins_600SemiBold' }}>
                   Sexe
                 </Text>
-                <View className="border border-gray-300 rounded-lg overflow-hidden">
-                  <View className="bg-white">
-                    <TouchableOpacity
-                      className="px-4 py-3"
-                      onPress={() => {}}
-                    >
-                      <Text
-                        style={{ fontFamily: 'Karla_400Regular' }}
-                        className={form.sexe ? 'text-gray-900' : 'text-gray-400'}
-                      >
-                        {form.sexe || '-- Sélectionner --'}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
                 <View className="bg-white border border-gray-300 rounded-lg mt-1">
-                  {['Homme', 'Femme', 'Autre'].map((option) => (
-                    <TouchableOpacity
-                      key={option}
-                      onPress={() => setForm((p) => ({ ...p, sexe: option }))}
-                      className="px-4 py-2 border-b border-gray-100"
-                    >
-                      <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-700">
-                        {option}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
+                  {SEXES.map((option, index) => {
+                    const isSelected = form.sexe === option;
+                    const isLast = index === SEXES.length - 1;
+
+                    return (
+                      <TouchableOpacity
+                        key={option}
+                        onPress={() => setForm((p) => ({ ...p, sexe: option }))}
+                        accessibilityState={{ selected: isSelected }}
+                        className={`px-4 py-2 ${!isLast ? 'border-b border-gray-100' : ''} ${isSelected ? 'bg-brand-orange' : 'bg-white'}`}
+                      >
+                        <Text
+                          style={{ fontFamily: 'Karla_400Regular' }}
+                          className={isSelected ? 'text-white' : 'text-gray-700'}
+                        >
+                          {option}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
                 </View>
               </View>
 
               <View className="flex-1">
                 <Text className="text-gray-700 text-sm mb-2 font-bold" style={{ fontFamily: 'Poppins_600SemiBold' }}>
-                  Tranche d'âge
+                  Tranche d'age
                 </Text>
-                <View className="border border-gray-300 rounded-lg overflow-hidden">
-                  <View className="bg-white">
-                    <TouchableOpacity
-                      className="px-4 py-3"
-                      onPress={() => {}}
-                    >
-                      <Text
-                        style={{ fontFamily: 'Karla_400Regular' }}
-                        className={form.tranche_age ? 'text-gray-900' : 'text-gray-400'}
-                      >
-                        {form.tranche_age || '-- Sélectionner --'}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
                 <View className="bg-white border border-gray-300 rounded-lg mt-1">
-                  {['-18 ans', '18 à 35 ans', '+35 ans'].map((option) => (
-                    <TouchableOpacity
-                      key={option}
-                      onPress={() => setForm((p) => ({ ...p, tranche_age: option }))}
-                      className="px-4 py-2 border-b border-gray-100"
-                    >
-                      <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-700">
-                        {option}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
+                  {TRANCHES.map((option, index) => {
+                    const isSelected = form.tranche_age === option;
+                    const isLast = index === TRANCHES.length - 1;
+
+                    return (
+                      <TouchableOpacity
+                        key={option}
+                        onPress={() => setForm((p) => ({ ...p, tranche_age: option }))}
+                        accessibilityState={{ selected: isSelected }}
+                        className={`px-4 py-2 ${!isLast ? 'border-b border-gray-100' : ''} ${isSelected ? 'bg-brand-orange' : 'bg-white'}`}
+                      >
+                        <Text
+                          style={{ fontFamily: 'Karla_400Regular' }}
+                          className={isSelected ? 'text-white' : 'text-gray-700'}
+                        >
+                          {option}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
                 </View>
+              </View>
+            </View>
+
+            {/* Motif */}
+            <View className="mb-5">
+              <Text className="text-gray-700 text-sm mb-2 font-bold" style={{ fontFamily: 'Poppins_600SemiBold' }}>
+                Motif *
+              </Text>
+              <View className="flex-row flex-wrap gap-2">
+                {MOTIFS.map((option) => (
+                  <TouchableOpacity
+                    key={option}
+                    onPress={() => setForm((p) => ({ ...p, motif: option }))}
+                    className={`px-3 py-2 rounded-full border ${form.motif === option ? 'bg-brand-orange border-brand-orange' : 'bg-white border-gray-300'}`}
+                  >
+                    <Text style={{ fontFamily: 'Karla_400Regular' }} className={form.motif === option ? 'text-white text-xs' : 'text-gray-700 text-xs'}>
+                      {option}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </View>
             </View>
 

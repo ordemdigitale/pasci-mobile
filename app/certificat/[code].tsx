@@ -1,3 +1,4 @@
+import React from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, Share, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
@@ -11,10 +12,10 @@ export default function CertificatScreen() {
   const { code } = useLocalSearchParams();
   const router = useRouter();
   const certCode = code as string;
-  const [downloadState, setDownloadState] = React.useState({ 
-    visible: false, 
-    progress: 0, 
-    fileName: '' 
+  const [downloadState, setDownloadState] = React.useState({
+    visible: false,
+    progress: 0,
+    fileName: ''
   });
 
   const { data: cert, isLoading, isError } = useQuery({
@@ -30,20 +31,20 @@ export default function CertificatScreen() {
       await Share.share({
         message: `Certificat PASCI — ${cert.formation_title}\nDélivré à : ${cert.participant_name}\nCode : ${certCode}\nVérifier : https://plateforme-osci.org/certificat/${certCode}`,
       });
-    } catch (_) {}
+    } catch (_) { }
   };
 
   const handleDownload = async () => {
     if (!cert) return;
     const downloadUrl = `https://api.plateforme-osci.org/api/v1/formations/certificats/${certCode}/pdf`;
     const fileName = `certificat_${certCode}.pdf`;
-    
-    setDownloadState({ 
-      visible: true, 
-      progress: 0, 
-      fileName: `Certificat - ${cert.participant_name}` 
+
+    setDownloadState({
+      visible: true,
+      progress: 0,
+      fileName: `Certificat - ${cert.participant_name}`
     });
-    
+
     try {
       await downloadAndOpenDocument(downloadUrl, fileName, (progress) => {
         setDownloadState(prev => ({ ...prev, progress }));
@@ -180,7 +181,7 @@ export default function CertificatScreen() {
         </View>
 
         {/* Bouton de téléchargement principal */}
-        <TouchableOpacity 
+        <TouchableOpacity
           onPress={handleDownload}
           className="mx-4 mt-6 py-4 rounded-2xl flex-row items-center justify-center"
           style={{ backgroundColor: '#E05017' }}
@@ -192,9 +193,9 @@ export default function CertificatScreen() {
         <View className="h-10" />
       </ScrollView>
 
-      <DownloadProgressModal 
-        visible={downloadState.visible} 
-        progress={downloadState.progress} 
+      <DownloadProgressModal
+        visible={downloadState.visible}
+        progress={downloadState.progress}
         fileName={downloadState.fileName}
       />
     </SafeAreaView>

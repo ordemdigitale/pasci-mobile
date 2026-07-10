@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, Stack } from 'expo-router';
-import { ChevronLeft, CheckCircle, ChevronDown } from 'lucide-react-native';
+import { ChevronLeft, CheckCircle, ChevronDown, Phone } from 'lucide-react-native';
 import { useQuery } from '@tanstack/react-query';
 import { dataService } from '../services/dataService';
 
@@ -47,23 +47,28 @@ const SERVICES = [
 ];
 
 const FAQ_ITEMS = [
-  { id: 1, title: "Comment puis-je postuler à une offre d'emploi ?", answer: "Pour postuler à une offre d'emploi, veuillez consulter les offres disponibles sur notre site et cliquez sur le bouton Postuler." },
-  { id: 2, title: "Quel est le processus de recrutement chez PDOC ?", answer: "Le processus de recrutement chez PDOC comprend plusieurs étapes : l'analyse de votre profil, un entretien technique, un entretien RH et enfin une proposition d'embauche." },
-  { id: 3, title: "Puis-je envoyer une candidature spontanée ?", answer: "Oui, vous pouvez envoyer une candidature spontanée à travers notre formulaire en ligne ou par email à pdoc@plateforme-osci.org." },
-  { id: 4, title: "Proposez-vous des stages ou des alternances ?", answer: "Oui, PDOC propose des stages et des alternances dans divers domaines techniques et administratifs. Consultez nos offres spécifiques pour plus d'informations." },
-  { id: 5, title: "Comment savoir si ma candidature a été reçue ?", answer: "Vous recevrez un email de confirmation dès que votre candidature aura été reçue. Si vous ne recevez pas cet email dans les 24 heures suivantes, veuillez nous contacter." },
-  { id: 6, title: "Quelles sont les valeurs du projet PDOC ?", answer: "Les valeurs du projet PDOC incluent l'innovation technologique, la collaboration interdisciplinaire et le respect de l'environnement." },
+  { id: 1, question: "Comment puis-je postuler à une offre d'emploi ?", answer: "Pour postuler à une offre d'emploi, veuillez consulter les offres disponibles sur notre site et cliquez sur le bouton Postuler." },
+  { id: 2, question: "Quel est le processus de recrutement chez PASCI ?", answer: "Le processus de recrutement chez PASCI comprend plusieurs étapes : l'analyse de votre profil, un entretien technique, un entretien RH et enfin une proposition d'embauche." },
+  { id: 3, question: "Puis-je envoyer une candidature spontanée ?", answer: "Oui, vous pouvez envoyer une candidature spontanée à travers notre formulaire en ligne ou par email à pdoc@plateforme-osci.org." },
+  { id: 4, question: "Proposez-vous des stages ou des alternances ?", answer: "Oui, PASCI propose des stages et des alternances dans divers domaines techniques et administratifs. Consultez nos offres spécifiques pour plus d'informations." },
+  { id: 5, question: "Comment savoir si ma candidature a été reçue ?", answer: "Vous recevrez un email de confirmation dès que votre candidature aura été reçue. Si vous ne recevez pas cet email dans les 24 heures suivantes, veuillez nous contacter." },
+  { id: 6, question: "Quelles sont les valeurs du projet PASCI ?", answer: "Les valeurs du projet PASCI incluent l'innovation technologique, la collaboration interdisciplinaire et le respect de l'environnement." },
 ];
 
 export default function ServicesScreen() {
   const router = useRouter();
   const [expandedFaq, setExpandedFaq] = useState<number[]>([]);
+  const { data: apiFaq, isError: faqError } = useQuery({
+    queryKey: ['faq'],
+    queryFn: dataService.getFaq,
+  });
 
   const toggleFaq = (id: number) => {
     setExpandedFaq(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
   };
 
   const displayServices = SERVICES;
+  const displayFaq = faqError ? FAQ_ITEMS : (apiFaq ?? FAQ_ITEMS);
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -83,11 +88,31 @@ export default function ServicesScreen() {
         {/* Hero Section */}
         <View className="px-6 pt-6 pb-4">
           <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-2xl text-gray-900 mb-2">
-            Services Stratégiques PDOC
+            Services Stratégiques PdoC
           </Text>
           <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 text-sm">
             Des accompagnements adaptés à vos besoins pour renforcer votre organisation
           </Text>
+        </View>
+
+        {/* Quick Access */}
+        <View className="px-6 pb-2">
+          <TouchableOpacity
+            onPress={() => router.push('/numeros-utiles')}
+            className="bg-[#052838] rounded-[24px] p-5 flex-row items-center"
+          >
+            <View className="bg-white/10 w-12 h-12 rounded-full items-center justify-center mr-4">
+              <Phone size={24} color="white" />
+            </View>
+            <View className="flex-1">
+              <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-white text-sm mb-1">
+                Numéros utiles
+              </Text>
+              <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-white/75 text-xs">
+                Accédez rapidement aux numéros d’urgence et services essentiels.
+              </Text>
+            </View>
+          </TouchableOpacity>
         </View>
 
         {/* Services List */}
@@ -116,7 +141,7 @@ export default function ServicesScreen() {
             Questions Fréquentes
           </Text>
 
-          {FAQ_ITEMS.map((item) => (
+          {displayFaq.map((item) => (
             <TouchableOpacity
               key={item.id}
               onPress={() => toggleFaq(item.id)}
@@ -124,7 +149,7 @@ export default function ServicesScreen() {
             >
               <View className="px-5 py-4 flex-row items-center justify-between">
                 <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-gray-900 text-sm flex-1">
-                  {item.title}
+                  {item.question}
                 </Text>
                 <ChevronDown
                   size={20}

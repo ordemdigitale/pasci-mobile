@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image, Share, Alert, TextInput, Modal, Linking, Dimensions } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, ScrollView, TouchableOpacity, Image, Share, Alert, TextInput, Modal, Linking, Dimensions, Platform, ActivityIndicator } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import {
   ChevronLeft,
@@ -15,12 +15,15 @@ import {
   Users,
   GraduationCap,
   Award,
+  Maximize2,
+  Smartphone,
 } from 'lucide-react-native';
 import { WebView } from 'react-native-webview';
 import Skeleton from '../../components/ui/Skeleton';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { dataService } from '../../services/dataService';
 import { authService } from '../../services/authService';
+import { buildPaymentOperators, DEFAULT_PAYMENT_NUMBERS } from '../../constants/payment';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -44,6 +47,10 @@ function extractYoutubeId(url: string): string | null {
   // Fallback sur l'URL originale (v= peut être avant si=)
   const fallback = url.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
   return fallback ? fallback[1] : null;
+}
+
+function isYoutubeUrl(url: string): boolean {
+  return /(?:youtube\.com|youtu\.be)/i.test(url || '');
 }
 
 function getEmbedHtml(url: string): string {
@@ -126,17 +133,48 @@ export default function CourseDetailsScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const insets = useSafeAreaInsets();
   const slug = id as string;
   const scrollRef = useRef<ScrollView>(null);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [videoError, setVideoError] = useState(false);
+  const [videoFullscreenVisible, setVideoFullscreenVisible] = useState(false);
+  const [fullscreenVideoError, setFullscreenVideoError] = useState(false);
   const [pdfModal, setPdfModal] = useState<{ visible: boolean; url: string; title: string }>({ visible: false, url: '', title: '' });
-  const [participantName, setParticipantName] = useState('');
+  const [pdfLoadFailed, setPdfLoadFailed] = useState(false);
+  const [participantNom, setParticipantNom] = useState('');
+  const [participantPrenoms, setParticipantPrenoms] = useState('');
   const [participantEmail, setParticipantEmail] = useState('');
   const [inscrit, setInscrit] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
+  const [manualPayment, setManualPayment] = useState<{
+    visible: boolean;
+    inscriptionId: number | null;
+    amount: number;
+    submitted: boolean;
+  }>({ visible: false, inscriptionId: null, amount: 0, submitted: false });
+  const [paymentTransactionId, setPaymentTransactionId] = useState('');
+  const [paymentOperator, setPaymentOperator] = useState<'wave' | 'orange_money' | ''>('');
+  const { data: paymentNumbers } = useQuery({
+    queryKey: ['payment-numbers'],
+    queryFn: dataService.getPaymentNumbers,
+    staleTime: 5 * 60 * 1000,
+  });
+  const paymentOperators = buildPaymentOperators(paymentNumbers || DEFAULT_PAYMENT_NUMBERS);
 
   const [activeLecon, setActiveLecon] = useState<Lecon | null>(null);
+  const shouldOpenVideoExternally =
+    activeLecon?.type === 'video' &&
+    !!activeLecon?.content &&
+    Platform.OS === 'ios' &&
+    isYoutubeUrl(activeLecon.content);
+
+  const canUseEmbeddedFullscreen =
+    activeLecon?.type === 'video' &&
+    !!activeLecon?.content &&
+    !isYoutubeUrl(activeLecon.content);
+
   const [leconsVues, setLeconsVues] = useState<number[]>([]);
   const [progression, setProgression] = useState(0);
   const [totalLecons, setTotalLecons] = useState(0);
@@ -151,7 +189,8 @@ export default function CourseDetailsScreen() {
   // Remplir automatiquement les champs si l'utilisateur est connecté
   React.useEffect(() => {
     if (user) {
-      setParticipantName(user.name || '');
+      setParticipantNom((user.first_name || '').trim());
+      setParticipantPrenoms((user.last_name || '').trim());
       setParticipantEmail(user.email || '');
     }
   }, [user]);
@@ -184,11 +223,13 @@ export default function CourseDetailsScreen() {
 
   React.useEffect(() => {
     if (enrollmentData?.registered) {
-      setInscrit(true);
-      // L'API ne retourne pas de tableau lecons_vues — tracking 100% local
+      const status = enrollmentData.payment_status ?? null;
+      setPaymentStatus(status);
+      setInscrit(!status || ['gratuite', 'confirmed', 'paid'].includes(status));
       if (enrollmentData.certificat_code) setCertEmis(enrollmentData.certificat_code);
     } else if (enrollmentData) {
       setInscrit(false);
+      setPaymentStatus(null);
     }
   }, [enrollmentData]);
 
@@ -201,11 +242,11 @@ export default function CourseDetailsScreen() {
   }, [modules]);
 
   const handleSelectLecon = async (lecon: Lecon) => {
-    // 1. Vérifier si l'utilisateur est connecté (requis pour le suivi et les leçons non-preview)
-    if (!user) {
+    // 1. Les leçons preview sont publiques; les autres nécessitent une connexion
+    if (!lecon.is_preview && !user) {
       Alert.alert(
-        'Connexion requise', 
-        "Vous devez être connecté pour accéder aux leçons de cette formation.",
+        'Connexion requise',
+        "Vous devez être connecté pour accéder aux leçons non publiques de cette formation.",
         [
           { text: 'Annuler', style: 'cancel' },
           { text: 'Se connecter', onPress: () => router.push('/login') }
@@ -217,25 +258,28 @@ export default function CourseDetailsScreen() {
     const canAccess = lecon.is_preview || inscrit;
     if (!canAccess) {
       Alert.alert(
-        'Inscription requise', 
+        'Inscription requise',
         "Veuillez vous inscrire à cette formation pour accéder à l'intégralité du contenu et lire les vidéos.",
         [
           { text: 'Plus tard', style: 'cancel' },
-          { text: "M'inscrire", onPress: () => {
-            if (data && data.price > 0) {
-              setModalVisible(true);
-            } else {
-              setModalVisible(true);
+          {
+            text: "M'inscrire", onPress: () => {
+              if (data && data.price > 0) {
+                setModalVisible(true);
+              } else {
+                setModalVisible(true);
+              }
             }
-          }}
+          }
         ]
       );
       return;
     }
-    
+
     if (lecon.type === 'pdf') {
       const pdfUrl = lecon.file_url || lecon.content || '';
       if (pdfUrl) {
+        setPdfLoadFailed(false);
         setPdfModal({ visible: true, url: pdfUrl, title: lecon.title });
         if (inscrit) {
           try {
@@ -272,7 +316,7 @@ export default function CourseDetailsScreen() {
     // 1. Vérifier si l'utilisateur est connecté pour l'inscription
     if (!user) {
       Alert.alert(
-        'Connexion requise', 
+        'Connexion requise',
         "Vous devez être connecté pour vous inscrire à une formation.",
         [
           { text: 'Annuler', style: 'cancel' },
@@ -286,46 +330,73 @@ export default function CourseDetailsScreen() {
 
   const inscriptionMutation = useMutation({
     mutationFn: async () => {
-      if (!participantName.trim() || !participantEmail.trim()) {
-        throw new Error('Veuillez remplir tous les champs.');
+      if (!participantNom.trim() || !participantPrenoms.trim() || !participantEmail.trim()) {
+        throw new Error('Veuillez renseigner nom, prénoms et email.');
       }
-      const isPaid = data && data.price !== null && data.price !== undefined && data.price > 0;
-      if (isPaid) {
-        return { paid: true, ...(await dataService.initierPaiementFormation(slug, participantName, participantEmail)) };
-      }
-      console.log(`🚀 [DEBUG] Registering for FREE formation: ${slug} with payload:`, { participant_name: participantName, participant_email: participantEmail });
-      return fetch(`https://api.plateforme-osci.org/api/v1/formations/${slug}/inscrire`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ participant_name: participantName, participant_email: participantEmail }),
-      }).then(async (res) => {
-        console.log(`📥 [DEBUG] Registration Response status: ${res.status}`);
-        const result = await res.json().catch(() => ({}));
-        console.log(`📥 [DEBUG] Registration Response body:`, result);
-        if (!res.ok) {
-          throw new Error(result.detail || "Erreur lors de l'inscription.");
-        }
-        return { paid: false };
+      const inscription = await dataService.inscrireFormation(slug, {
+        participant_nom: participantNom.trim(),
+        participant_prenoms: participantPrenoms.trim(),
+        participant_email: participantEmail.trim(),
       });
+      return {
+        paid: inscription.payment_status === 'pending' || data?.type === 'payante' || (data?.price ?? 0) > 0,
+        inscription,
+      };
     },
     onSuccess: (result: any) => {
       setModalVisible(false);
-      // Invalider le cache pour forcer checkInscription à se relancer
       queryClient.invalidateQueries({ queryKey: ['check-inscription', slug] });
-      
+
       if (result.paid) {
-        if (result.cinetpay_configured) {
-          Linking.openURL(result.payment_url);
-        } else {
-          router.push(`/paiement-simulation?tid=${result.transaction_id}&amount=${result.amount}&slug=${slug}&iid=${result.inscription_id}`);
-        }
+        setPaymentStatus(result.inscription.payment_status);
+        setInscrit(false);
+        setPaymentTransactionId('');
+        setPaymentOperator('');
+        setManualPayment({
+          visible: true,
+          inscriptionId: result.inscription.id,
+          amount: Number(result.inscription.payment_amount ?? data?.price ?? 0),
+          submitted: false,
+        });
+        Alert.alert(
+          'Inscription enregistrée',
+          'Effectuez le paiement via Wave ou Orange Money, puis soumettez votre code de transaction.',
+        );
       } else {
         setInscrit(true);
+        setPaymentStatus(result.inscription.payment_status);
         Alert.alert('Inscription confirmée', `Vous êtes inscrit(e) à "${data?.title}". Vous recevrez une confirmation par email.`);
       }
     },
     onError: (error: any) => {
       Alert.alert('Erreur', error.message || "L'inscription a échoué.");
+    },
+  });
+
+  const submitManualPaymentMutation = useMutation({
+    mutationFn: async () => {
+      if (!manualPayment.inscriptionId) {
+        throw new Error('Inscription introuvable.');
+      }
+      if (!paymentTransactionId.trim()) {
+        throw new Error('Veuillez saisir votre code de transaction.');
+      }
+      return dataService.soumettrePaiementFormation(manualPayment.inscriptionId, {
+        transaction_id: paymentTransactionId.trim(),
+        operateur: paymentOperator || null,
+      });
+    },
+    onSuccess: (inscription) => {
+      setPaymentStatus(inscription.payment_status);
+      setManualPayment((prev) => ({ ...prev, submitted: true }));
+      queryClient.invalidateQueries({ queryKey: ['check-inscription', slug] });
+      Alert.alert(
+        'Code soumis',
+        'Votre paiement est maintenant en attente de vérification. Vous recevrez une confirmation après validation.',
+      );
+    },
+    onError: (error: any) => {
+      Alert.alert('Erreur', error?.response?.data?.detail || error.message || 'Impossible de soumettre le paiement.');
     },
   });
 
@@ -371,7 +442,7 @@ export default function CourseDetailsScreen() {
 
   const isFull = data.is_full || (data.max_participants !== null && data.current_participants >= (data.max_participants || 0));
   const isCompleted = data.is_completed;
-  const canRegister = !inscrit && !isFull && !isCompleted && !data.is_expired;
+  const canRegister = !inscrit && !isFull && !isCompleted;
   const hasModules = (modules as any[]).length > 0;
 
   return (
@@ -394,17 +465,21 @@ export default function CourseDetailsScreen() {
         {/* Video Player */}
         {activeLecon?.type === 'video' && activeLecon.content ? (
           <View style={{ width: SCREEN_WIDTH, height: SCREEN_WIDTH * 9 / 16, backgroundColor: '#000' }}>
-            {videoError ? (
+            {videoError || shouldOpenVideoExternally ? (
               <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#111', gap: 12 }}>
                 <Text style={{ color: '#9CA3AF', fontFamily: 'Karla_400Regular', fontSize: 13, textAlign: 'center', paddingHorizontal: 24 }}>
-                  Impossible de lire la vidéo dans l'application.
+                  {shouldOpenVideoExternally
+                    ? "Lecture YouTube non prise en charge dans l'application sur iOS."
+                    : "Impossible de lire la vidéo dans l'application."}
                 </Text>
                 <TouchableOpacity
                   onPress={() => Linking.openURL(activeLecon.content!)}
                   style={{ backgroundColor: '#E05017', paddingHorizontal: 24, paddingVertical: 10, borderRadius: 12, flexDirection: 'row', alignItems: 'center', gap: 8 }}
                 >
                   <Play size={16} color="#fff" fill="#fff" />
-                  <Text style={{ color: '#fff', fontFamily: 'Poppins_600SemiBold', fontSize: 14 }}>Ouvrir dans YouTube</Text>
+                  <Text style={{ color: '#fff', fontFamily: 'Poppins_600SemiBold', fontSize: 14 }}>
+                    {isYoutubeUrl(activeLecon.content || '') ? 'Ouvrir dans YouTube' : 'Ouvrir la vidéo'}
+                  </Text>
                 </TouchableOpacity>
               </View>
             ) : (
@@ -426,13 +501,13 @@ export default function CourseDetailsScreen() {
                   try {
                     const msg = JSON.parse(e.nativeEvent.data);
                     if (msg.type === 'error') setVideoError(true);
-                  } catch {}
+                  } catch { }
                 }}
               />
             )}
           </View>
 
-        /* Hero Image (aucune leçon active ou leçon PDF) */
+          /* Hero Image (aucune leçon active ou leçon PDF) */
         ) : (
           <View className="relative">
             {data.thumbnail_url ? (
@@ -475,6 +550,20 @@ export default function CourseDetailsScreen() {
                 </Text>
               )}
             </View>
+            {canUseEmbeddedFullscreen && (
+              <TouchableOpacity
+                onPress={() => {
+                  setFullscreenVideoError(false);
+                  setVideoFullscreenVisible(true);
+                }}
+                className="ml-3 px-3 py-2 rounded-lg border border-gray-600 flex-row items-center"
+              >
+                <Maximize2 size={14} color="#E5E7EB" />
+                <Text style={{ color: '#E5E7EB', fontFamily: 'Poppins_600SemiBold', fontSize: 12, marginLeft: 6 }}>
+                  Plein ecran
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         )}
 
@@ -569,6 +658,132 @@ export default function CourseDetailsScreen() {
             </View>
           )}
 
+          {/* Paiement manuel */}
+          {manualPayment.visible && (
+            <View className="mb-8 bg-white rounded-3xl border border-orange-200 overflow-hidden shadow-sm">
+              <View className="bg-brand-orange px-5 py-4">
+                <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-white text-base">
+                  Instructions de paiement
+                </Text>
+                <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-white/80 text-xs mt-1">
+                  Effectuez le paiement pour confirmer votre inscription.
+                </Text>
+              </View>
+
+              <View className="p-5">
+                {manualPayment.submitted ? (
+                  <View className="items-center py-3">
+                    <CheckCircle2 size={44} color="#16A34A" />
+                    <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 mt-3 mb-1">
+                      Code soumis avec succès
+                    </Text>
+                    <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 text-center text-sm leading-5">
+                      Notre équipe va vérifier votre paiement dans les 24 heures. Vous recevrez un email de confirmation.
+                    </Text>
+                  </View>
+                ) : (
+                  <>
+                    <View className="space-y-3 mb-4">
+                      {paymentOperators.map((operator) => (
+                        <View
+                          key={operator.value}
+                          className="flex-row items-center rounded-2xl border p-4"
+                          style={{ backgroundColor: operator.bg, borderColor: operator.border }}
+                        >
+                          <View className="w-9 h-9 rounded-xl items-center justify-center mr-3" style={{ backgroundColor: operator.color }}>
+                            <Smartphone size={18} color="white" />
+                          </View>
+                          <View className="flex-1">
+                            <Text style={{ fontFamily: 'Karla_700Bold', color: operator.color }} className="text-xs">
+                              {operator.label}
+                            </Text>
+                            <Text style={{ fontFamily: 'Poppins_700Bold', color: operator.color }} className="text-sm">
+                              {operator.phone}
+                            </Text>
+                          </View>
+                        </View>
+                      ))}
+                    </View>
+
+                    <View className="flex-row justify-between items-center bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3 mb-4">
+                      <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 text-sm">
+                        Montant à envoyer
+                      </Text>
+                      <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-brand-orange text-lg">
+                        {manualPayment.amount.toLocaleString('fr-FR')} FCFA
+                      </Text>
+                    </View>
+
+                    <Text style={{ fontFamily: 'Karla_700Bold' }} className="text-gray-700 text-xs mb-2">
+                      Code de transaction
+                    </Text>
+                    <TextInput
+                      placeholder="Ex : WAVE123456789"
+                      placeholderTextColor="#9CA3AF"
+                      value={paymentTransactionId}
+                      onChangeText={setPaymentTransactionId}
+                      autoCapitalize="characters"
+                      className="bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-gray-900 mb-4"
+                      style={{ fontFamily: 'Karla_400Regular' }}
+                    />
+
+                    <Text style={{ fontFamily: 'Karla_700Bold' }} className="text-gray-700 text-xs mb-2">
+                      Opérateur
+                    </Text>
+                    <View className="flex-row gap-3 mb-5">
+                      {paymentOperators.map((operator) => (
+                        <TouchableOpacity
+                          key={operator.value}
+                          onPress={() => setPaymentOperator(operator.value)}
+                          className="flex-1 py-3 rounded-2xl border items-center"
+                          style={{
+                            backgroundColor: paymentOperator === operator.value ? operator.bg : '#F9FAFB',
+                            borderColor: paymentOperator === operator.value ? operator.color : '#E5E7EB',
+                          }}
+                        >
+                          <Text
+                            style={{ fontFamily: 'Poppins_600SemiBold', color: paymentOperator === operator.value ? operator.color : '#6B7280' }}
+                            className="text-xs"
+                          >
+                            {operator.label}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+
+                    <TouchableOpacity
+                      onPress={() => submitManualPaymentMutation.mutate()}
+                      disabled={submitManualPaymentMutation.isPending}
+                      className="bg-[#2a591d] py-4 rounded-2xl items-center flex-row justify-center"
+                    >
+                      {submitManualPaymentMutation.isPending ? (
+                        <ActivityIndicator color="white" />
+                      ) : (
+                        <>
+                          <CheckCircle2 size={18} color="white" />
+                          <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-white ml-2">
+                            Confirmer mon paiement
+                          </Text>
+                        </>
+                      )}
+                    </TouchableOpacity>
+                  </>
+                )}
+              </View>
+            </View>
+          )}
+
+          {!inscrit && !manualPayment.visible && ['pending', 'soumis'].includes(paymentStatus || '') && (
+            <View className="mb-8 bg-orange-50 border border-orange-200 rounded-2xl p-4">
+              <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-orange-800 mb-1">
+                Paiement en attente
+              </Text>
+              <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-orange-700 text-sm">
+                Votre inscription existe, mais le paiement doit être validé avant l'accès complet à la formation.
+              </Text>
+            </View>
+          )}
+
           {/* MA PROGRESSION */}
           {inscrit && totalLecons > 0 && (
             <View className="mb-8">
@@ -627,13 +842,11 @@ export default function CourseDetailsScreen() {
                       <TouchableOpacity
                         key={lecon.id}
                         onPress={() => handleSelectLecon(lecon)}
-                        className={`flex-row items-center px-4 py-3 rounded-2xl mb-2 border ${
-                          isActive ? 'bg-orange-50 border-orange-200' : 'bg-gray-50 border-gray-100'
-                        }`}
+                        className={`flex-row items-center px-4 py-3 rounded-2xl mb-2 border ${isActive ? 'bg-orange-50 border-orange-200' : 'bg-gray-50 border-gray-100'
+                          }`}
                       >
-                        <View className={`w-8 h-8 rounded-full items-center justify-center mr-3 ${
-                          isActive ? 'bg-brand-orange' : isVue ? 'bg-green-100' : canAccess ? 'bg-white border border-gray-200' : 'bg-gray-100'
-                        }`}>
+                        <View className={`w-8 h-8 rounded-full items-center justify-center mr-3 ${isActive ? 'bg-brand-orange' : isVue ? 'bg-green-100' : canAccess ? 'bg-white border border-gray-200' : 'bg-gray-100'
+                          }`}>
                           {isVue ? (
                             <CheckCircle2 size={16} color="#16A34A" />
                           ) : !canAccess ? (
@@ -689,13 +902,13 @@ export default function CourseDetailsScreen() {
 
       {/* Sticky Footer */}
       <View className="absolute bottom-0 left-0 right-0 bg-white px-6 pb-10 pt-4 border-t border-gray-50"
-        style={{ 
-          shadowColor: '#000', 
-          shadowOffset: { width: 0, height: -4 }, 
-          shadowOpacity: 0.05, 
-          shadowRadius: 10, 
+        style={{
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -4 },
+          shadowOpacity: 0.05,
+          shadowRadius: 10,
           elevation: 10,
-          display: inscrit ? 'none' : 'flex' 
+          display: inscrit ? 'none' : 'flex'
         }}
       >
         {/* Progression bar (quand inscrit) */}
@@ -748,14 +961,25 @@ export default function CourseDetailsScreen() {
             <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-xl mb-2">S'inscrire</Text>
             <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-400 text-sm mb-6">{data.title}</Text>
 
-            <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-gray-700 text-xs uppercase tracking-widest mb-2">Nom complet</Text>
+            <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-gray-700 text-xs uppercase tracking-widest mb-2">Nom</Text>
             <View className="bg-gray-50 flex-row items-center px-4 py-4 rounded-2xl border border-gray-100 mb-5">
               <TextInput
-                placeholder="Votre nom et prénom"
+                placeholder="Votre nom"
                 placeholderTextColor="#9CA3AF"
                 className="flex-1 text-gray-700"
-                value={participantName}
-                onChangeText={setParticipantName}
+                value={participantNom}
+                onChangeText={setParticipantNom}
+              />
+            </View>
+
+            <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-gray-700 text-xs uppercase tracking-widest mb-2">Prénoms</Text>
+            <View className="bg-gray-50 flex-row items-center px-4 py-4 rounded-2xl border border-gray-100 mb-5">
+              <TextInput
+                placeholder="Vos prénoms"
+                placeholderTextColor="#9CA3AF"
+                className="flex-1 text-gray-700"
+                value={participantPrenoms}
+                onChangeText={setParticipantPrenoms}
               />
             </View>
 
@@ -793,26 +1017,130 @@ export default function CourseDetailsScreen() {
         </View>
       </Modal>
 
+      {/* Modal vidéo plein écran (non-YouTube) */}
+      <Modal
+        visible={videoFullscreenVisible && !!activeLecon?.content}
+        animationType="slide"
+        onRequestClose={() => setVideoFullscreenVisible(false)}
+      >
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              paddingHorizontal: 16,
+              paddingTop: Math.max(insets.top, 10),
+              paddingBottom: 12,
+              backgroundColor: '#111827',
+            }}
+          >
+            <TouchableOpacity onPress={() => setVideoFullscreenVisible(false)} style={{ marginRight: 12 }}>
+              <ChevronLeft size={24} color="white" />
+            </TouchableOpacity>
+            <Text style={{ fontFamily: 'Poppins_600SemiBold', color: 'white', flex: 1, fontSize: 14 }} numberOfLines={1}>
+              {activeLecon?.title || 'Video'}
+            </Text>
+            {!!activeLecon?.content && (
+              <TouchableOpacity
+                onPress={() => Linking.openURL(activeLecon.content!)}
+                style={{ paddingHorizontal: 10, paddingVertical: 6, borderWidth: 1, borderColor: '#4B5563', borderRadius: 8 }}
+              >
+                <Text style={{ color: 'white', fontFamily: 'Poppins_600SemiBold', fontSize: 12 }}>Ouvrir</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {fullscreenVideoError ? (
+            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#111', paddingHorizontal: 24 }}>
+              <Text style={{ color: '#D1D5DB', textAlign: 'center', marginBottom: 12 }}>
+                Impossible d'afficher la vidéo en plein écran.
+              </Text>
+              {!!activeLecon?.content && (
+                <TouchableOpacity
+                  onPress={() => Linking.openURL(activeLecon.content!)}
+                  style={{ backgroundColor: '#E05017', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 10 }}
+                >
+                  <Text style={{ color: 'white', fontFamily: 'Poppins_600SemiBold' }}>Ouvrir la vidéo</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          ) : (
+            !!activeLecon?.content && (
+              <WebView
+                source={{
+                  html: getEmbedHtml(activeLecon.content),
+                  headers: { Referer: 'https://api.plateforme-osci.org' },
+                }}
+                allowsFullscreenVideo
+                allowsInlineMediaPlayback
+                mediaPlaybackRequiresUserAction={false}
+                javaScriptEnabled
+                originWhitelist={['*']}
+                style={{ flex: 1, backgroundColor: '#000' }}
+                onError={() => setFullscreenVideoError(true)}
+                onHttpError={(e) => { if (e.nativeEvent.statusCode >= 400) setFullscreenVideoError(true); }}
+                onMessage={(e) => {
+                  try {
+                    const msg = JSON.parse(e.nativeEvent.data);
+                    if (msg.type === 'error') setFullscreenVideoError(true);
+                  } catch { }
+                }}
+              />
+            )
+          )}
+        </SafeAreaView>
+      </Modal>
+
       {/* Modal PDF viewer */}
       <Modal visible={pdfModal.visible} animationType="slide" onRequestClose={() => setPdfModal({ ...pdfModal, visible: false })}>
         <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, backgroundColor: '#1F2937' }}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              paddingHorizontal: 16,
+              paddingTop: Math.max(insets.top, 10),
+              paddingBottom: 12,
+              backgroundColor: '#1F2937',
+            }}
+          >
             <TouchableOpacity onPress={() => setPdfModal({ ...pdfModal, visible: false })} style={{ marginRight: 12 }}>
               <ChevronLeft size={24} color="white" />
             </TouchableOpacity>
             <Text style={{ fontFamily: 'Poppins_600SemiBold', color: 'white', flex: 1, fontSize: 14 }} numberOfLines={1}>
               {pdfModal.title}
             </Text>
+            <TouchableOpacity
+              onPress={() => Linking.openURL(pdfModal.url)}
+              style={{ paddingHorizontal: 10, paddingVertical: 6, borderWidth: 1, borderColor: '#4B5563', borderRadius: 8 }}
+            >
+              <Text style={{ color: 'white', fontFamily: 'Poppins_600SemiBold', fontSize: 12 }}>Ouvrir</Text>
+            </TouchableOpacity>
           </View>
-          <WebView
-            source={{ uri: `https://docs.google.com/viewer?url=${encodeURIComponent(pdfModal.url)}&embedded=true` }}
-            javaScriptEnabled
-            style={{ flex: 1, backgroundColor: '#fff' }}
-            startInLoadingState
-          />
+          {pdfLoadFailed ? (
+            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#111', paddingHorizontal: 24 }}>
+              <Text style={{ color: '#D1D5DB', textAlign: 'center', marginBottom: 12 }}>
+                Impossible d'afficher le PDF dans l'application.
+              </Text>
+              <TouchableOpacity
+                onPress={() => Linking.openURL(pdfModal.url)}
+                style={{ backgroundColor: '#E05017', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 10 }}
+              >
+                <Text style={{ color: 'white', fontFamily: 'Poppins_600SemiBold' }}>Ouvrir dans le navigateur</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <WebView
+              source={{ uri: pdfModal.url }}
+              javaScriptEnabled
+              style={{ flex: 1, backgroundColor: '#fff' }}
+              startInLoadingState
+              onError={() => setPdfLoadFailed(true)}
+              onHttpError={() => setPdfLoadFailed(true)}
+            />
+          )}
         </SafeAreaView>
       </Modal>
     </SafeAreaView>
   );
 }
-

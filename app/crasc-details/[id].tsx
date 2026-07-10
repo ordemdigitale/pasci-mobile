@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Image, Share, ScrollView } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Image, Share, ScrollView, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import {
@@ -9,9 +9,10 @@ import {
   Users,
   Calendar,
   Target,
-  Newspaper,
   ChevronRight,
   Phone,
+  Video,
+  ExternalLink,
 } from 'lucide-react-native';
 import Skeleton from '../../components/ui/Skeleton';
 import { useQuery } from '@tanstack/react-query';
@@ -28,6 +29,19 @@ const domainesIntervention = [
 ];
 
 const OSC_PER_PAGE = 5;
+
+const formatDate = (value?: string) => {
+  if (!value) return null;
+  try {
+    return new Date(value).toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
+  } catch {
+    return value;
+  }
+};
 
 export default function CrascDetailsScreen() {
   const params = useLocalSearchParams();
@@ -52,7 +66,7 @@ export default function CrascDetailsScreen() {
   const onShare = async () => {
     if (!data) return;
     try {
-      await Share.share({ message: `Découvrez le ${data.name} sur la plateforme PDOC.` });
+      await Share.share({ message: `Découvrez le ${data.name} sur la plateforme PdoC.` });
     } catch (error) {
       console.log(error.message);
     }
@@ -60,9 +74,10 @@ export default function CrascDetailsScreen() {
 
   const renderHeader = () => {
     if (!data) return null;
+    const dataAny = data as any;
     const regionsList = typeof data.regions === 'string' ? data.regions.split(', ') : data.regions?.map((r: any) => r.name) || [];
-    const count = regionsList.length || data.count || data.region_count || 0;
-    const regionName = data.region_name || data.name || '';
+    const count = regionsList.length || dataAny.count || dataAny.region_count || 0;
+    const regionName = dataAny.region_name || data.name || '';
     const oscCount = data.osc_count || oscMembers.length || 0;
 
     return (
@@ -126,7 +141,7 @@ export default function CrascDetailsScreen() {
             <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-base">À Propos</Text>
           </View>
           <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-600 text-sm leading-5">
-            Le {data.title || data.name} est un centre régional d'appui à la société civile couvrant {count} région{count > 1 ? 's' : ''} en Côte d'Ivoire.
+            Le {dataAny.title || data.name} est un centre régional d'appui à la société civile couvrant {count} région{count > 1 ? 's' : ''} en Côte d'Ivoire.
           </Text>
         </View>
       </View>
@@ -194,6 +209,9 @@ export default function CrascDetailsScreen() {
 
   const renderFooter = () => {
     if (!data) return null;
+    const evenements = (apiData as any)?.evenements || [];
+    const videos = (apiData as any)?.videos || [];
+
     return (
       <View className="mt-8">
         {/* OSC Membres Section */}
@@ -248,6 +266,84 @@ export default function CrascDetailsScreen() {
                 </TouchableOpacity>
               </View>
             )}
+          </View>
+        )}
+
+        {/* Agenda */}
+        {evenements.length > 0 && (
+          <View className="mb-8">
+            <View className="flex-row items-center mb-4">
+              <View className="w-9 h-9 bg-amber-100 rounded-xl items-center justify-center mr-3">
+                <Calendar size={18} color="#D97706" />
+              </View>
+              <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-base flex-1">Agenda</Text>
+              <View className="bg-gray-100 px-3 py-1 rounded-full">
+                <Text style={{ fontFamily: 'Karla_700Bold' }} className="text-gray-600 text-[10px]">
+                  {evenements.length} evenement{evenements.length !== 1 ? 's' : ''}
+                </Text>
+              </View>
+            </View>
+
+            {evenements.slice(0, 4).map((evt: any) => (
+              <View key={evt.id} className="bg-white rounded-3xl mb-3 border border-gray-100 shadow-sm p-4">
+                <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-gray-900 text-sm mb-1">
+                  {evt.title}
+                </Text>
+                {evt.description ? (
+                  <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 text-xs mb-2" numberOfLines={2}>
+                    {evt.description}
+                  </Text>
+                ) : null}
+                <View className="flex-row items-center justify-between">
+                  <Text style={{ fontFamily: 'Karla_700Bold' }} className="text-brand-orange text-xs">
+                    {formatDate(evt.date_debut) || 'Date a venir'}
+                  </Text>
+                  {evt.lieu ? (
+                    <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-400 text-xs" numberOfLines={1}>
+                      {evt.lieu}
+                    </Text>
+                  ) : null}
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* Videos */}
+        {videos.length > 0 && (
+          <View className="mb-8">
+            <View className="flex-row items-center mb-4">
+              <View className="w-9 h-9 bg-blue-100 rounded-xl items-center justify-center mr-3">
+                <Video size={18} color="#2563EB" />
+              </View>
+              <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-base flex-1">Videos</Text>
+              <View className="bg-gray-100 px-3 py-1 rounded-full">
+                <Text style={{ fontFamily: 'Karla_700Bold' }} className="text-gray-600 text-[10px]">
+                  {videos.length}
+                </Text>
+              </View>
+            </View>
+
+            {videos.slice(0, 4).map((video: any) => (
+              <TouchableOpacity
+                key={video.id}
+                className="bg-white rounded-3xl mb-3 border border-gray-100 shadow-sm p-4"
+                onPress={() => Linking.openURL(video.url)}
+              >
+                <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-gray-900 text-sm mb-1" numberOfLines={2}>
+                  {video.titre}
+                </Text>
+                {video.description ? (
+                  <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 text-xs mb-2" numberOfLines={2}>
+                    {video.description}
+                  </Text>
+                ) : null}
+                <View className="flex-row items-center">
+                  <ExternalLink size={12} color="#2563EB" />
+                  <Text style={{ fontFamily: 'Karla_700Bold' }} className="text-blue-600 text-xs ml-1">Ouvrir la video</Text>
+                </View>
+              </TouchableOpacity>
+            ))}
           </View>
         )}
 

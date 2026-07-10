@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, Image, Dimensions, Platform, StatusBar, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Bell, Calendar, ChevronRight, TrendingUp, CheckCircle2, FileText, Info, Handshake, Signal, Users, Globe, ShieldCheck, CircleCheck } from 'lucide-react-native';
+import { Calendar, ChevronRight, TrendingUp, Info, Handshake, Signal, Users, Globe, ShieldCheck, CircleCheck } from 'lucide-react-native';
 import Skeleton from '../../components/ui/Skeleton';
 import { useQuery } from '@tanstack/react-query';
 import { dataService } from '../../services/dataService';
@@ -178,14 +178,11 @@ export default function ProjetsScreen() {
       edges={['top']}
     >
       {/* Header */}
-      <View className="px-6 py-4 bg-white flex-row justify-between items-center border-b border-gray-50">
+      <View className="px-6 py-4 bg-white flex-row items-center border-b border-gray-50">
         <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-xl text-gray-900">Projets</Text>
-        <TouchableOpacity className="p-2 bg-gray-100 rounded-full">
-          <Bell size={20} color="#1F2937" />
-        </TouchableOpacity>
       </View>
 
-      <FlatList
+      <FlatList<any>
         key={activeTab}
         data={listData}
         renderItem={({ item }) => isLoading ? renderSkeleton() : renderProjetItem({ item: item as OffreProjet })}
@@ -237,7 +234,7 @@ export default function ProjetsScreen() {
                     <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-600 text-center text-xs mb-4">
                       Nous vous aidons à naviguer efficacement dans vos démarches administratives.
                     </Text>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                       onPress={() => router.push('/contact')}
                       className="bg-brand-orange px-8 py-3 rounded-xl"
                     >
