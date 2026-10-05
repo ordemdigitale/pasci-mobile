@@ -9,6 +9,7 @@ import {
   PTF,
   OffreProjet,
   PoleConcertation,
+  PoleMembre,
   ForumSujet,
   ForumSujetDetail,
   ForumCommentaire,
@@ -195,6 +196,13 @@ export const dataService = {
       `/forum/poles/${slug}`,
     );
     return response.data;
+  },
+
+  getForumPoleMembres: async (poleSlug: string): Promise<PoleMembre[]> => {
+    const response = await apiClient.get<PoleMembre[]>(
+      `/forum/poles/${poleSlug}/membres`,
+    );
+    return Array.isArray(response.data) ? response.data : [];
   },
 
   getForumSujets: async (poleSlug: string): Promise<ForumSujet[]> => {

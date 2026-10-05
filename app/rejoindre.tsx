@@ -15,6 +15,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, ChevronDown, Check } from 'lucide-react-native';
 import { useQuery } from '@tanstack/react-query';
 import { dataService } from '../services/dataService';
+import { DOMAINE_PRIORITAIRE_OPTIONS } from '../constants/oscDomaines';
+
+// Première entrée de chaque liste : permet d'effacer un choix fait par erreur
+const NONE_OPTION = { value: '', label: '— Aucun —' };
 
 const ORGANIZATION_TYPES = [
   { value: 'Association', label: 'Association' },
@@ -148,8 +152,8 @@ function SelectPicker({ label, required, placeholder, value, options, onChange }
               </TouchableOpacity>
             </View>
             <FlatList
-              data={options}
-              keyExtractor={(item) => item.value}
+              data={[NONE_OPTION, ...options]}
+              keyExtractor={(item) => item.value || '__none__'}
               style={{ maxHeight: 360 }}
               renderItem={({ item }) => (
                 <TouchableOpacity
@@ -159,7 +163,7 @@ function SelectPicker({ label, required, placeholder, value, options, onChange }
                   <Text className="text-gray-800 text-sm" style={{ fontFamily: 'Karla-Regular' }}>
                     {item.label}
                   </Text>
-                  {value === item.value && <Check size={16} color="#E05017" />}
+                  {item.value !== '' && value === item.value && <Check size={16} color="#E05017" />}
                 </TouchableOpacity>
               )}
             />
@@ -700,11 +704,24 @@ export default function RejoindreScreen() {
               Domaines prioritaires
             </Text>
             <View className="space-y-4">
-              {renderInput('domainePrioritaire', '1er domaine prioritaire', 'Domaine prioritaire')}
-              {renderInput('domainePrioritaire2', '2ème domaine prioritaire', 'Domaine prioritaire')}
-              {renderInput('domainePrioritaire3', '3ème domaine prioritaire', 'Domaine prioritaire')}
-              {renderInput('domainePrioritaire4', '4ème domaine prioritaire', 'Domaine prioritaire')}
-              {renderInput('domainePrioritaire5', '5ème domaine prioritaire', 'Domaine prioritaire')}
+              {(
+                [
+                  ['domainePrioritaire', '1er domaine prioritaire'],
+                  ['domainePrioritaire2', '2ème domaine prioritaire'],
+                  ['domainePrioritaire3', '3ème domaine prioritaire'],
+                  ['domainePrioritaire4', '4ème domaine prioritaire'],
+                  ['domainePrioritaire5', '5ème domaine prioritaire'],
+                ] as const
+              ).map(([field, label]) => (
+                <SelectPicker
+                  key={field}
+                  label={label}
+                  placeholder="Sélectionnez un domaine"
+                  value={form[field]}
+                  options={DOMAINE_PRIORITAIRE_OPTIONS}
+                  onChange={set(field)}
+                />
+              ))}
             </View>
           </View>
 

@@ -11,12 +11,62 @@ import {
   Users,
   X,
   Send,
+  CalendarDays,
+  MapPin,
 } from 'lucide-react-native';
 import Skeleton from '../../components/ui/Skeleton';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { dataService } from '../../services/dataService';
 import { authService } from '../../services/authService';
-import { ForumSujet } from '../../services/types';
+import { ForumSujet, PoleAgendaItem, PoleAgendaStatut, PoleMembre } from '../../services/types';
+
+// Mêmes règles d'affichage que la page pôle du site web
+const MEMBRES_PAR_PAGE = 10;
+
+const AGENDA_STATUS_META: Record<PoleAgendaStatut, { label: string; bg: string; text: string }> = {
+  realise: { label: 'Réalisé', bg: 'bg-green-100', text: 'text-green-700' },
+  en_cours: { label: 'En cours', bg: 'bg-blue-100', text: 'text-blue-700' },
+  non_realise: { label: 'Non réalisé', bg: 'bg-red-100', text: 'text-red-700' },
+};
+
+const MEMBER_TYPE_FILTERS = [
+  { label: 'Tous', value: 'all' },
+  { label: 'Association', value: 'Association' },
+  { label: 'ONG', value: 'ONG' },
+  { label: 'Fondation', value: 'Fondation' },
+  { label: 'Organisation cultuelle', value: 'Organisation cultuelle' },
+];
+
+// Comparaison sans accents ni casse : "ONG" doit trouver "Organisation Non Gouvernementale (ONG)"
+function normaliser(value?: string | null) {
+  return (value || '').normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase();
+}
+
+function correspondAuType(membre: PoleMembre, filtre: string) {
+  const attendu = normaliser(filtre);
+  return [membre.type_name, membre.categorie].some((value) => {
+    const v = normaliser(value);
+    return v === attendu || v.split(/[^a-z0-9]+/).includes(attendu) || (attendu.includes(' ') && v.includes(attendu));
+  });
+}
+
+function parseAgenda(raw?: string | null): PoleAgendaItem[] {
+  try {
+    const parsed = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter((item) => item && typeof item === 'object')
+      .map((item) => ({
+        date: typeof item.date === 'string' ? item.date : '',
+        titre: typeof item.titre === 'string' ? item.titre : '',
+        description: typeof item.description === 'string' ? item.description : '',
+        statut: ['realise', 'en_cours', 'non_realise'].includes(item.statut) ? item.statut : 'en_cours',
+      }))
+      .filter((item) => item.date || item.titre || item.description);
+  } catch {
+    return [];
+  }
+}
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString('fr-FR', {
@@ -35,6 +85,15 @@ export default function PoleDetailsScreen() {
   const [newSujetModal, setNewSujetModal] = useState(false);
   const [sujetTitle, setSujetTitle] = useState('');
   const [sujetContent, setSujetContent] = useState('');
+  const [memberTypeFilter, setMemberTypeFilter] = useState('all');
+  const [membresPage, setMembresPage] = useState(1);
+  const [regionOuverte, setRegionOuverte] = useState<string | null>(null);
+
+  const { data: membres = [] } = useQuery({
+    queryKey: ['pole-membres', slug],
+    queryFn: () => dataService.getForumPoleMembres(slug),
+    enabled: !!slug,
+  });
 
   const { data: pole, isLoading: poleLoading } = useQuery({
     queryKey: ['pole', slug],
@@ -119,6 +178,36 @@ export default function PoleDetailsScreen() {
     );
   }
 
+  const agendaItems = parseAgenda(pole.agenda);
+  const filteredMembres = membres.filter(
+    (membre) => memberTypeFilter === 'all' || correspondAuType(membre, memberTypeFilter)
+  );
+  const nbPagesMembres = Math.max(1, Math.ceil(filteredMembres.length / MEMBRES_PAR_PAGE));
+  const pageMembres = Math.min(membresPage, nbPagesMembres);
+  const membresAffiches = filteredMembres.slice(
+    (pageMembres - 1) * MEMBRES_PAR_PAGE,
+    pageMembres * MEMBRES_PAR_PAGE
+  );
+
+  // Régions : de la plus représentée à la moins représentée, avec le nombre d'OSC
+  const regionsMap = new Map<string, { nom: string; oscs: PoleMembre[] }>();
+  for (const membre of membres) {
+    const nom = (membre.region_nom || '').trim();
+    if (!nom) continue;
+    const cle = normaliser(nom);
+    const entree = regionsMap.get(cle) ?? { nom, oscs: [] };
+    entree.oscs.push(membre);
+    regionsMap.set(cle, entree);
+  }
+  const regions = [...regionsMap.values()].sort(
+    (a, b) => b.oscs.length - a.oscs.length || a.nom.localeCompare(b.nom, 'fr')
+  );
+  const oscsRegionOuverte = regions.find((r) => r.nom === regionOuverte)?.oscs ?? [];
+
+  const ouvrirOsc = (membre: PoleMembre) => {
+    if (membre.slug) router.push(`/osc-details/${membre.slug}`);
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
       <Stack.Screen options={{ headerShown: false }} />
@@ -158,6 +247,162 @@ export default function PoleDetailsScreen() {
             </Text>
           )}
         </View>
+
+        {/* Agenda : affiché avant les membres */}
+        {agendaItems.length > 0 && (
+          <View className="mx-4 mb-4 bg-white rounded-[24px] p-5 border border-gray-100">
+            <View className="flex-row items-center mb-3">
+              <CalendarDays size={18} color="#E05017" />
+              <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-800 text-base ml-2">Agenda</Text>
+            </View>
+            {agendaItems.map((item, i) => {
+              const status = AGENDA_STATUS_META[item.statut];
+              const date = item.date ? new Date(item.date) : null;
+              return (
+                <View key={i} className="flex-row bg-gray-50 rounded-xl p-3 mb-2 border border-gray-100">
+                  {date && !isNaN(date.getTime()) && (
+                    <View className="bg-brand-orange rounded-lg px-2 py-2 mr-3 items-center min-w-[56px]">
+                      <Text style={{ fontFamily: 'Karla_700Bold' }} className="text-white text-[11px]">
+                        {date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}
+                      </Text>
+                      <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-white text-[10px]">
+                        {date.getFullYear()}
+                      </Text>
+                    </View>
+                  )}
+                  <View className="flex-1">
+                    <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-gray-800 text-sm">{item.titre}</Text>
+                    <View className={`self-start px-2 py-0.5 rounded-full mt-1 ${status.bg}`}>
+                      <Text style={{ fontFamily: 'Karla_700Bold' }} className={`text-[10px] ${status.text}`}>{status.label}</Text>
+                    </View>
+                    {!!item.description && (
+                      <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 text-xs mt-1">{item.description}</Text>
+                    )}
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        )}
+
+        {/* Membres du pôle */}
+        <View className="mx-4 mb-4 bg-white rounded-[24px] p-5 border border-gray-100">
+          <View className="flex-row items-center justify-between mb-3">
+            <View className="flex-row items-center">
+              <Users size={18} color="#E05017" />
+              <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-800 text-base ml-2">Membres du pôle</Text>
+            </View>
+            <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 text-xs">
+              {filteredMembres.length} / {membres.length}
+            </Text>
+          </View>
+
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-3">
+            {MEMBER_TYPE_FILTERS.map((filter) => {
+              const active = memberTypeFilter === filter.value;
+              return (
+                <TouchableOpacity
+                  key={filter.value}
+                  onPress={() => { setMemberTypeFilter(filter.value); setMembresPage(1); }}
+                  className={`px-3 py-1.5 rounded-full border mr-2 ${active ? 'bg-brand-orange border-brand-orange' : 'bg-white border-gray-200'}`}
+                >
+                  <Text style={{ fontFamily: 'Karla_700Bold' }} className={`text-xs ${active ? 'text-white' : 'text-gray-600'}`}>
+                    {filter.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+
+          {filteredMembres.length === 0 ? (
+            <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-400 text-sm py-2">
+              Aucun membre trouvé pour ce filtre.
+            </Text>
+          ) : (
+            membresAffiches.map((membre) => (
+              <TouchableOpacity
+                key={membre.id}
+                onPress={() => ouvrirOsc(membre)}
+                className="flex-row items-center bg-gray-50 rounded-xl p-3 mb-2 border border-gray-100"
+              >
+                <View className="w-9 h-9 rounded-full bg-green-100 items-center justify-center mr-3">
+                  <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-green-800">
+                    {(membre.sigle || membre.name || '?').slice(0, 1).toUpperCase()}
+                  </Text>
+                </View>
+                <View className="flex-1">
+                  <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-gray-900 text-sm" numberOfLines={1}>
+                    {membre.name}
+                  </Text>
+                  <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 text-xs" numberOfLines={1}>
+                    {membre.type_name || membre.categorie || 'Type non renseigné'}
+                    {membre.region_nom ? ` · ${membre.region_nom}` : ''}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            ))
+          )}
+
+          {nbPagesMembres > 1 && (
+            <View className="flex-row items-center justify-center mt-2">
+              <TouchableOpacity
+                onPress={() => setMembresPage(pageMembres - 1)}
+                disabled={pageMembres <= 1}
+                className={`px-3 py-1.5 rounded-full border border-gray-200 ${pageMembres <= 1 ? 'opacity-40' : ''}`}
+              >
+                <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-600 text-xs">← Précédent</Text>
+              </TouchableOpacity>
+              <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 text-xs mx-3">
+                Page {pageMembres} / {nbPagesMembres}
+              </Text>
+              <TouchableOpacity
+                onPress={() => setMembresPage(pageMembres + 1)}
+                disabled={pageMembres >= nbPagesMembres}
+                className={`px-3 py-1.5 rounded-full border border-gray-200 ${pageMembres >= nbPagesMembres ? 'opacity-40' : ''}`}
+              >
+                <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-600 text-xs">Suivant →</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+
+        {/* Régions d'influence */}
+        {regions.length > 0 && (
+          <View className="mx-4 mb-4 bg-white rounded-[24px] p-5 border border-gray-100">
+            <View className="flex-row items-center mb-1">
+              <MapPin size={18} color="#E05017" />
+              <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-800 text-base ml-2">Régions d'influence</Text>
+            </View>
+            <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 text-xs mb-3">
+              Touchez une région pour voir ses OSC membres.
+            </Text>
+            <View className="flex-row flex-wrap">
+              {regions.map((region) => {
+                const active = regionOuverte === region.nom;
+                return (
+                  <TouchableOpacity
+                    key={region.nom}
+                    onPress={() => setRegionOuverte(active ? null : region.nom)}
+                    className={`px-3 py-1 rounded-full mr-2 mb-2 ${active ? 'bg-green-800' : 'bg-green-50'}`}
+                  >
+                    <Text style={{ fontFamily: 'Karla_700Bold' }} className={`text-xs ${active ? 'text-white' : 'text-green-800'}`}>
+                      {region.nom} ({region.oscs.length})
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+            {regionOuverte && oscsRegionOuverte.map((membre) => (
+              <TouchableOpacity
+                key={membre.id}
+                onPress={() => ouvrirOsc(membre)}
+                className="bg-gray-50 rounded-xl px-3 py-2 mt-2 border border-gray-100"
+              >
+                <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-800 text-sm">{membre.name}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
 
         {/* Sujets header */}
         <View className="px-4 mb-3 flex-row items-center justify-between">

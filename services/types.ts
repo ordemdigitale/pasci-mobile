@@ -441,6 +441,32 @@ export interface PoleConcertation {
   is_active: boolean;
   sujets_count: number;
   created_at: string;
+  nb_osc_membres?: number;
+  nb_membres_actifs?: number;
+  // Listes JSON sérialisées en texte par l'API
+  agenda?: string | null;
+}
+
+export type PoleAgendaStatut = 'realise' | 'en_cours' | 'non_realise';
+
+export interface PoleAgendaItem {
+  date: string;
+  titre: string;
+  description: string;
+  statut: PoleAgendaStatut;
+}
+
+export interface PoleMembre {
+  id: number;
+  name: string;
+  slug?: string | null;
+  sigle?: string | null;
+  type_id?: number | null;
+  type_name?: string | null;
+  categorie?: string | null;
+  region_nom?: string | null;
+  ville?: string | null;
+  thumbnail_url?: string | null;
 }
 
 export interface ForumSujet {
