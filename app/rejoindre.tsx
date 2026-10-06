@@ -15,7 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, ChevronDown, Check } from 'lucide-react-native';
 import { useQuery } from '@tanstack/react-query';
 import { dataService } from '../services/dataService';
-import { DOMAINE_PRIORITAIRE_OPTIONS } from '../constants/oscDomaines';
+import { useDomainesPrioritaires, useRegions } from '../constants/oscDomaines';
 
 // Première entrée de chaque liste : permet d'effacer un choix fait par erreur
 const NONE_OPTION = { value: '', label: '— Aucun —' };
@@ -198,6 +198,8 @@ type FormState = {
   domainePrioritaire3: string;
   domainePrioritaire4: string;
   domainePrioritaire5: string;
+  axe: string;
+  specialites: string;
   nbMembres: string;
   nbFemmesMembres: string;
   nbHommesMembres: string;
@@ -253,6 +255,8 @@ const INITIAL_FORM: FormState = {
   domainePrioritaire3: '',
   domainePrioritaire4: '',
   domainePrioritaire5: '',
+  axe: '',
+  specialites: '',
   nbMembres: '',
   nbFemmesMembres: '',
   nbHommesMembres: '',
@@ -292,6 +296,8 @@ function validate(form: FormState): FormErrors {
   else if (form.organizationName.trim().length < 2) errors.organizationName = 'Le nom doit contenir au moins 2 caractères';
   if (!form.organizationType) errors.organizationType = "Sélectionnez un type d'organisation";
   if (!form.region) errors.region = 'Sélectionnez une région';
+  // Le 1er domaine prioritaire détermine le pôle de concertation de l'OSC (comme sur le web)
+  if (!form.domainePrioritaire) errors.domainePrioritaire = 'Choisissez votre domaine prioritaire (pôle de concertation)';
   if (!form.email.trim()) errors.email = "L'email est requis";
   else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errors.email = 'Veuillez entrer une adresse email valide';
   if (!form.phone.trim()) errors.phone = 'Le numéro de téléphone est requis';
@@ -333,6 +339,10 @@ export default function RejoindreScreen() {
     queryKey: ['adhesion-osc-types'],
     queryFn: dataService.getOscTypes,
   });
+
+  // Domaines (= pôles actifs) et régions : mêmes listes que le site web
+  const domaines = useDomainesPrioritaires();
+  const regions = useRegions(REGIONS);
 
   const crascOptions = crascs.map((c) => ({ value: c.name, label: c.name }));
   const oscTypeOptions = oscTypes.map((t) => ({ value: t.name, label: t.name }));
@@ -395,6 +405,8 @@ export default function RejoindreScreen() {
     const e = validate(form);
     if (Object.keys(e).length > 0) {
       setErrors(e);
+      // Formulaire long : signaler l'erreur même si le champ n'est pas à l'écran
+      Alert.alert('Formulaire incomplet', Object.values(e)[0] as string);
       return;
     }
 
@@ -424,6 +436,8 @@ export default function RejoindreScreen() {
         domaine_prioritaire_3: emptyToNull(form.domainePrioritaire3),
         domaine_prioritaire_4: emptyToNull(form.domainePrioritaire4),
         domaine_prioritaire_5: emptyToNull(form.domainePrioritaire5),
+        axe: emptyToNull(form.axe),
+        specialites: emptyToNull(form.specialites),
         nb_membres: toNumber(form.nbMembres),
         nb_femmes_membres: toNumber(form.nbFemmesMembres),
         nb_hommes_membres: toNumber(form.nbHommesMembres),
@@ -548,7 +562,7 @@ export default function RejoindreScreen() {
             required
             placeholder="Sélectionnez une région"
             value={form.region}
-            options={REGIONS}
+            options={regions}
             onChange={set('region')}
           />
           {errors.region && (
@@ -700,28 +714,40 @@ export default function RejoindreScreen() {
           </View>
 
           <View className="pt-3 border-t border-gray-100">
-            <Text className="text-lg font-bold text-gray-900 mb-3" style={{ fontFamily: 'Poppins-Bold' }}>
+            <Text className="text-lg font-bold text-gray-900 mb-1" style={{ fontFamily: 'Poppins-Bold' }}>
               Domaines prioritaires
+            </Text>
+            <Text className="text-gray-500 text-xs mb-3" style={{ fontFamily: 'Karla-Regular' }}>
+              Le 1er domaine prioritaire est votre pôle de concertation : votre OSC y sera inscrite dès la validation de votre adhésion.
             </Text>
             <View className="space-y-4">
               {(
                 [
-                  ['domainePrioritaire', '1er domaine prioritaire'],
+                  ['domainePrioritaire', '1er domaine prioritaire (pôle de concertation)'],
                   ['domainePrioritaire2', '2ème domaine prioritaire'],
                   ['domainePrioritaire3', '3ème domaine prioritaire'],
                   ['domainePrioritaire4', '4ème domaine prioritaire'],
                   ['domainePrioritaire5', '5ème domaine prioritaire'],
                 ] as const
               ).map(([field, label]) => (
-                <SelectPicker
-                  key={field}
-                  label={label}
-                  placeholder="Sélectionnez un domaine"
-                  value={form[field]}
-                  options={DOMAINE_PRIORITAIRE_OPTIONS}
-                  onChange={set(field)}
-                />
+                <View key={field}>
+                  <SelectPicker
+                    label={label}
+                    required={field === 'domainePrioritaire'}
+                    placeholder="Sélectionnez un domaine"
+                    value={form[field]}
+                    options={domaines}
+                    onChange={set(field)}
+                  />
+                  {errors[field] && (
+                    <Text className="text-red-500 text-xs mt-1" style={{ fontFamily: 'Karla-Regular' }}>
+                      {errors[field]}
+                    </Text>
+                  )}
+                </View>
               ))}
+              {renderInput('axe', "Axe d'intervention dans le pôle", 'Ex : Santé communautaire')}
+              {renderTextarea('specialites', 'Spécialités', 'Ex : Paludisme, VIH, nutrition...')}
             </View>
           </View>
 

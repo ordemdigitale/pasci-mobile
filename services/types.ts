@@ -228,6 +228,8 @@ export interface AdhesionPayload {
   domaine_prioritaire_3?: string | null;
   domaine_prioritaire_4?: string | null;
   domaine_prioritaire_5?: string | null;
+  axe?: string | null;
+  specialites?: string | null;
   nb_membres?: number | null;
   nb_femmes_membres?: number | null;
   nb_hommes_membres?: number | null;
@@ -467,6 +469,12 @@ export interface PoleMembre {
   region_nom?: string | null;
   ville?: string | null;
   thumbnail_url?: string | null;
+  crasc_id?: number | null;
+  crasc_nom?: string | null;
+  axe?: string | null;
+  specialites?: string | null;
+  /** A déjà lancé au moins un sujet de discussion dans le pôle */
+  est_actif?: boolean;
 }
 
 export interface ForumSujet {
