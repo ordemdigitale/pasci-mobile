@@ -479,6 +479,32 @@ export interface PoleMembre {
   est_actif?: boolean;
 }
 
+/** Photo, audio ou vidéo jointe à un sujet ou à un message d'un pôle */
+export interface PieceJointe {
+  id: number;
+  type: 'image' | 'audio' | 'video';
+  url: string;
+  nom?: string | null;
+  mime?: string | null;
+  taille: number;
+}
+
+/** Fichier choisi sur le téléphone, avant envoi */
+export interface FichierLocal {
+  uri: string;
+  name: string;
+  type: string; // type MIME
+  taille?: number;
+  genre: 'image' | 'audio' | 'video';
+}
+
+export interface LimitesMedias {
+  image: number;
+  audio: number;
+  video: number;
+  fichiers: number;
+}
+
 export interface ForumSujet {
   id: number;
   title: string;
@@ -490,6 +516,10 @@ export interface ForumSujet {
   is_pinned: boolean;
   views_count: number;
   comments_count: number;
+  est_clos?: boolean;
+  synthese?: string | null;
+  synthese_par?: string | null;
+  synthese_le?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -502,10 +532,12 @@ export interface ForumCommentaire {
   sujet_id: number;
   created_at: string;
   updated_at: string;
+  pieces_jointes?: PieceJointe[];
 }
 
 export interface ForumSujetDetail extends ForumSujet {
   commentaires: ForumCommentaire[];
+  pieces_jointes?: PieceJointe[];
 }
 
 export interface KeyStats {

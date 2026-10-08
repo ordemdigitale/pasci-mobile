@@ -12,12 +12,16 @@ import {
   Pin,
   Send,
   UserCircle,
+  Lock,
+  FileText,
 } from 'lucide-react-native';
 import Skeleton from '../../components/ui/Skeleton';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { dataService } from '../../services/dataService';
 import { authService } from '../../services/authService';
-import { ForumCommentaire } from '../../services/types';
+import { ForumCommentaire, FichierLocal } from '../../services/types';
+import MediasJoints from '../../components/forum/MediasJoints';
+import SelecteurMedias from '../../components/forum/SelecteurMedias';
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString('fr-FR', {
@@ -37,6 +41,7 @@ export default function SujetDetailsScreen() {
   const queryClient = useQueryClient();
 
   const [comment, setComment] = useState('');
+  const [fichiers, setFichiers] = useState<FichierLocal[]>([]);
 
   const { data: sujet, isLoading } = useQuery({
     queryKey: ['sujet', poleSlug, sujetSlug],
@@ -53,10 +58,11 @@ export default function SujetDetailsScreen() {
   const isAuthenticated = !!user;
 
   const commentMutation = useMutation({
-    mutationFn: () => dataService.createForumCommentaire(poleSlug, sujetSlug, comment.trim()),
+    mutationFn: () => dataService.createForumCommentaire(poleSlug, sujetSlug, comment.trim(), fichiers),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sujet', poleSlug, sujetSlug] });
       setComment('');
+      setFichiers([]);
     },
     onError: (err: any) => {
       Alert.alert('Erreur', err?.response?.data?.detail || 'Impossible d\'envoyer le commentaire.');
@@ -166,8 +172,30 @@ export default function SujetDetailsScreen() {
               <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-700 text-sm leading-6">
                 {sujet.content}
               </Text>
+              <MediasJoints pieces={sujet.pieces_jointes} />
             </View>
           </View>
+
+          {/* Synthèse publiée par l'administration */}
+          {!!sujet.synthese && (
+            <View className="mx-4 mb-4 bg-green-50 border border-green-200 rounded-[24px] p-5">
+              <View className="flex-row items-center mb-2">
+                <FileText size={16} color="#166534" />
+                <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-green-900 text-sm ml-2">
+                  Synthèse de la discussion
+                </Text>
+              </View>
+              <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-green-950 text-sm leading-5">
+                {sujet.synthese}
+              </Text>
+              {(!!sujet.synthese_par || !!sujet.synthese_le) && (
+                <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-green-800 text-[11px] mt-2">
+                  {sujet.synthese_par ? `Rédigée par ${sujet.synthese_par}` : 'Rédigée'}
+                  {sujet.synthese_le ? ` le ${formatDate(sujet.synthese_le)}` : ''}
+                </Text>
+              )}
+            </View>
+          )}
 
           {/* Commentaires */}
           <View className="px-4 mb-4">
@@ -198,16 +226,26 @@ export default function SujetDetailsScreen() {
                       </Text>
                     </View>
                   </View>
-                  <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-700 text-sm leading-5">
-                    {c.content}
-                  </Text>
+                  {!!c.content && (
+                    <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-700 text-sm leading-5">
+                      {c.content}
+                    </Text>
+                  )}
+                  <MediasJoints pieces={c.pieces_jointes} />
                 </View>
               ))
             )}
           </View>
 
           {/* Formulaire réponse */}
-          {isAuthenticated ? (
+          {sujet.est_clos ? (
+            <View className="mx-4 bg-gray-100 border border-gray-200 rounded-[24px] p-5 flex-row items-center justify-center">
+              <Lock size={14} color="#4B5563" />
+              <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-600 text-sm ml-2 flex-shrink">
+                Cette discussion est close : elle n'accepte plus de réponses.
+              </Text>
+            </View>
+          ) : isAuthenticated ? (
             <View className="mx-4 bg-white border border-gray-200 rounded-[24px] p-4">
               <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-800 text-sm mb-3">Votre réponse</Text>
               <TextInput
@@ -219,12 +257,13 @@ export default function SujetDetailsScreen() {
                 onChangeText={setComment}
                 multiline
               />
+              <SelecteurMedias fichiers={fichiers} onChange={setFichiers} disabled={commentMutation.isPending} />
               <TouchableOpacity
                 className="mt-3 bg-[#E05017] py-3 rounded-2xl items-center flex-row justify-center"
                 activeOpacity={0.85}
                 disabled={commentMutation.isPending}
                 onPress={() => {
-                  if (!comment.trim()) return;
+                  if (!comment.trim() && fichiers.length === 0) return;
                   commentMutation.mutate();
                 }}
               >

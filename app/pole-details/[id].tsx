@@ -19,7 +19,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { dataService } from '../../services/dataService';
 import { libelleRegion } from '../../constants/oscDomaines';
 import { authService } from '../../services/authService';
-import { ForumSujet, PoleAgendaItem, PoleAgendaStatut, PoleMembre } from '../../services/types';
+import { ForumSujet, PoleAgendaItem, PoleAgendaStatut, PoleMembre, FichierLocal } from '../../services/types';
+import SelecteurMedias from '../../components/forum/SelecteurMedias';
 import {
   FILTRES_VIDES,
   FiltresMembres,
@@ -72,6 +73,7 @@ export default function PoleDetailsScreen() {
   const [newSujetModal, setNewSujetModal] = useState(false);
   const [sujetTitle, setSujetTitle] = useState('');
   const [sujetContent, setSujetContent] = useState('');
+  const [fichiersSujet, setFichiersSujet] = useState<FichierLocal[]>([]);
   const [filtres, setFiltres] = useState<FiltresMembres>(FILTRES_VIDES);
   const [membresPage, setMembresPage] = useState(1);
   const [regionOuverte, setRegionOuverte] = useState<string | null>(null);
@@ -103,12 +105,13 @@ export default function PoleDetailsScreen() {
   const isAuthenticated = !!user;
 
   const createSujetMutation = useMutation({
-    mutationFn: () => dataService.createForumSujet(slug, { title: sujetTitle.trim(), content: sujetContent.trim() }),
+    mutationFn: () => dataService.createForumSujet(slug, { title: sujetTitle.trim(), content: sujetContent.trim() }, fichiersSujet),
     onSuccess: (newSujet) => {
       queryClient.invalidateQueries({ queryKey: ['sujets', slug] });
       setNewSujetModal(false);
       setSujetTitle('');
       setSujetContent('');
+      setFichiersSujet([]);
       router.push(`/sujet-details/${newSujet.slug}?pole=${slug}`);
     },
     onError: (err: any) => {
@@ -532,6 +535,20 @@ export default function PoleDetailsScreen() {
                         {sujet.title}
                       </Text>
                     </View>
+                    {(!!sujet.synthese || !!sujet.est_clos) && (
+                      <View className="flex-row mb-1">
+                        {!!sujet.synthese && (
+                          <View className="bg-green-100 px-2 py-0.5 rounded-full mr-1">
+                            <Text style={{ fontFamily: 'Karla_700Bold' }} className="text-green-700 text-[9px]">Synthèse</Text>
+                          </View>
+                        )}
+                        {!!sujet.est_clos && (
+                          <View className="bg-gray-200 px-2 py-0.5 rounded-full">
+                            <Text style={{ fontFamily: 'Karla_700Bold' }} className="text-gray-600 text-[9px]">Close</Text>
+                          </View>
+                        )}
+                      </View>
+                    )}
                     <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-400 text-[11px]">
                       Par <Text style={{ fontFamily: 'Karla_700Bold' }}>{sujet.author_name || 'Anonyme'}</Text>
                       {' · '}{formatDate(sujet.created_at)}
@@ -587,11 +604,19 @@ export default function PoleDetailsScreen() {
               numberOfLines={5}
             />
 
+            <View className="mb-5 -mt-2">
+              <SelecteurMedias
+                fichiers={fichiersSujet}
+                onChange={setFichiersSujet}
+                disabled={createSujetMutation.isPending}
+              />
+            </View>
+
             <TouchableOpacity
               className="bg-[#E05017] rounded-xl py-4 items-center flex-row justify-center"
               onPress={() => {
-                if (!sujetTitle.trim() || !sujetContent.trim()) {
-                  Alert.alert('Champs requis', 'Veuillez remplir le titre et le message.');
+                if (!sujetTitle.trim() || (!sujetContent.trim() && fichiersSujet.length === 0)) {
+                  Alert.alert('Champs requis', 'Veuillez remplir le titre et écrire un message ou joindre un fichier.');
                   return;
                 }
                 createSujetMutation.mutate();

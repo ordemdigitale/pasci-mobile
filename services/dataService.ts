@@ -13,6 +13,8 @@ import {
   ForumSujet,
   ForumSujetDetail,
   ForumCommentaire,
+  FichierLocal,
+  LimitesMedias,
   KeyStats,
   Documentation,
   OscType,
@@ -36,6 +38,24 @@ import {
   Faq,
   PaymentNumbers,
 } from "./types";
+
+// Message d'un pôle : JSON si texte seul (comme avant), multipart s'il y a des
+// photos, audios ou vidéos (champ « fichiers », format React Native {uri, name, type}).
+function corpsMessage(champs: Record<string, string>, fichiers: FichierLocal[]) {
+  if (fichiers.length === 0) return champs;
+  const corps = new FormData();
+  Object.entries(champs).forEach(([cle, valeur]) => corps.append(cle, valeur));
+  fichiers.forEach((f) =>
+    corps.append("fichiers", { uri: f.uri, name: f.name, type: f.type } as unknown as Blob),
+  );
+  return corps;
+}
+
+function optionsMessage(fichiers: FichierLocal[]) {
+  return fichiers.length === 0
+    ? undefined
+    : { headers: { "Content-Type": "multipart/form-data" }, timeout: 5 * 60 * 1000 };
+}
 
 export const dataService = {
   // Configuration publique
@@ -225,10 +245,12 @@ export const dataService = {
   createForumSujet: async (
     poleSlug: string,
     data: { title: string; content: string },
+    fichiers: FichierLocal[] = [],
   ): Promise<ForumSujet> => {
     const response = await apiClient.post<ForumSujet>(
       `/forum/poles/${poleSlug}/sujets`,
-      data,
+      corpsMessage(data, fichiers),
+      optionsMessage(fichiers),
     );
     return response.data;
   },
@@ -237,11 +259,19 @@ export const dataService = {
     poleSlug: string,
     sujetSlug: string,
     content: string,
+    fichiers: FichierLocal[] = [],
   ): Promise<ForumCommentaire> => {
     const response = await apiClient.post<ForumCommentaire>(
       `/forum/poles/${poleSlug}/sujets/${sujetSlug}/commentaires`,
-      { content },
+      corpsMessage({ content }, fichiers),
+      optionsMessage(fichiers),
     );
+    return response.data;
+  },
+
+  // Tailles maximales (Mo) des photos, audios et vidéos d'un message
+  getLimitesMedias: async (): Promise<LimitesMedias> => {
+    const response = await apiClient.get<LimitesMedias>("/forum/medias/limites");
     return response.data;
   },
 
