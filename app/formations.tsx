@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Image, Dimensions, ScrollView, Platform, StatusBar, Linking, Alert } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Image, Dimensions, ScrollView, Platform, StatusBar, Linking, Alert, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import {
@@ -14,6 +14,7 @@ import Skeleton from '../components/ui/Skeleton';
 import { useQuery } from '@tanstack/react-query';
 import { dataService } from '../services/dataService';
 import { Formation } from '../services/types';
+import { useActualisation } from '../hooks/useActualisation';
 
 const { width } = Dimensions.get('window');
 
@@ -27,6 +28,8 @@ const STATUTS = [
 ] as const;
 
 export default function FormationsScreen() {
+  // Tirer pour actualiser (les données restent affichées hors ligne)
+  const actualisation = useActualisation();
   const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [statut, setStatut] = useState<'all' | 'en_cours' | 'terminees'>('all');
@@ -228,6 +231,7 @@ export default function FormationsScreen() {
       style={{ paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }}
     >
       <FlatList<any>
+        refreshControl={<RefreshControl refreshing={actualisation.refreshing} onRefresh={actualisation.onRefresh} colors={['#E05017']} tintColor="#E05017" />}
         data={isLoading ? [1, 2, 3] : filteredFormations}
         renderItem={isLoading ? renderSkeleton : renderCourseItem}
         keyExtractor={(item, index) => index.toString()}

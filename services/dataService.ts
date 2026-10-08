@@ -210,6 +210,24 @@ export const dataService = {
     return response.data.items ?? [];
   },
 
+  // PTF : classification par types et task forces thématiques
+  getTypesPtf: async () => {
+    const response = await apiClient.get("/ptf/types");
+    return response.data as Array<{ nom: string; description?: string | null; nb_ptf: number }>;
+  },
+
+  getTaskForces: async () => {
+    const response = await apiClient.get("/task-forces");
+    return response.data as Array<{
+      id: number;
+      nom: string;
+      slug: string;
+      thematique: string;
+      description?: string | null;
+      membres: Array<{ id: number; name: string; slug?: string | null; thumbnail_url?: string | null; chef_de_file: boolean }>;
+    }>;
+  },
+
   // Accueil : descriptif d'une slide (« Voir plus »)
   getHeroSlide: async (id: number | string) => {
     const response = await apiClient.get(`/hero-slides/${id}`);

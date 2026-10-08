@@ -5,11 +5,28 @@ import { View, Platform, StatusBar as RNStatusBar, KeyboardAvoidingView } from '
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import Skeleton from '../components/ui/Skeleton';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-
-const queryClient = new QueryClient();
+import { useEffect, useState } from 'react';
+import { QueryClientProvider } from '@tanstack/react-query';
+import BandeauHorsLigne from '../components/BandeauHorsLigne';
+import { activerSauvegarde, queryClient, restaurerCache, suivreConnexion } from '../services/horsLigne';
 
 export default function RootLayout() {
+  // Mode hors ligne : données enregistrées rechargées avant le premier affichage
+  const [cachePret, setCachePret] = useState(false);
+  useEffect(() => {
+    let arreterSauvegarde = () => {};
+    let arreterSuivi = () => {};
+    restaurerCache().finally(() => {
+      setCachePret(true);
+      arreterSauvegarde = activerSauvegarde();
+      arreterSuivi = suivreConnexion();
+    });
+    return () => {
+      arreterSauvegarde();
+      arreterSuivi();
+    };
+  }, []);
+
   let [fontsLoaded] = useFonts({
     Poppins_400Regular,
     Poppins_600SemiBold,
@@ -18,7 +35,7 @@ export default function RootLayout() {
     Karla_700Bold,
   });
 
-  if (!fontsLoaded) {
+  if (!fontsLoaded || !cachePret) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: 'white', paddingTop: Platform.OS === 'android' ? RNStatusBar.currentHeight : 0 }}>
         {/* Header Skeleton */}
@@ -66,6 +83,7 @@ export default function RootLayout() {
             <Stack.Screen name="faire-un-don" />
             <Stack.Screen name="etre-volontaire" />
           </Stack>
+          <BandeauHorsLigne />
         </KeyboardAvoidingView>
       </SafeAreaProvider>
     </QueryClientProvider>

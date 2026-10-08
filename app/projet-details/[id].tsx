@@ -18,6 +18,7 @@ import {
 import Skeleton from '../../components/ui/Skeleton';
 import { useQuery } from '@tanstack/react-query';
 import { dataService } from '../../services/dataService';
+import DateLimiteSoumission from '../../components/DateLimiteSoumission';
 
 const STATUT_COLORS: Record<string, { bg: string; text: string }> = {
   ouvert: { bg: '#DCFCE7', text: '#166534' },
@@ -88,7 +89,8 @@ export default function ProjetDetailsScreen() {
   }
 
   const statutStyle = getStatutStyle(data.statut);
-  const offreLink = data.offre_url || data.dossier_url;
+  // Après la date limite de soumission, le lien de candidature n'est plus proposé
+  const offreLink = data.soumission_ouverte === false ? null : data.offre_url || data.dossier_url;
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top', 'bottom']}>
@@ -188,6 +190,9 @@ export default function ProjetDetailsScreen() {
             </View>
           )}
 
+          {/* Date limite de soumission */}
+          <DateLimiteSoumission grand date={data.date_limite_soumission} ouverte={data.soumission_ouverte} joursRestants={data.jours_restants} />
+
           {/* Durée */}
           {data.durée && (
             <View className="flex-row items-center mb-8 bg-gray-50 px-4 py-3 rounded-2xl border border-gray-100">
@@ -279,7 +284,9 @@ export default function ProjetDetailsScreen() {
             className={`border-2 border-brand-orange py-5 rounded-[24px] items-center flex-row justify-center mb-6 ${!offreLink ? 'opacity-40' : ''}`}
           >
             <ExternalLink size={20} color="#E05017" />
-            <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-brand-orange text-lg ml-2">Voir l'offre</Text>
+            <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-brand-orange text-lg ml-2">
+              {data.soumission_ouverte === false ? 'Soumission clôturée' : "Voir l'offre"}
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, TextInput, ScrollView } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, TextInput, ScrollView, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Search, Download, FileText, BarChart3, File } from 'lucide-react-native';
 import Skeleton from '../../components/ui/Skeleton';
@@ -8,6 +8,7 @@ import { dataService } from '../../services/dataService';
 import { Documentation } from '../../services/types';
 import { downloadAndOpenDocument } from '../../helpers/fileHelper';
 import DownloadProgressModal from '../../components/ui/DownloadProgressModal';
+import { useActualisation } from '../../hooks/useActualisation';
 
 function getFileIcon(type?: string) {
   const t = (type || '').toUpperCase();
@@ -23,6 +24,8 @@ function formatFileSize(bytes?: number): string {
 }
 
 export default function RessourcesScreen() {
+  // Tirer pour actualiser (les données restent affichées hors ligne)
+  const actualisation = useActualisation();
   const [searchQuery, setSearchQuery] = useState('');
   // 'all' ou slug d'un type de la typologie ; '' = toutes les catégories
   const [activeType, setActiveType] = useState('all');
@@ -239,6 +242,7 @@ export default function RessourcesScreen() {
       edges={['top']}
     >
       <FlatList<any>
+        refreshControl={<RefreshControl refreshing={actualisation.refreshing} onRefresh={actualisation.onRefresh} colors={['#E05017']} tintColor="#E05017" />}
         data={isLoading ? [1, 2, 3] : (filtered || [])}
         renderItem={({ item }) => isLoading ? renderSkeleton() : renderResourceItem({ item: item as Documentation })}
         keyExtractor={(item, index) => (typeof item === 'number' ? `skeleton-${item}` : `${(item as Documentation).id}-${index}`)}

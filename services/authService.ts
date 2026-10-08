@@ -1,6 +1,7 @@
 import apiClient from './apiClient';
 import { AuthResponse } from './types';
 import * as SecureStore from 'expo-secure-store';
+import { effacerCache, queryClient } from './horsLigne';
 
 export const authService = {
   login: async (email: string, password: string): Promise<AuthResponse> => {
@@ -22,6 +23,9 @@ export const authService = {
 
   logout: async () => {
     await SecureStore.deleteItemAsync('userToken');
+    // Ne pas laisser sur l'appareil les données consultées avec ce compte
+    queryClient.clear();
+    await effacerCache();
   },
 
   getCurrentUser: async () => {

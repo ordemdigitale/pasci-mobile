@@ -26,11 +26,23 @@
         "NPM_CONFIG_LEGACY_PEER_DEPS": "true"
       },
       "android": {
-         "buildType": "apk"
+        "buildType": "app-bundle"
+      }
+    },
+    "apk": {
+      "extends": "production",
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
       }
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "android": {
+        "track": "internal",
+        "releaseStatus": "draft"
+      }
+    }
   }
 }

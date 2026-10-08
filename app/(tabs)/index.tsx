@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { View, Text, ScrollView, Image, TouchableOpacity, FlatList, Dimensions, Platform, StatusBar, Linking } from 'react-native';
+import { View, Text, ScrollView, Image, TouchableOpacity, FlatList, Dimensions, Platform, StatusBar, Linking, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Search, Download, Building2, Mail, Heart, Users, Briefcase, Phone } from 'lucide-react-native';
@@ -11,6 +11,7 @@ import VideoPodcastAccueil from '../../components/VideoPodcastAccueil';
 import { useQuery } from '@tanstack/react-query';
 import { dataService } from '../../services/dataService';
 import { News, PTF, Documentation, Formation } from '../../services/types';
+import { useActualisation } from '../../hooks/useActualisation';
 
 const { width } = Dimensions.get('window');
 
@@ -25,6 +26,8 @@ const FALLBACK_HERO_TEXT = {
 };
 
 export default function HomeScreen() {
+  // Tirer pour actualiser (les données restent affichées hors ligne)
+  const actualisation = useActualisation();
   const router = useRouter();
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState<string | undefined>(undefined);
@@ -173,7 +176,7 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+      <ScrollView className="flex-1" showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={actualisation.refreshing} onRefresh={actualisation.onRefresh} colors={['#E05017']} tintColor="#E05017" />}>
 
         {/* HERO SECTION */}
         <View className="px-4 mt-4">

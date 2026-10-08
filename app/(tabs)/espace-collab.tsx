@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, TextInput, Dimensions, ScrollView, Image, Platform, StatusBar } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, TextInput, Dimensions, ScrollView, Image, Platform, StatusBar, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import {
@@ -19,6 +19,7 @@ import { libelleRegion } from '../../constants/oscDomaines';
 import { PoleConcertation, Job } from '../../services/types';
 import TexteFormate from '../../components/TexteFormate';
 import { useContenusSite } from '../../constants/contenusSite';
+import { useActualisation } from '../../hooks/useActualisation';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 60) / 2;
@@ -35,6 +36,8 @@ const POLE_COLORS = [
 ];
 
 export default function EspaceCollabScreen() {
+  // Tirer pour actualiser (les données restent affichées hors ligne)
+  const actualisation = useActualisation();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'Pôles' | 'Offres'>('Pôles');
   const [searchQuery, setSearchQuery] = useState('');
@@ -297,6 +300,7 @@ export default function EspaceCollabScreen() {
       edges={['top']}
     >
       <FlatList<any>
+        refreshControl={<RefreshControl refreshing={actualisation.refreshing} onRefresh={actualisation.onRefresh} colors={['#E05017']} tintColor="#E05017" />}
         data={listData}
         renderItem={({ item, index }) => {
           if (isLoading) return activeTab === 'Pôles' ? renderPoleSkeleton() : renderJobSkeleton();

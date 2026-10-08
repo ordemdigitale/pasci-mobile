@@ -403,6 +403,8 @@ export interface PTF {
   id: number;
   name: string;
   slug: string;
+  /** Type de PTF (Institutions multilatérales, Agences spécialisées…) */
+  categorie?: string | null;
   description?: string;
   mission?: string;
   vision?: string;
@@ -443,6 +445,10 @@ export interface OffreProjet {
   offre_url?: string | null;
   dossier_url?: string;
   date_publication: string;
+  /** Date limite de soumission (null = sans date limite) */
+  date_limite_soumission?: string | null;
+  soumission_ouverte?: boolean;
+  jours_restants?: number | null;
   created_at: string;
   updated_at: string;
 }

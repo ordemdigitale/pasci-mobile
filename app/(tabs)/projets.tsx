@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Image, Dimensions, Platform, StatusBar, ScrollView } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Image, Dimensions, Platform, StatusBar, ScrollView, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Calendar, ChevronRight, TrendingUp, Info, Handshake, Signal, Users, Globe, ShieldCheck, CircleCheck } from 'lucide-react-native';
@@ -7,6 +7,8 @@ import Skeleton from '../../components/ui/Skeleton';
 import { useQuery } from '@tanstack/react-query';
 import { dataService } from '../../services/dataService';
 import { OffreProjet } from '../../services/types';
+import DateLimiteSoumission from '../../components/DateLimiteSoumission';
+import { useActualisation } from '../../hooks/useActualisation';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 60) / 2;
@@ -41,6 +43,8 @@ const STATUT_COLORS: Record<string, { bg: string; text: string }> = {
 };
 
 export default function ProjetsScreen() {
+  // Tirer pour actualiser (les données restent affichées hors ligne)
+  const actualisation = useActualisation();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'Appels' | 'Formalisation'>('Appels');
 
@@ -89,6 +93,8 @@ export default function ProjetsScreen() {
               {new Date(item.date_publication).toLocaleDateString('fr-FR')}
             </Text>
           </View>
+
+          <DateLimiteSoumission date={item.date_limite_soumission} ouverte={item.soumission_ouverte} joursRestants={item.jours_restants} />
 
           {item.zone && (
             <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 text-[10px] leading-4 mb-4" numberOfLines={1}>
@@ -183,6 +189,7 @@ export default function ProjetsScreen() {
       </View>
 
       <FlatList<any>
+        refreshControl={<RefreshControl refreshing={actualisation.refreshing} onRefresh={actualisation.onRefresh} colors={['#E05017']} tintColor="#E05017" />}
         key={activeTab}
         data={listData}
         renderItem={({ item }) => isLoading ? renderSkeleton() : renderProjetItem({ item: item as OffreProjet })}

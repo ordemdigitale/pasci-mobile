@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, TextInput, ScrollView, Image } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, TextInput, ScrollView, Image, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft, Search, Bell, UserCircle, MapPin, ChevronRight, Building2 } from 'lucide-react-native';
@@ -10,6 +10,7 @@ import { Partner, PTF } from '../../services/types';
 import OscEvaluationBadge from '../../components/OscEvaluationBadge';
 import OscEtiquettes from '../../components/OscEtiquettes';
 import { useDomainesPrioritaires } from '../../constants/oscDomaines';
+import { useActualisation } from '../../hooks/useActualisation';
 
 // Étiquettes filtrables : catégorie (OdF, OdJ, OPSH) ou faîtière
 const ETIQUETTES = [
@@ -20,6 +21,8 @@ const ETIQUETTES = [
 ];
 
 export default function AnnuairePartenairesScreen() {
+  // Tirer pour actualiser (les données restent affichées hors ligne)
+  const actualisation = useActualisation();
   const router = useRouter();
   const params = useLocalSearchParams<{ tab?: string }>();
   const initialTab: 'OSC' | 'PTF' = params.tab?.toUpperCase() === 'PTF' ? 'PTF' : 'OSC';
@@ -28,6 +31,8 @@ export default function AnnuairePartenairesScreen() {
   const [selectedRegion, setSelectedRegion] = useState('Tous');
   const [selectedDomaine, setSelectedDomaine] = useState('');
   const [selectedEtiquette, setSelectedEtiquette] = useState('');
+  // PTF : classification par types (Institutions multilatérales, Agences spécialisées…)
+  const [selectedTypePtf, setSelectedTypePtf] = useState('');
   const domaines = useDomainesPrioritaires();
 
   useEffect(() => {
@@ -66,15 +71,36 @@ export default function AnnuairePartenairesScreen() {
     queryFn: dataService.getPtfList,
   });
 
+  const { data: typesPtf = [] } = useQuery({
+    queryKey: ['ptf-types'],
+    queryFn: dataService.getTypesPtf,
+    staleTime: 10 * 60 * 1000,
+  });
+
+  const { data: taskForces = [] } = useQuery({
+    queryKey: ['task-forces'],
+    queryFn: dataService.getTaskForces,
+    staleTime: 10 * 60 * 1000,
+  });
+
   const isLoading = activeTab === 'OSC' ? partnersLoading : ptfLoading;
 
   const regionCategories = ['Tous', ...regions.map((r: any) => r.name || r.slug)];
 
+  const typeDuPtf = (ptf: PTF) => ptf.categorie || 'Autres';
+  const typesPtfAffiches = typesPtf.filter((t) => (ptfList || []).some((p: PTF) => typeDuPtf(p) === t.nom));
+  // Ordre de la classification, puis nom
+  const rangType = (nom: string) => {
+    const i = typesPtf.findIndex((t) => t.nom === nom);
+    return i === -1 ? 999 : i;
+  };
   const filteredPtf = ptfList?.filter((ptf: PTF) =>
-    !searchQuery ||
-    ptf.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    ptf.description?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+    (!selectedTypePtf || typeDuPtf(ptf) === selectedTypePtf) && (
+      !searchQuery ||
+      ptf.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      ptf.description?.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  ).sort((a: PTF, b: PTF) => rangType(typeDuPtf(a)) - rangType(typeDuPtf(b)) || a.name.localeCompare(b.name, 'fr'));
 
   const renderOscCard = ({ item }: { item: Partner }) => (
     <View className="bg-white rounded-[32px] p-6 mb-6 mx-6 border border-gray-100 shadow-sm">
@@ -130,6 +156,11 @@ export default function AnnuairePartenairesScreen() {
     <View className="bg-white rounded-[32px] p-6 mb-6 mx-6 border border-gray-100 shadow-sm">
       <View className="flex-row justify-between mb-4">
         <View className="flex-row flex-wrap flex-1 mr-3">
+          {!!item.categorie && (
+            <View className="bg-green-50 px-2 py-1 rounded mr-2 mb-1">
+              <Text className="text-[#2a591d] text-[8px] font-bold">{item.categorie}</Text>
+            </View>
+          )}
           {item.domaines_list?.slice(0, 2).map((d, i) => (
             <View key={i} className="bg-orange-50 px-2 py-1 rounded mr-2 mb-1">
               <Text className="text-brand-orange text-[8px] font-bold">{d}</Text>
@@ -206,6 +237,7 @@ export default function AnnuairePartenairesScreen() {
       </View>
 
       <FlatList<any>
+        refreshControl={<RefreshControl refreshing={actualisation.refreshing} onRefresh={actualisation.onRefresh} colors={['#E05017']} tintColor="#E05017" />}
         ListHeaderComponent={
           <>
             {/* Onglets OSC / PTF */}
@@ -297,6 +329,23 @@ export default function AnnuairePartenairesScreen() {
               </View>
             )}
 
+            {/* Types de PTF */}
+            {activeTab === 'PTF' && typesPtfAffiches.length > 0 && (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-5" contentContainerStyle={{ paddingHorizontal: 24 }}>
+                {[{ nom: '', label: 'Tous' }, ...typesPtfAffiches.map((t) => ({ nom: t.nom, label: t.nom }))].map((t) => (
+                  <TouchableOpacity
+                    key={t.nom || 'tous'}
+                    onPress={() => setSelectedTypePtf(t.nom)}
+                    className={`mr-2 px-4 py-2 rounded-full ${selectedTypePtf === t.nom ? 'bg-[#2a591d]' : 'bg-gray-100'}`}
+                  >
+                    <Text style={{ fontFamily: 'Karla_700Bold' }} className={`text-[11px] ${selectedTypePtf === t.nom ? 'text-white' : 'text-gray-600'}`}>
+                      {t.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            )}
+
             <View className="px-8 mb-6">
               <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-xl">
                 {activeTab === 'OSC' ? 'Organisations (OSC)' : 'Partenaires Techniques & Financiers'}
@@ -322,6 +371,41 @@ export default function AnnuairePartenairesScreen() {
         keyExtractor={(item, index) => (typeof item === 'number' ? `skeleton-${item}` : `${(item as any).id}-${index}`)}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 }}
+        ListFooterComponent={
+          activeTab === 'PTF' && !isLoading && taskForces.length > 0 ? (
+            <View className="px-6 pb-10">
+              <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-xl mb-1 px-2">Task forces thématiques</Text>
+              <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-400 text-xs mb-4 px-2">
+                Partenaires qui coordonnent leurs appuis sur une même thématique
+              </Text>
+              {taskForces.map((tf) => (
+                <View key={tf.id} className="bg-white rounded-[24px] p-5 mb-4 border border-gray-100">
+                  <View className="bg-orange-50 self-start px-2 py-0.5 rounded-full mb-2">
+                    <Text className="text-brand-orange text-[9px] font-bold">{tf.thematique}</Text>
+                  </View>
+                  <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-sm mb-1">{tf.nom}</Text>
+                  {!!tf.description && (
+                    <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 text-xs mb-3" numberOfLines={3}>{tf.description}</Text>
+                  )}
+                  <View className="flex-row flex-wrap">
+                    {tf.membres.map((m) => (
+                      <TouchableOpacity
+                        key={m.id}
+                        disabled={!m.slug}
+                        onPress={() => m.slug && router.push(`/annuaire-partenaires/${m.slug}`)}
+                        className={`px-2.5 py-1 rounded-lg mr-2 mb-2 border ${m.chef_de_file ? 'border-amber-300 bg-amber-50' : 'border-gray-200'}`}
+                      >
+                        <Text style={{ fontFamily: 'Karla_700Bold' }} className="text-gray-700 text-[10px]">
+                          {m.name}{m.chef_de_file ? ' · chef de file' : ''}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              ))}
+            </View>
+          ) : null
+        }
         ListEmptyComponent={
           !isLoading ? (
             <View className="px-8 py-12 items-center">
