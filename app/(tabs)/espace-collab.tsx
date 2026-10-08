@@ -15,6 +15,7 @@ import {
 import Skeleton from '../../components/ui/Skeleton';
 import { useQuery } from '@tanstack/react-query';
 import { dataService } from '../../services/dataService';
+import { libelleRegion } from '../../constants/oscDomaines';
 import { PoleConcertation, Job } from '../../services/types';
 
 const { width } = Dimensions.get('window');
@@ -86,10 +87,20 @@ export default function EspaceCollabScreen() {
             <Text className="text-brand-orange text-[8px] font-bold uppercase">{item.category}</Text>
           </View>
         )}
-        <View className="flex-row items-center mb-5">
+        <View className="items-center mb-5">
           <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-400 text-[9px]">
-            {item.sujets_count} sujet{item.sujets_count !== 1 ? 's' : ''}
+            {item.nb_osc_membres ?? 0} OSC · {item.sujets_count} sujet{item.sujets_count !== 1 ? 's' : ''}
           </Text>
+          {/* Région qui compte le plus d'OSC membres (l'API les classe par effectif), puis nombre d'autres régions */}
+          {!!item.regions_effectifs?.length && (
+            <View className="flex-row items-center mt-1">
+              <MapPin size={9} color="#9CA3AF" />
+              <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-400 text-[9px] ml-0.5" numberOfLines={1}>
+                {libelleRegion(item.regions_effectifs[0].nom)} ({item.regions_effectifs[0].nb})
+                {item.regions_effectifs.length > 1 ? ` +${item.regions_effectifs.length - 1}` : ''}
+              </Text>
+            </View>
+          )}
         </View>
         <TouchableOpacity className="w-full py-2.5 rounded-2xl items-center bg-orange-50">
           <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-brand-orange text-[11px]">

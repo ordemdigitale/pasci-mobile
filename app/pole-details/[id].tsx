@@ -17,6 +17,7 @@ import {
 import Skeleton from '../../components/ui/Skeleton';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { dataService } from '../../services/dataService';
+import { libelleRegion } from '../../constants/oscDomaines';
 import { authService } from '../../services/authService';
 import { ForumSujet, PoleAgendaItem, PoleAgendaStatut, PoleMembre } from '../../services/types';
 import {
@@ -463,7 +464,7 @@ export default function PoleDetailsScreen() {
                     className={`px-3 py-1 rounded-full mr-2 mb-2 ${active ? 'bg-green-800' : 'bg-green-50'}`}
                   >
                     <Text style={{ fontFamily: 'Karla_700Bold' }} className={`text-xs ${active ? 'text-white' : 'text-green-800'}`}>
-                      {region.nom} ({region.oscs.length})
+                      {libelleRegion(region.nom)} ({region.oscs.length})
                     </Text>
                   </TouchableOpacity>
                 );

@@ -445,6 +445,8 @@ export interface PoleConcertation {
   created_at: string;
   nb_osc_membres?: number;
   nb_membres_actifs?: number;
+  // Régions des membres avec leur nombre d'OSC, de la plus représentée à la moins représentée
+  regions_effectifs?: { nom: string; nb: number }[];
   // Listes JSON sérialisées en texte par l'API
   agenda?: string | null;
 }
