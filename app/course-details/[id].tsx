@@ -24,6 +24,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { dataService } from '../../services/dataService';
 import { authService } from '../../services/authService';
 import { buildPaymentOperators, DEFAULT_PAYMENT_NUMBERS } from '../../constants/payment';
+import SupportsFormation from '../../components/formations/SupportsFormation';
+import EvaluationFinale from '../../components/formations/EvaluationFinale';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -37,6 +39,8 @@ type Lecon = {
   duration_minutes: number | null;
   is_preview: boolean;
   order: number;
+  /** Contenu masqué par l'API : inscription (et paiement validé) requise. */
+  verrouillee?: boolean;
 };
 
 function extractYoutubeId(url: string): string | null {
@@ -146,7 +150,10 @@ export default function CourseDetailsScreen() {
   const [participantNom, setParticipantNom] = useState('');
   const [participantPrenoms, setParticipantPrenoms] = useState('');
   const [participantEmail, setParticipantEmail] = useState('');
+  // inscrit : accès au contenu (formation gratuite ou paiement validé) ; registered : inscription existante
   const [inscrit, setInscrit] = useState(false);
+  const [registered, setRegistered] = useState(false);
+  const [inscriptionId, setInscriptionId] = useState<number | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
   const [manualPayment, setManualPayment] = useState<{
     visible: boolean;
@@ -202,7 +209,7 @@ export default function CourseDetailsScreen() {
   });
 
   const { data: modules = [] } = useQuery({
-    queryKey: ['formation-modules', slug],
+    queryKey: ['formation-modules', slug, inscrit],
     queryFn: () => dataService.getFormationModules(slug),
     enabled: !!slug,
     onSuccess: (mods) => {
@@ -211,27 +218,27 @@ export default function CourseDetailsScreen() {
     },
   } as any);
 
-  // Vérifier si déjà inscrit au chargement (persiste après navigation)
-  const checkInscriptionQuery = useQuery({
-    queryKey: ['check-inscription', slug, user?.email],
-    queryFn: () => dataService.checkInscription(slug, user!.email),
+  // Inscription, accès, statut du paiement et progression (persiste après navigation)
+  const progressionQuery = useQuery({
+    queryKey: ['ma-progression', slug, user?.email],
+    queryFn: () => dataService.getMaProgressionFormation(slug),
     enabled: !!slug && !!user?.email,
-    staleTime: 5000, // Rafraîchir toutes les 5 secondes si on revient sur la page
+    staleTime: 5000, // Rafraîchir si on revient sur la page (paiement validé entre-temps)
   });
 
-  const enrollmentData = checkInscriptionQuery.data;
+  const maProgression = progressionQuery.data;
 
   React.useEffect(() => {
-    if (enrollmentData?.registered) {
-      const status = enrollmentData.payment_status ?? null;
-      setPaymentStatus(status);
-      setInscrit(!status || ['gratuite', 'confirmed', 'paid'].includes(status));
-      if (enrollmentData.certificat_code) setCertEmis(enrollmentData.certificat_code);
-    } else if (enrollmentData) {
-      setInscrit(false);
-      setPaymentStatus(null);
-    }
-  }, [enrollmentData]);
+    if (!maProgression) return;
+    setRegistered(maProgression.inscrit);
+    setInscrit(maProgression.acces);
+    setPaymentStatus(maProgression.payment_status ?? null);
+    setInscriptionId(maProgression.inscription_id ?? null);
+    setLeconsVues(maProgression.lecons_vues || []);
+    setProgression(maProgression.progression || 0);
+    if (maProgression.total_lecons) setTotalLecons(maProgression.total_lecons);
+    setCertEmis(maProgression.certificat_code || null);
+  }, [maProgression]);
 
   // totalLecons calculé depuis les modules (inclut vidéos + PDFs + textes)
   React.useEffect(() => {
@@ -255,7 +262,16 @@ export default function CourseDetailsScreen() {
       return;
     }
 
-    const canAccess = lecon.is_preview || inscrit;
+    const canAccess = lecon.is_preview || (inscrit && !lecon.verrouillee);
+    if (!canAccess && registered) {
+      Alert.alert(
+        'Paiement en attente',
+        paymentStatus === 'soumis'
+          ? "Votre paiement est en cours de vérification. Le contenu sera accessible dès sa validation."
+          : "Effectuez le paiement et soumettez votre code de transaction pour accéder au contenu.",
+      );
+      return;
+    }
     if (!canAccess) {
       Alert.alert(
         'Inscription requise',
@@ -345,7 +361,8 @@ export default function CourseDetailsScreen() {
     },
     onSuccess: (result: any) => {
       setModalVisible(false);
-      queryClient.invalidateQueries({ queryKey: ['check-inscription', slug] });
+      setRegistered(true);
+      queryClient.invalidateQueries({ queryKey: ['ma-progression', slug] });
 
       if (result.paid) {
         setPaymentStatus(result.inscription.payment_status);
@@ -375,21 +392,22 @@ export default function CourseDetailsScreen() {
 
   const submitManualPaymentMutation = useMutation({
     mutationFn: async () => {
-      if (!manualPayment.inscriptionId) {
+      const idInscription = manualPayment.inscriptionId ?? inscriptionId;
+      if (!idInscription) {
         throw new Error('Inscription introuvable.');
       }
       if (!paymentTransactionId.trim()) {
         throw new Error('Veuillez saisir votre code de transaction.');
       }
-      return dataService.soumettrePaiementFormation(manualPayment.inscriptionId, {
+      return dataService.soumettrePaiementFormation(idInscription, {
         transaction_id: paymentTransactionId.trim(),
         operateur: paymentOperator || null,
       });
     },
     onSuccess: (inscription) => {
       setPaymentStatus(inscription.payment_status);
-      setManualPayment((prev) => ({ ...prev, submitted: true }));
-      queryClient.invalidateQueries({ queryKey: ['check-inscription', slug] });
+      setManualPayment((prev) => ({ ...prev, visible: true, submitted: true }));
+      queryClient.invalidateQueries({ queryKey: ['ma-progression', slug] });
       Alert.alert(
         'Code soumis',
         'Votre paiement est maintenant en attente de vérification. Vous recevrez une confirmation après validation.',
@@ -441,8 +459,13 @@ export default function CourseDetailsScreen() {
   }
 
   const isFull = data.is_full || (data.max_participants !== null && data.current_participants >= (data.max_participants || 0));
-  const isCompleted = data.is_completed;
-  const canRegister = !inscrit && !isFull && !isCompleted;
+  const isCompleted = data.est_terminee ?? data.is_completed;
+  const inscriptionsOuvertes = data.inscriptions_ouvertes ?? true;
+  const canRegister = !registered && !inscrit && !isFull && !isCompleted && inscriptionsOuvertes;
+  // Inscrit à une formation payante dont le paiement est à faire (ou a été rejeté)
+  const paiementAFaire = registered && !inscrit && (paymentStatus === 'pending' || paymentStatus === 'failed');
+  const afficherPaiement = manualPayment.visible || paiementAFaire;
+  const montantPaiement = manualPayment.amount || Number(data.price ?? 0);
   const hasModules = (modules as any[]).length > 0;
 
   return (
@@ -649,7 +672,7 @@ export default function CourseDetailsScreen() {
               </Text>
             </View>
           )}
-          {data.registration_deadline && !inscrit && (
+          {data.registration_deadline && !registered && (
             <View className="flex-row items-center mb-8 bg-red-50 px-4 py-3 rounded-2xl border border-red-100">
               <Calendar size={16} color="#DC2626" />
               <Text style={{ fontFamily: 'Karla_700Bold' }} className="text-red-600 ml-2 text-sm">
@@ -659,14 +682,16 @@ export default function CourseDetailsScreen() {
           )}
 
           {/* Paiement manuel */}
-          {manualPayment.visible && (
+          {afficherPaiement && (
             <View className="mb-8 bg-white rounded-3xl border border-orange-200 overflow-hidden shadow-sm">
               <View className="bg-brand-orange px-5 py-4">
                 <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-white text-base">
                   Instructions de paiement
                 </Text>
                 <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-white/80 text-xs mt-1">
-                  Effectuez le paiement pour confirmer votre inscription.
+                  {paymentStatus === 'failed' && !manualPayment.submitted
+                    ? "Votre précédent paiement n'a pas pu être validé : vérifiez votre code ou effectuez un nouveau paiement."
+                    : 'Effectuez le paiement pour confirmer votre inscription.'}
                 </Text>
               </View>
 
@@ -710,7 +735,7 @@ export default function CourseDetailsScreen() {
                         Montant à envoyer
                       </Text>
                       <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-brand-orange text-lg">
-                        {manualPayment.amount.toLocaleString('fr-FR')} FCFA
+                        {montantPaiement.toLocaleString('fr-FR')} FCFA
                       </Text>
                     </View>
 
@@ -773,13 +798,13 @@ export default function CourseDetailsScreen() {
             </View>
           )}
 
-          {!inscrit && !manualPayment.visible && ['pending', 'soumis'].includes(paymentStatus || '') && (
+          {registered && !inscrit && !afficherPaiement && paymentStatus === 'soumis' && (
             <View className="mb-8 bg-orange-50 border border-orange-200 rounded-2xl p-4">
               <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-orange-800 mb-1">
-                Paiement en attente
+                Paiement en cours de vérification
               </Text>
               <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-orange-700 text-sm">
-                Votre inscription existe, mais le paiement doit être validé avant l'accès complet à la formation.
+                Le contenu complet de la formation sera accessible dès que notre équipe aura validé votre paiement.
               </Text>
             </View>
           )}
@@ -791,7 +816,7 @@ export default function CourseDetailsScreen() {
                 <View className="w-1 h-5 bg-brand-orange rounded-full mr-3" />
                 <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-lg">Ma Progression</Text>
               </View>
-              {certEmis && progression >= 100 ? (
+              {certEmis ? (
                 <TouchableOpacity
                   onPress={() => router.push(`/certificat/${certEmis}`)}
                   className="flex-row items-center justify-center bg-amber-500 rounded-2xl py-4"
@@ -815,7 +840,7 @@ export default function CourseDetailsScreen() {
                   <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-400 text-xs text-center mt-3">
                     {progression < 100
                       ? `Continuez ! Il vous reste ${totalLecons - leconsVues.length} leçon${totalLecons - leconsVues.length > 1 ? 's' : ''}`
-                      : 'Formation terminée — certificat disponible'}
+                      : "Toutes les leçons sont vues — passez l'évaluation finale ci-dessous"}
                   </Text>
                 </View>
               )}
@@ -835,7 +860,7 @@ export default function CourseDetailsScreen() {
                     {module.title}
                   </Text>
                   {module.lecons.map((lecon: Lecon) => {
-                    const canAccess = lecon.is_preview || inscrit;
+                    const canAccess = lecon.is_preview || (inscrit && !lecon.verrouillee);
                     const isActive = activeLecon?.id === lecon.id;
                     const isVue = leconsVues.includes(lecon.id);
                     return (
@@ -863,7 +888,7 @@ export default function CourseDetailsScreen() {
                           </Text>
                           <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-400 text-[10px]">
                             {!canAccess
-                              ? 'Inscription requise'
+                              ? registered ? 'Après validation du paiement' : 'Inscription requise'
                               : `${lecon.type === 'video' ? 'Vidéo' : lecon.type === 'pdf' ? 'PDF' : 'Lecture'}${lecon.duration_minutes ? ` • ${lecon.duration_minutes} min` : ''}`}
                           </Text>
                         </View>
@@ -878,6 +903,14 @@ export default function CourseDetailsScreen() {
                 </View>
               ))}
             </View>
+          )}
+
+          {/* Supports de formation (lucarne) */}
+          <SupportsFormation slug={slug} acces={inscrit} />
+
+          {/* Évaluation finale avant certificat */}
+          {inscrit && (
+            <EvaluationFinale slug={slug} leconsVues={leconsVues.length} onCertificat={(code) => setCertEmis(code)} />
           )}
 
           {/* Statuts */}
@@ -913,7 +946,7 @@ export default function CourseDetailsScreen() {
       >
         {/* Progression bar (quand inscrit) */}
         {inscrit && totalLecons > 0 && (
-          certEmis && progression >= 100 ? (
+          certEmis ? (
             <TouchableOpacity
               onPress={() => router.push(`/certificat/${certEmis}`)}
               className="flex-row items-center justify-center bg-amber-500 rounded-2xl h-12 mb-3"
@@ -948,7 +981,7 @@ export default function CourseDetailsScreen() {
             className={`flex-1 h-14 rounded-2xl items-center justify-center shadow-lg ${canRegister ? 'bg-brand-orange shadow-orange-300' : 'bg-gray-200'}`}
           >
             <Text style={{ fontFamily: 'Poppins_700Bold' }} className={`text-base ${canRegister ? 'text-white' : 'text-gray-400'}`}>
-              {inscrit ? 'Inscrit(e)' : isFull ? 'Complet' : isCompleted ? 'Terminée' : "S'inscrire"}
+              {inscrit ? 'Inscrit(e)' : registered ? 'Paiement en attente' : isFull ? 'Complet' : isCompleted ? 'Terminée' : !inscriptionsOuvertes ? 'Inscriptions closes' : "S'inscrire"}
             </Text>
           </TouchableOpacity>
         </View>

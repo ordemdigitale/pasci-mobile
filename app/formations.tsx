@@ -17,13 +17,24 @@ import { Formation } from '../services/types';
 
 const { width } = Dimensions.get('window');
 
+// Statut calculé par l'API (marquée terminée ou date de fin passée)
+const estTerminee = (f: Formation) => f.est_terminee ?? f.is_completed;
+
+const STATUTS = [
+  { value: 'all', label: 'Toutes' },
+  { value: 'en_cours', label: 'En cours / à venir' },
+  { value: 'terminees', label: 'Terminées' },
+] as const;
+
 export default function FormationsScreen() {
   const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [statut, setStatut] = useState<'all' | 'en_cours' | 'terminees'>('all');
 
   const { data: formations, isLoading } = useQuery({
     queryKey: ['formations'],
-    queryFn: () => dataService.getFormations(),
+    // Limite explicite : l'API n'en renvoie que 20 par défaut, les formations terminées étaient coupées
+    queryFn: () => dataService.getFormations({ limit: 100 }),
   });
 
   const { data: rubriques } = useQuery({
@@ -53,9 +64,11 @@ export default function FormationsScreen() {
 
   const filteredFormations = React.useMemo(() => {
     if (!formations) return [];
-    if (selectedCategory === 'all') return formations;
-    return formations.filter(f => f.rubrique?.slug === selectedCategory);
-  }, [formations, selectedCategory]);
+    return formations.filter(f =>
+      (selectedCategory === 'all' || f.rubrique?.slug === selectedCategory) &&
+      (statut === 'all' || (statut === 'terminees' ? estTerminee(f) : !estTerminee(f)))
+    );
+  }, [formations, selectedCategory, statut]);
 
   const renderHeader = () => (
     <View className="px-6 pt-4">
@@ -111,6 +124,21 @@ export default function FormationsScreen() {
         ))}
       </ScrollView>
 
+      {/* Statut : en cours / terminées */}
+      <View className="flex-row mb-6 bg-gray-100 rounded-full p-1">
+        {STATUTS.map(({ value, label }) => (
+          <TouchableOpacity
+            key={value}
+            onPress={() => setStatut(value)}
+            className={`flex-1 py-2 rounded-full items-center ${statut === value ? 'bg-white' : ''}`}
+          >
+            <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className={`text-[11px] ${statut === value ? 'text-brand-orange' : 'text-gray-500'}`}>
+              {label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
       <View className="flex-row justify-between items-center mb-6">
         <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-lg text-gray-900">Formations disponibles</Text>
         {!isLoading && (
@@ -140,6 +168,11 @@ export default function FormationsScreen() {
         <View className="bg-orange-50 px-3 py-1 rounded-lg">
           <Text style={{ color: '#E05017', fontSize: 9, fontWeight: 'bold' }}>FORMATION</Text>
         </View>
+        {estTerminee(item) && (
+          <View className="bg-gray-100 px-3 py-1 rounded-lg">
+            <Text style={{ color: '#4B5563', fontSize: 9, fontWeight: 'bold' }}>TERMINÉE</Text>
+          </View>
+        )}
       </View>
 
       <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-base mb-4 leading-6">
@@ -165,7 +198,9 @@ export default function FormationsScreen() {
         onPress={() => router.push({ pathname: `/course-details/${item.slug}` })}
         className="bg-brand-orange py-4 rounded-2xl items-center shadow-lg shadow-orange-200"
       >
-        <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-white text-sm">S'inscrire maintenant</Text>
+        <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-white text-sm">
+          {estTerminee(item) || item.inscriptions_ouvertes === false ? 'Voir la formation' : "S'inscrire maintenant"}
+        </Text>
       </TouchableOpacity>
     </View>
   );

@@ -99,6 +99,11 @@ export interface Formation {
   is_published: boolean;
   is_full: boolean;
   is_completed: boolean;
+  /** Calculé par l'API : marquée terminée ou date de fin passée. */
+  est_terminee?: boolean;
+  /** Calculé par l'API : ni terminée, ni date limite d'inscription dépassée. */
+  inscriptions_ouvertes?: boolean;
+  note_minimale?: number;
   type: string;
   price: number | null;
   thumbnail_url: string;

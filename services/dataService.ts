@@ -57,6 +57,16 @@ function optionsMessage(fichiers: FichierLocal[]) {
     : { headers: { "Content-Type": "multipart/form-data" }, timeout: 5 * 60 * 1000 };
 }
 
+export interface ResultatEvaluation {
+  score: number;
+  reussi: boolean;
+  note_minimale: number;
+  bonnes: number;
+  total: number;
+  questions_a_revoir: number[];
+  certificat_code?: string | null;
+}
+
 export const dataService = {
   // Configuration publique
   getPaymentNumbers: async (): Promise<PaymentNumbers> => {
@@ -142,9 +152,11 @@ export const dataService = {
   getFormations: async (filters?: {
     upcoming_only?: boolean;
     limit?: number;
+    statut?: "terminees" | "en_cours" | "a_venir";
   }): Promise<Formation[]> => {
     const params = new URLSearchParams();
     if (filters?.upcoming_only) params.append("upcoming_only", "true");
+    if (filters?.statut) params.append("statut", filters.statut);
     if (filters?.limit) params.append("limit", filters.limit.toString());
     const url = `/formations${params.toString() ? `?${params.toString()}` : ""}`;
     const response = await apiClient.get<Formation[]>(url);
@@ -437,6 +449,8 @@ export const dataService = {
         duration_minutes: number | null;
         is_preview: boolean;
         order: number;
+        /** Contenu masqué par l'API : inscription (et paiement validé) requise. */
+        verrouillee?: boolean;
       }>;
     }>;
   },
@@ -476,6 +490,56 @@ export const dataService = {
       total_lecons: number;
       certificat_code?: string;
     };
+  },
+
+  // Progression, accès au contenu et statut du paiement (utilisateur connecté)
+  getMaProgressionFormation: async (slug: string) => {
+    const response = await apiClient.get(`/formations/${slug}/ma-progression`);
+    return response.data as {
+      inscrit: boolean;
+      inscription_id?: number;
+      acces: boolean;
+      payment_status: string | null;
+      progression: number;
+      lecons_vues: number[];
+      total_lecons?: number;
+      certificat_code: string | null;
+      evaluation?: { nb_questions: number; reussie: boolean; note_minimale: number };
+    };
+  },
+
+  // Supports de formation (documents et liens du formateur)
+  getSupportsFormation: async (slug: string) => {
+    const response = await apiClient.get(`/formations/${slug}/supports`);
+    return response.data as Array<{
+      id: number;
+      titre: string;
+      description?: string | null;
+      type: "fichier" | "lien";
+      nom?: string | null;
+      taille: number;
+      public: boolean;
+      url?: string | null;
+      verrouille: boolean;
+    }>;
+  },
+
+  // Évaluation finale (QCM) avant le certificat
+  getEvaluationFormation: async (slug: string) => {
+    const response = await apiClient.get(`/formations/${slug}/evaluation`);
+    return response.data as {
+      note_minimale: number;
+      questions: Array<{ id: number; enonce: string; choix: string[]; plusieurs_reponses: boolean }>;
+      lecons_terminees: boolean;
+      reussie: boolean;
+      tentatives: Array<{ score: number; reussi: boolean; date: string }>;
+      certificat_code?: string | null;
+    };
+  },
+
+  soumettreEvaluationFormation: async (slug: string, reponses: Record<number, number[]>) => {
+    const response = await apiClient.post<ResultatEvaluation>(`/formations/${slug}/evaluation`, { reponses });
+    return response.data;
   },
 
   checkInscription: async (slug: string, email: string) => {
