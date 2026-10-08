@@ -42,7 +42,13 @@ export default function RegisterScreen() {
       await authService.login(email, password);
       router.replace('/(tabs)');
     } catch (error: any) {
-      Alert.alert('Erreur d\'inscription', error.message || 'Une erreur est survenue. Vérifiez vos informations.');
+      // Message de l'API en priorité (ex. « Un compte existe déjà avec cet email. »)
+      // plutôt que le message technique d'axios (« Request failed with status code 400 »)
+      const detail = error?.response?.data?.detail;
+      Alert.alert(
+        'Erreur d\'inscription',
+        typeof detail === 'string' ? detail : 'Une erreur est survenue. Vérifiez vos informations.'
+      );
     } finally {
       setLoading(false);
     }
