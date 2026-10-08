@@ -31,8 +31,8 @@ const ORGANIZATION_TYPES = [
 ];
 
 const REGIONS = [
-  { value: "District Autonome d'Abidjan", label: "District Autonome d'Abidjan" },
-  { value: 'District Autonome de Yamoussoukro', label: 'District Autonome de Yamoussoukro' },
+  { value: "District autonome d'Abidjan", label: "District autonome d'Abidjan" },
+  { value: 'District autonome de Yamoussoukro', label: 'District autonome de Yamoussoukro' },
   { value: 'Agnéby-Tiassa', label: 'Agnéby-Tiassa' },
   { value: 'Bafing', label: 'Bafing' },
   { value: 'Bagoué', label: 'Bagoué' },

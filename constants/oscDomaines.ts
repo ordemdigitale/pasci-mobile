@@ -8,17 +8,24 @@ export type Option = { value: string; label: string };
 // concertation actifs : chaque pôle correspond à un domaine prioritaire, et le
 // 1er domaine d'une OSC détermine son pôle.
 export const DOMAINE_PRIORITAIRE_OPTIONS: Option[] = [
-  { value: 'Agriculture pêche et sylviculture', label: 'Agriculture pêche et sylviculture' },
-  { value: 'Banques et services financiers', label: 'Banques et services financiers' },
-  { value: 'Commerce et tourisme', label: 'Commerce et tourisme' },
-  { value: 'Éducation', label: 'Éducation' },
-  { value: 'Entreprises et autres services', label: 'Entreprises et autres services' },
-  { value: 'Gouvernement et Société Civile', label: 'Gouvernement et Société Civile' },
-  { value: 'Infrastructure et services sociaux divers', label: 'Infrastructure et services sociaux divers' },
-  { value: 'Prévention et règlement des conflits, paix et sécurité', label: 'Prévention et règlement des conflits, paix et sécurité' },
-  { value: 'Programme pour la Population', label: 'Programme pour la Population' },
-  { value: 'Protection de l’environnement, général', label: 'Protection de l’environnement, général' },
-  { value: 'Santé', label: 'Santé' },
+  { value: "Agriculture, sylviculture et pêche", label: "Agriculture, sylviculture et pêche" },
+  { value: "Autres multi-secteurs", label: "Autres multi-secteurs" },
+  { value: "Banques et services financiers", label: "Banques et services financiers" },
+  { value: "Commerce et tourisme", label: "Commerce et tourisme" },
+  { value: "Communication", label: "Communication" },
+  { value: "Distribution d'eau et assainissement", label: "Distribution d'eau et assainissement" },
+  { value: "Éducation", label: "Éducation" },
+  { value: "Energie", label: "Energie" },
+  { value: "Entreprises et autres services", label: "Entreprises et autres services" },
+  { value: "Gouvernement et Société Civile", label: "Gouvernement et Société Civile" },
+  { value: "Industrie, mines et constructions", label: "Industrie, mines et constructions" },
+  { value: "Infrastructure et services sociaux divers", label: "Infrastructure et services sociaux divers" },
+  { value: "Prévention et règlement des conflits, paix et sécurité", label: "Prévention et règlement des conflits, paix et sécurité" },
+  { value: "Programme pour la Population", label: "Programme pour la Population" },
+  { value: "Protection de l’environnement, général", label: "Protection de l’environnement, général" },
+  { value: "Santé", label: "Santé" },
+  { value: "Soutien budgétaire", label: "Soutien budgétaire" },
+  { value: "Transports et entreposage", label: "Transports et entreposage" },
 ];
 
 const versOptions = (noms: string[]): Option[] =>
@@ -40,6 +47,22 @@ export function useDomainesPrioritaires(): Option[] {
   return options.length > 0 ? options : DOMAINE_PRIORITAIRE_OPTIONS;
 }
 
+// Les deux districts autonomes sont enregistrés en base sous « Abidjan » et
+// « Yamoussoukro » : on garde ce nom comme valeur (rattachement à la région et
+// au CRASC) mais on affiche leur nom officiel (même règle que le site web).
+const DISTRICTS: Record<string, string> = {
+  abidjan: "District autonome d'Abidjan",
+  yamoussoukro: 'District autonome de Yamoussoukro',
+};
+
+const cleRegion = (nom: string) =>
+  nom.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+
+/** Nom affiché d'une région (nom officiel pour les deux districts autonomes). */
+export function libelleRegion(nom: string): string {
+  return DISTRICTS[cleRegion(nom)] ?? nom;
+}
+
 /** Régions de la base (mêmes noms que l'annuaire et les CRASC), avec secours. */
 export function useRegions(secours: Option[]): Option[] {
   const { data } = useQuery({
@@ -48,6 +71,13 @@ export function useRegions(secours: Option[]): Option[] {
     staleTime: 10 * 60 * 1000,
   });
   const regions: { name?: string }[] = Array.isArray(data) ? data : [];
-  const options = versOptions(regions.map((r) => r.name || ''));
+  // Districts autonomes en tête, puis les régions par ordre alphabétique
+  const options = versOptions(regions.map((r) => r.name || ''))
+    .map((o) => ({ value: o.value, label: libelleRegion(o.value) }))
+    .sort((a, b) => {
+      const da = a.label.startsWith('District') ? 0 : 1;
+      const db = b.label.startsWith('District') ? 0 : 1;
+      return da - db || a.label.localeCompare(b.label, 'fr');
+    });
   return options.length > 0 ? options : secours;
 }
