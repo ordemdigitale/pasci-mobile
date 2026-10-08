@@ -76,7 +76,7 @@ const DirectoryModal: React.FC<DirectoryModalProps> = ({ visible, onClose, selec
             <Text className="text-brand-orange text-[10px] font-bold">INFO</Text>
           </View>
           {item.osc_count !== undefined && (
-            <Text style={{ fontFamily: 'Karla_700Bold' }} className="text-gray-400 text-[10px]">{item.osc_count} OSCs</Text>
+            <Text style={{ fontFamily: 'Karla_700Bold' }} className="text-gray-400 text-[10px]">{item.osc_count} OSC</Text>
           )}
         </View>
 
