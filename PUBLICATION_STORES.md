@@ -20,16 +20,10 @@ au lieu d'un fichier APK téléchargé sur la PdoC.
 - Utiliser une adresse email de l'organisation (ex. pdoc@plateforme-osci.org), pas une adresse personnelle,
   et ajouter ensuite les développeurs comme utilisateurs du compte.
 
-## 2. Identifiant définitif de l'application (à décider avant la 1re publication)
+## 2. Identifiant définitif de l'application
 
-L'identifiant ne peut plus être changé une fois l'application publiée.
-
-- Android, actuellement : `com.angel_code.pdocmobileIdrys` (nom de branche de développement).
-- iOS : pas encore défini.
-- Proposition : `org.plateformeosci.pdoc` pour les deux (domaine de la plateforme inversé).
-
-À reporter dans `app.json` (`expo.android.package` et `expo.ios.bundleIdentifier`) avant le premier build de production.
-Aucun utilisateur n'est encore sur le store : c'est le seul moment où ce changement est sans conséquence.
+`org.plateformeosci.pdoc` pour Android (`expo.android.package`) et iOS (`expo.ios.bundleIdentifier`),
+d'après le domaine plateforme-osci.org. Il est définitif dès le premier envoi sur un store : ne plus le modifier.
 
 ## 3. Builds (EAS)
 

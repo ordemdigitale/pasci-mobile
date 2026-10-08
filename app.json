@@ -22,7 +22,8 @@
         "NSPhotoLibraryUsageDescription": "La PdoC accède à vos photos et vidéos pour les joindre à vos messages dans les pôles de concertation.",
         "NSCameraUsageDescription": "La PdoC utilise l'appareil photo pour joindre une photo ou une vidéo à vos messages.",
         "NSMicrophoneUsageDescription": "La PdoC utilise le micro pour enregistrer des notes vocales dans les pôles de concertation."
-      }
+      },
+      "bundleIdentifier": "org.plateformeosci.pdoc"
     },
     "android": {
       "adaptiveIcon": {
@@ -30,7 +31,7 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.angel_code.pdocmobileIdrys"
+      "package": "org.plateformeosci.pdoc"
     },
     "web": {
       "favicon": "./assets/favicon.png"
