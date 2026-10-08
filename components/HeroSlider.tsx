@@ -72,14 +72,19 @@ interface HeroSlide {
   image_url?: string;
   title?: string | null;
   description?: string | null;
+  /** Slide de repli (aucune page « Voir plus ») */
+  estDefaut?: boolean;
 }
 
-type NormalizedHeroSlide = {
+export type NormalizedHeroSlide = {
   id: number;
   image_url?: string;
   title: string;
   description: string;
+  estDefaut: boolean;
 };
+
+type TexteDefaut = { title?: string; description?: string };
 
 type HeroSliderProps = {
   onSlideChange?: (slide: NormalizedHeroSlide) => void;
@@ -95,13 +100,15 @@ function getImageUri(url?: string) {
   return `${API_ORIGIN}${url.startsWith('/') ? url : `/${url}`}`;
 }
 
-function normalizeSlide(slide: HeroSlide, index: number): NormalizedHeroSlide {
+function normalizeSlide(slide: HeroSlide, index: number, texteDefaut: TexteDefaut): NormalizedHeroSlide {
   const fallbackText = DEFAULT_SLIDE_TEXTS[index % DEFAULT_SLIDE_TEXTS.length];
+  // Texte par défaut du carrousel (admin) pour une slide sans titre ni description
   return {
     id: slide.id || index + 1,
     image_url: slide.image_url,
-    title: slide.title || fallbackText.title,
-    description: slide.description || fallbackText.description,
+    title: slide.title || texteDefaut.title || fallbackText.title,
+    description: slide.description || texteDefaut.description || fallbackText.description,
+    estDefaut: !!slide.estDefaut,
   };
 }
 
@@ -111,24 +118,34 @@ export default function HeroSlider({ onSlideChange }: HeroSliderProps) {
   const scrollViewRef = useRef<ScrollView>(null);
   const isUserScrolling = useRef(false);
 
-  const { data: heroSlides = [], isLoading: slidesLoading } = useQuery({
+  // Slides actives et non expirées (l'API retire celles dont la date d'expiration est passée)
+  const { data: carrousel, isLoading: slidesLoading } = useQuery({
     queryKey: ['hero-slides'],
-    queryFn: async () => {
+    queryFn: async (): Promise<{ slides: HeroSlide[]; texte: TexteDefaut }> => {
+      const repli = FALLBACK_SLIDES.map((s) => ({ ...s, estDefaut: true }));
+      let config: Record<string, string> = {};
+      try {
+        const r = await fetch(`${API_ORIGIN}/api/v1/config`);
+        if (r.ok) config = await r.json();
+      } catch { /* textes par défaut */ }
+      const texte = { title: config.hero_title?.trim(), description: config.hero_description?.trim() };
       try {
         const response = await fetch(`${API_ORIGIN}/api/v1/hero-slides?active_only=true&type=haut`);
-        if (!response.ok) return FALLBACK_SLIDES;
-        const data = await response.json();
-        return data?.length > 0 ? data : FALLBACK_SLIDES;
+        const data: HeroSlide[] = response.ok ? await response.json() : [];
+        if (data?.length > 0) return { slides: data, texte };
+        // Aucune slide active : image par défaut choisie dans l'admin
+        const imageDefaut = config.hero_image_defaut?.trim();
+        return { slides: imageDefaut ? [{ id: 0, image_url: imageDefaut, estDefaut: true }] : repli, texte };
       } catch {
-        return FALLBACK_SLIDES;
+        return { slides: repli, texte };
       }
     },
   });
 
-  const displaySlides = useMemo(
-    () => (heroSlides?.length > 0 ? heroSlides : FALLBACK_SLIDES).map(normalizeSlide),
-    [heroSlides]
-  );
+  const displaySlides = useMemo(() => {
+    const slides = carrousel?.slides?.length ? carrousel.slides : FALLBACK_SLIDES.map((s) => ({ ...s, estDefaut: true }));
+    return slides.map((s, i) => normalizeSlide(s, i, carrousel?.texte ?? {}));
+  }, [carrousel]);
 
   useEffect(() => {
     if (displaySlides.length > 0 && currentIndex >= displaySlides.length) {

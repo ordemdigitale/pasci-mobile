@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { View, Text, ScrollView, Image, TouchableOpacity, FlatList, Dimensions, Platform, StatusBar } from 'react-native';
+import { View, Text, ScrollView, Image, TouchableOpacity, FlatList, Dimensions, Platform, StatusBar, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Search, Download, Building2, Mail, Heart, Users, Briefcase, Phone } from 'lucide-react-native';
@@ -7,6 +7,7 @@ import CrascMap from '../../components/CrascMap';
 import DirectoryModal from '../../components/DirectoryModal';
 import HeroSlider from '../../components/HeroSlider';
 import HeaderMenu from '../../components/HeaderMenu';
+import VideoPodcastAccueil from '../../components/VideoPodcastAccueil';
 import { useQuery } from '@tanstack/react-query';
 import { dataService } from '../../services/dataService';
 import { News, PTF, Documentation, Formation } from '../../services/types';
@@ -28,6 +29,8 @@ export default function HomeScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState<string | undefined>(undefined);
   const [heroText, setHeroText] = useState(FALLBACK_HERO_TEXT);
+  // Slide affichée : « Voir plus » ouvre son descriptif (sauf slide par défaut)
+  const [heroSlideId, setHeroSlideId] = useState<number | null>(null);
 
   const { data: news } = useQuery({
     queryKey: ['news-spotlight'],
@@ -57,7 +60,7 @@ export default function HomeScreen() {
   const displayStats = useMemo(() => ([
     {
       key: 'crasc',
-      name: 'Nombre de CRASC',
+      name: 'CRASC',
       short: 'CRASC',
       number: dashboardStats?.crasc?.total ?? 0,
     },
@@ -81,7 +84,7 @@ export default function HomeScreen() {
     },
     {
       key: 'visites',
-      name: 'Nombre de visites',
+      name: 'Visites',
       short: 'VUE',
       number: visiteStats?.total ?? 0,
     },
@@ -100,6 +103,15 @@ export default function HomeScreen() {
     queryFn: dataService.getPtfList,
   });
 
+  // « Nos partenaires » : logos gérés dans l'admin (chemins « /images/… » servis par le site web)
+  const { data: partenairesAccueil } = useQuery({
+    queryKey: ['partenaires-accueil'],
+    queryFn: dataService.getPartenairesAccueil,
+    staleTime: 10 * 60 * 1000,
+  });
+  const logoPartenaire = (url?: string | null) =>
+    !url ? null : url.startsWith('/') ? `https://plateforme-osci.org${url}` : url;
+
   const { data: docList } = useQuery({
     queryKey: ['documentation'],
     queryFn: dataService.getDocumentation,
@@ -113,8 +125,9 @@ export default function HomeScreen() {
     setModalVisible(true);
   };
 
-  const handleHeroSlideChange = useCallback((slide: { title: string; description: string }) => {
+  const handleHeroSlideChange = useCallback((slide: { id: number; title: string; description: string; estDefaut: boolean }) => {
     setHeroText({ title: slide.title, description: slide.description });
+    setHeroSlideId(slide.estDefaut ? null : slide.id);
   }, []);
 
 
@@ -185,16 +198,21 @@ export default function HomeScreen() {
               <Text style={{ fontFamily: 'Karla_400Regular', fontSize: 13, lineHeight: 20 }} className="text-gray-600 mb-5">
                 {heroText.description}
               </Text>
-              <TouchableOpacity
-                onPress={() => router.push('/a-propos')}
-                className="self-end px-6 py-3 rounded-xl"
-                style={{ backgroundColor: '#E05017' }}
-              >
-                <Text style={{ fontFamily: 'Poppins_700Bold', color: 'white', fontSize: 13 }}>Voir plus</Text>
-              </TouchableOpacity>
+              {heroSlideId !== null && (
+                <TouchableOpacity
+                  onPress={() => router.push(`/slide/${heroSlideId}`)}
+                  className="self-end px-6 py-3 rounded-xl"
+                  style={{ backgroundColor: '#E05017' }}
+                >
+                  <Text style={{ fontFamily: 'Poppins_700Bold', color: 'white', fontSize: 13 }}>Voir plus</Text>
+                </TouchableOpacity>
+              )}
             </View>
           </View>
         </View>
+
+        {/* VIDÉO (LIVE) ET PODCAST */}
+        <VideoPodcastAccueil />
 
         {/* MAP SECTION */}
         <View className="mt-10 px-4">
@@ -376,6 +394,35 @@ export default function HomeScreen() {
                   </View>
                 </TouchableOpacity>
               ))}
+            </ScrollView>
+          </View>
+        )}
+
+        {/* NOS PARTENAIRES — logos gérés dans l'admin */}
+        {!!partenairesAccueil?.length && (
+          <View className="mt-10">
+            <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-lg text-gray-900 px-6 mb-4">Nos partenaires</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="pl-6">
+              {partenairesAccueil.map((p) => {
+                const logo = logoPartenaire(p.logo_url);
+                return (
+                  <TouchableOpacity
+                    key={p.id}
+                    disabled={!p.site_web}
+                    onPress={() => p.site_web && Linking.openURL(p.site_web)}
+                    className="mr-4 bg-white p-3 rounded-3xl border border-gray-100 items-center justify-center w-28 h-24 shadow-sm"
+                  >
+                    {logo ? (
+                      <Image source={{ uri: logo }} style={{ width: 80, height: 48 }} resizeMode="contain" />
+                    ) : (
+                      <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-[#2a591d] text-lg">{p.nom}</Text>
+                    )}
+                    <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 text-[9px] text-center mt-1" numberOfLines={1}>
+                      {p.nom}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </ScrollView>
           </View>
         )}

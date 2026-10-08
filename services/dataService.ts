@@ -210,6 +210,28 @@ export const dataService = {
     return response.data.items ?? [];
   },
 
+  // Accueil : descriptif d'une slide (« Voir plus »)
+  getHeroSlide: async (id: number | string) => {
+    const response = await apiClient.get(`/hero-slides/${id}`);
+    return response.data as {
+      id: number;
+      title?: string | null;
+      description?: string | null;
+      image_url: string;
+      objectif?: string | null;
+      resume?: string | null;
+      article?: string | null;
+      photo1_url?: string | null;
+      photo2_url?: string | null;
+    };
+  },
+
+  // Accueil : logos de la section « Nos partenaires » (gérés dans l'admin)
+  getPartenairesAccueil: async () => {
+    const response = await apiClient.get("/partenaires-accueil");
+    return response.data as Array<{ id: number; nom: string; logo_url?: string | null; site_web?: string | null }>;
+  },
+
   // Textes et illustrations modifiables dans l'admin du site
   getSiteConfig: async (): Promise<Record<string, string>> => {
     const response = await apiClient.get<Record<string, string>>("/config");
