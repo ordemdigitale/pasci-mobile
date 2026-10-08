@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, TextInput, Linking, Platform, StatusBar } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { View, Text, FlatList, TouchableOpacity, TextInput, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Search, Download, FileText, BarChart3, File } from 'lucide-react-native';
 import Skeleton from '../../components/ui/Skeleton';
@@ -24,7 +24,9 @@ function formatFileSize(bytes?: number): string {
 
 export default function RessourcesScreen() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState('Documentation');
+  // 'all' ou slug d'un type de la typologie ; '' = toutes les catégories
+  const [activeType, setActiveType] = useState('all');
+  const [activeCategorie, setActiveCategorie] = useState('');
   const [downloadState, setDownloadState] = useState({
     visible: false,
     progress: 0,
@@ -36,20 +38,56 @@ export default function RessourcesScreen() {
     queryFn: dataService.getDocumentation,
   });
 
-  const filtered = docs?.filter(doc => {
-    const matchesTab =
-      activeTab === 'Documentation'
-        ? !doc.type || doc.type === 'documentation'
-        : doc.type === 'fiche';
+  const { data: types = [] } = useQuery({
+    queryKey: ['ressource-types'],
+    queryFn: dataService.getRessourceTypes,
+    staleTime: 10 * 60 * 1000,
+  });
+
+  const { data: categoriesTypologie = [] } = useQuery({
+    queryKey: ['ressource-categories'],
+    queryFn: dataService.getRessourceCategories,
+    staleTime: 10 * 60 * 1000,
+  });
+
+  // Ancien serveur sans champ type : tout est de la documentation
+  const typeDe = (doc: Documentation) => doc.type || 'documentation';
+  const libelleType = (slug: string) =>
+    types.find((t) => t.slug === slug)?.nom || (slug === 'fiche' ? 'Fiches et modules PdoC' : slug === 'documentation' ? 'Documentation' : slug);
+
+  // Onglets : types ayant au moins une ressource, dans l'ordre de la typologie
+  const typesDisponibles = useMemo(() => {
+    const presents = new Set((docs || []).map(typeDe));
+    const ordre = [...types.map((t) => t.slug), ...Array.from(presents)];
+    return Array.from(new Set(ordre)).filter((slug) => presents.has(slug));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [docs, types]);
+
+  const docsDuType = (docs || []).filter((doc) => activeType === 'all' || typeDe(doc) === activeType);
+
+  // Catégories proposées : celles de la typologie présentes dans les ressources du type
+  const categoriesDisponibles = useMemo(() => {
+    const presentes = new Set(docsDuType.map((d) => d.category).filter(Boolean) as string[]);
+    const ordre = [
+      ...categoriesTypologie.filter((c) => activeType !== 'all' && c.type_slug === activeType).map((c) => c.nom),
+      ...categoriesTypologie.filter((c) => c.type_slug === null || activeType === 'all').map((c) => c.nom),
+      ...Array.from(presentes),
+    ];
+    return Array.from(new Set(ordre)).filter((nom) => presentes.has(nom));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [docs, activeType, categoriesTypologie]);
+
+  const filtered = docsDuType.filter(doc => {
+    const matchesCategorie = !activeCategorie || doc.category === activeCategorie;
     const matchesSearch =
       !searchQuery ||
       doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       doc.description?.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesTab && matchesSearch;
+    return matchesCategorie && matchesSearch;
   });
 
   const handleDownload = async (doc: Documentation) => {
-    const targetUrl = (doc as any).download_url || doc.file_url;
+    const targetUrl = doc.download_url || doc.file_url;
     if (targetUrl) {
       const rawTitle = doc.title || 'document';
       const safeTitle = rawTitle
@@ -86,6 +124,16 @@ export default function RessourcesScreen() {
             {item.title}
           </Text>
           <View className="flex-row items-center flex-wrap">
+            {activeType === 'all' && (
+              <View className="bg-orange-50 px-1.5 py-0.5 rounded mr-2">
+                <Text className="text-brand-orange text-[8px] font-bold">{libelleType(typeDe(item))}</Text>
+              </View>
+            )}
+            {!!item.category && (
+              <View className="bg-blue-50 px-1.5 py-0.5 rounded mr-2">
+                <Text className="text-blue-700 text-[8px] font-bold">{item.category}</Text>
+              </View>
+            )}
             {item.file_type && (
               <View className="bg-gray-100 px-1.5 py-0.5 rounded mr-2">
                 <Text className="text-gray-400 text-[8px] font-bold">{item.file_type.toUpperCase()}</Text>
@@ -131,23 +179,46 @@ export default function RessourcesScreen() {
         />
       </View>
 
-      {/* Tabs */}
-      <View className="flex-row mb-8 border-b border-gray-100">
-        {['Documentation', 'Fiches Informatives'].map((tab) => (
-          <TouchableOpacity
-            key={tab}
-            onPress={() => setActiveTab(tab)}
-            className={`flex-1 pb-4 items-center ${activeTab === tab ? 'border-b-2 border-brand-orange' : ''}`}
-          >
-            <Text
-              style={{ fontFamily: activeTab === tab ? 'Poppins_700Bold' : 'Karla_400Regular' }}
-              className={activeTab === tab ? 'text-brand-orange text-sm' : 'text-gray-400 text-sm'}
+      {/* Types (gérés dans l'admin) */}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-4 -mx-1">
+        {['all', ...typesDisponibles].map((slug) => {
+          const actif = activeType === slug;
+          return (
+            <TouchableOpacity
+              key={slug}
+              onPress={() => {
+                setActiveType(slug);
+                setActiveCategorie('');
+              }}
+              className={`px-4 py-2 rounded-full border mx-1 ${actif ? 'bg-brand-orange border-brand-orange' : 'bg-white border-gray-200'}`}
             >
-              {tab}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+              <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className={`text-xs ${actif ? 'text-white' : 'text-gray-600'}`}>
+                {slug === 'all' ? 'Tout' : libelleType(slug)}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+
+      {/* Catégories du type choisi */}
+      {categoriesDisponibles.length > 0 && (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-6 -mx-1">
+          {['', ...categoriesDisponibles].map((nom) => {
+            const actif = activeCategorie === nom;
+            return (
+              <TouchableOpacity
+                key={nom || 'toutes'}
+                onPress={() => setActiveCategorie(nom)}
+                className={`px-3 py-1.5 rounded-full mx-1 ${actif ? 'bg-gray-900' : 'bg-gray-100'}`}
+              >
+                <Text style={{ fontFamily: 'Karla_700Bold' }} className={`text-[11px] ${actif ? 'text-white' : 'text-gray-600'}`}>
+                  {nom || 'Toutes catégories'}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      )}
 
       <View className="flex-row justify-between items-center mb-4">
         <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-400 text-[10px] uppercase tracking-widest">

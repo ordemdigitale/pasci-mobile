@@ -576,7 +576,31 @@ export interface Documentation {
   file_path?: string;
   file_size?: number;
   file_type?: string;
+  /** Slug d'un type de la typologie (livre, periodique, document-officiel…) */
   type?: string;
+  category?: string | null;
+  download_url?: string | null;
   created_at: string;
   updated_at?: string;
+}
+
+/** Type de ressource géré dans l'admin (Ressources › Types et catégories) */
+export interface RessourceType {
+  id: number;
+  slug: string;
+  nom: string;
+  description?: string | null;
+  ordre: number;
+  actif: boolean;
+  nb_documents: number;
+}
+
+/** Catégorie de ressource ; type_slug null = commune à tous les types */
+export interface RessourceCategorie {
+  id: number;
+  nom: string;
+  type_slug: string | null;
+  ordre: number;
+  actif: boolean;
+  nb_documents: number;
 }

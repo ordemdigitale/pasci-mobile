@@ -17,6 +17,8 @@ import {
   LimitesMedias,
   KeyStats,
   Documentation,
+  RessourceType,
+  RessourceCategorie,
   OscType,
   Evenement,
   CrascVideo,
@@ -311,7 +313,19 @@ export const dataService = {
 
   // Documentation
   getDocumentation: async (): Promise<Documentation[]> => {
-    const response = await apiClient.get<Documentation[]>("/documentation");
+    // Limite explicite : l'API n'en renvoie que 20 par défaut
+    const response = await apiClient.get<Documentation[]>("/documentation?limit=100");
+    return response.data;
+  },
+
+  // Typologie des ressources (gérée dans l'admin)
+  getRessourceTypes: async (): Promise<RessourceType[]> => {
+    const response = await apiClient.get<RessourceType[]>("/ressources-typologie/types");
+    return response.data;
+  },
+
+  getRessourceCategories: async (): Promise<RessourceCategorie[]> => {
+    const response = await apiClient.get<RessourceCategorie[]>("/ressources-typologie/categories");
     return response.data;
   },
 
