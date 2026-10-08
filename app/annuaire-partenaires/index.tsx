@@ -8,6 +8,16 @@ import { useQuery } from '@tanstack/react-query';
 import { dataService } from '../../services/dataService';
 import { Partner, PTF } from '../../services/types';
 import OscEvaluationBadge from '../../components/OscEvaluationBadge';
+import OscEtiquettes from '../../components/OscEtiquettes';
+import { useDomainesPrioritaires } from '../../constants/oscDomaines';
+
+// Étiquettes filtrables : catégorie (OdF, OdJ, OPSH) ou faîtière
+const ETIQUETTES = [
+  { cle: 'organisation_femme', label: 'OdF' },
+  { cle: 'organisation_jeune', label: 'OdJ' },
+  { cle: 'organisation_handicap', label: 'OPSH' },
+  { cle: 'faitiere', label: 'Faîtières' },
+];
 
 export default function AnnuairePartenairesScreen() {
   const router = useRouter();
@@ -16,6 +26,9 @@ export default function AnnuairePartenairesScreen() {
   const [activeTab, setActiveTab] = useState<'OSC' | 'PTF'>(initialTab);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRegion, setSelectedRegion] = useState('Tous');
+  const [selectedDomaine, setSelectedDomaine] = useState('');
+  const [selectedEtiquette, setSelectedEtiquette] = useState('');
+  const domaines = useDomainesPrioritaires();
 
   useEffect(() => {
     if (params.tab?.toUpperCase() === 'PTF') {
@@ -33,21 +46,18 @@ export default function AnnuairePartenairesScreen() {
     queryFn: () => dataService.getRegions(),
   });
 
+  // Recherche faite par l'API (insensible aux accents, sur le nom, les thématiques, la ville…)
   const { data: partners, isLoading: partnersLoading } = useQuery({
-    queryKey: ['partners-search', searchQuery, selectedRegion],
-    queryFn: async () => {
-      if (searchQuery.trim().length > 0) {
-        const region = selectedRegion === 'Tous' ? undefined : selectedRegion;
-        return await dataService.searchOsc(searchQuery, region);
-      }
-      const allPartners = await dataService.getPartners();
-      if (selectedRegion === 'Tous') return allPartners;
-      return allPartners.filter((p: Partner) => {
-        if ((p as any).region) return (p as any).region === selectedRegion;
-        if (p.ville) return p.ville === selectedRegion;
-        return false;
-      });
-    },
+    queryKey: ['osc-annuaire', searchQuery.trim(), selectedRegion, selectedDomaine, selectedEtiquette],
+    queryFn: () =>
+      dataService.getOscAnnuaire({
+        search: searchQuery.trim() || undefined,
+        region_nom: selectedRegion === 'Tous' ? undefined : selectedRegion,
+        domaine_activite: selectedDomaine || undefined,
+        categorie: selectedEtiquette && selectedEtiquette !== 'faitiere' ? selectedEtiquette : undefined,
+        faitiere: selectedEtiquette === 'faitiere' ? true : undefined,
+      }),
+    enabled: activeTab === 'OSC',
   });
 
   // Données PTF
@@ -69,15 +79,18 @@ export default function AnnuairePartenairesScreen() {
   const renderOscCard = ({ item }: { item: Partner }) => (
     <View className="bg-white rounded-[32px] p-6 mb-6 mx-6 border border-gray-100 shadow-sm">
       <View className="flex-row justify-between mb-4">
-        <View className="flex-row flex-wrap flex-1 mr-3">
-          {item.tags?.map((tag, i) => (
-            <View key={i} className="bg-blue-50 px-2 py-1 rounded mr-2 mb-1">
-              <Text className="text-blue-600 text-[8px] font-bold">{tag}</Text>
-            </View>
-          )) || (
-            <View className="bg-gray-50 px-2 py-1 rounded">
+        <View className="flex-1 mr-3">
+          {item.etiquettes?.length ? (
+            <OscEtiquettes etiquettes={item.etiquettes} />
+          ) : (
+            <View className="bg-gray-50 px-2 py-1 rounded self-start">
               <Text className="text-gray-400 text-[8px] font-bold">OSC</Text>
             </View>
+          )}
+          {!!item.domaine_prioritaire && (
+            <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-brand-orange text-[10px] mt-1" numberOfLines={1}>
+              {item.domaine_prioritaire}
+            </Text>
           )}
         </View>
         <View className="w-12 h-12 bg-gray-50 rounded-xl items-center justify-center border border-gray-100 shrink-0">
@@ -192,7 +205,7 @@ export default function AnnuairePartenairesScreen() {
         </TouchableOpacity>
       </View>
 
-      <FlatList
+      <FlatList<any>
         ListHeaderComponent={
           <>
             {/* Onglets OSC / PTF */}
@@ -220,7 +233,7 @@ export default function AnnuairePartenairesScreen() {
               <View className="bg-gray-50 flex-row items-center px-4 py-4 rounded-3xl border border-gray-100">
                 <Search size={20} color="#9CA3AF" />
                 <TextInput
-                  placeholder={activeTab === 'OSC' ? 'Rechercher une OSC...' : 'Rechercher un partenaire...'}
+                  placeholder={activeTab === 'OSC' ? 'Nom, thématique, ville, OdF, OPSH…' : 'Rechercher un partenaire...'}
                   className="flex-1 ml-3 text-gray-700"
                   placeholderTextColor="#9CA3AF"
                   value={searchQuery}
@@ -247,6 +260,39 @@ export default function AnnuairePartenairesScreen() {
                       </Text>
                     </TouchableOpacity>
                   ))}
+                </ScrollView>
+
+                {/* Thématiques (domaines prioritaires = pôles) */}
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-3" contentContainerStyle={{ paddingHorizontal: 24 }}>
+                  {[{ value: '', label: 'Toutes thématiques' }, ...domaines].map((d) => (
+                    <TouchableOpacity
+                      key={d.value || 'toutes'}
+                      onPress={() => setSelectedDomaine(d.value)}
+                      className={`mr-2 px-4 py-2 rounded-full ${selectedDomaine === d.value ? 'bg-gray-900' : 'bg-gray-100'}`}
+                    >
+                      <Text style={{ fontFamily: 'Karla_700Bold' }} className={`text-[11px] ${selectedDomaine === d.value ? 'text-white' : 'text-gray-600'}`}>
+                        {d.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+
+                {/* Étiquettes : OdF, OdJ, OPSH, faîtières */}
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-3" contentContainerStyle={{ paddingHorizontal: 24 }}>
+                  {ETIQUETTES.map((e) => {
+                    const actif = selectedEtiquette === e.cle;
+                    return (
+                      <TouchableOpacity
+                        key={e.cle}
+                        onPress={() => setSelectedEtiquette(actif ? '' : e.cle)}
+                        className={`mr-2 px-4 py-2 rounded-full border ${actif ? 'bg-brand-orange border-brand-orange' : 'bg-white border-gray-200'}`}
+                      >
+                        <Text style={{ fontFamily: 'Karla_700Bold' }} className={`text-[11px] ${actif ? 'text-white' : 'text-gray-600'}`}>
+                          {e.label}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
                 </ScrollView>
               </View>
             )}

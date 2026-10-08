@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Modal, TextInput, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Modal, TextInput, ActivityIndicator, Alert, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import {
@@ -217,6 +217,10 @@ export default function PoleDetailsScreen() {
 
         {/* Pole header card */}
         <View className="mx-4 mt-4 mb-4 bg-blue-50 rounded-[24px] p-5 border border-blue-100">
+          {/* Image du pôle (modifiable dans l'admin : Forum › Pôles de concertation) */}
+          {!!pole.image_url && (
+            <Image source={{ uri: pole.image_url }} className="w-full h-40 rounded-2xl mb-4" resizeMode="cover" />
+          )}
           {pole.category && (
             <View className="bg-brand-orange self-start px-3 py-1 rounded-full mb-3">
               <Text style={{ fontFamily: 'Karla_700Bold' }} className="text-white text-[10px] uppercase">

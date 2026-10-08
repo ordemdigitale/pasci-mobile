@@ -148,6 +148,17 @@ export interface Partner {
   adhesion_crasc?: boolean | null;
   adhesion_crasc_statut?: 'oui' | 'non' | 'en_cours' | null;
   niveau_regroupement?: 'Simple' | 'Réseau' | 'Fédération' | 'Plateforme' | 'Confédération' | null;
+  /** organisation_femme | organisation_jeune | organisation_handicap | organisation_mixte */
+  categorie?: string | null;
+  /** Calculées par l'API : OdF, OdJ, OPSH et/ou Faîtière */
+  etiquettes?: string[];
+  est_faitiere?: boolean;
+  domaine_prioritaire?: string | null;
+  domaine_prioritaire_2?: string | null;
+  domaine_prioritaire_3?: string | null;
+  domaine_prioritaire_4?: string | null;
+  domaine_prioritaire_5?: string | null;
+  region_nom?: string | null;
   score_autoevaluation?: number;
   couleur_autoevaluation?: 'gris' | 'rouge' | 'orange' | 'jaune' | 'bleu' | 'vert';
   couleur_autoevaluation_hex?: string;
@@ -443,6 +454,8 @@ export interface PoleConcertation {
   category?: string;
   description?: string;
   image_path?: string;
+  /** URL complète de l'image du pôle (calculée par l'API) */
+  image_url?: string | null;
   objectifs?: string;
   objectifs_list?: string[];
   is_active: boolean;

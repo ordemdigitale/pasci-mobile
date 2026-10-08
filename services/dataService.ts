@@ -186,9 +186,33 @@ export const dataService = {
     return response.data;
   },
 
-  // Partenaires OSC
+  // Partenaires OSC (l'API renvoie une page : { items, total, page, size, pages })
   getPartners: async (): Promise<Partner[]> => {
-    const response = await apiClient.get<Partner[]>("/crasc/osc");
+    const response = await apiClient.get<{ items: Partner[] }>("/crasc/osc?size=100");
+    return response.data.items ?? [];
+  },
+
+  // Annuaire OSC : recherche (sans accents), région, thématique, catégorie (OdF, OdJ, OPSH) et faîtières
+  getOscAnnuaire: async (filtres: {
+    search?: string;
+    region_nom?: string;
+    domaine_activite?: string;
+    categorie?: string;
+    faitiere?: boolean;
+  }): Promise<Partner[]> => {
+    const params = new URLSearchParams({ size: "100", sort_by: "name", sort_order: "asc" });
+    if (filtres.search) params.append("search", filtres.search);
+    if (filtres.region_nom) params.append("region_nom", filtres.region_nom);
+    if (filtres.domaine_activite) params.append("domaine_activite", filtres.domaine_activite);
+    if (filtres.categorie) params.append("categorie", filtres.categorie);
+    if (filtres.faitiere !== undefined) params.append("faitiere", String(filtres.faitiere));
+    const response = await apiClient.get<{ items: Partner[] }>(`/crasc/osc?${params.toString()}`);
+    return response.data.items ?? [];
+  },
+
+  // Textes et illustrations modifiables dans l'admin du site
+  getSiteConfig: async (): Promise<Record<string, string>> => {
+    const response = await apiClient.get<Record<string, string>>("/config");
     return response.data;
   },
 

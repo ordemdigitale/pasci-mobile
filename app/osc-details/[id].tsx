@@ -18,6 +18,14 @@ import Skeleton from '../../components/ui/Skeleton';
 import { useQuery } from '@tanstack/react-query';
 import { dataService } from '../../services/dataService';
 import OscEvaluationBadge from '../../components/OscEvaluationBadge';
+import OscEtiquettes from '../../components/OscEtiquettes';
+
+const LIBELLES_CATEGORIE: Record<string, string> = {
+  organisation_femme: 'Organisation de femmes (OdF)',
+  organisation_jeune: 'Organisation de jeunes (OdJ)',
+  organisation_handicap: 'Organisation de personnes en situation de handicap (OPSH)',
+  organisation_mixte: 'Organisation mixte',
+};
 
 export default function OscDetailsScreen() {
   const { id } = useLocalSearchParams();
@@ -99,6 +107,7 @@ export default function OscDetailsScreen() {
               <View className="mb-2">
                 <OscEvaluationBadge score={data.score_autoevaluation} color={data.couleur_autoevaluation} hex={data.couleur_autoevaluation_hex} />
               </View>
+              <OscEtiquettes etiquettes={data.etiquettes} />
               <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-base mb-1" numberOfLines={3}>
                 {data.name}
               </Text>
@@ -116,7 +125,26 @@ export default function OscDetailsScreen() {
               <View className="flex-row items-center gap-2">
                 <Building size={14} color="#E05017" />
                 <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-600 text-xs">
-                  <Text style={{ fontFamily: 'Karla_700Bold' }}>Domaine : </Text>{data.type.name}
+                  <Text style={{ fontFamily: 'Karla_700Bold' }}>Type d'organisation : </Text>{data.type.name}
+                </Text>
+              </View>
+            )}
+            {!!data.categorie && (
+              <View className="flex-row items-center gap-2">
+                <Users2 size={14} color="#E05017" />
+                <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-600 text-xs flex-1">
+                  <Text style={{ fontFamily: 'Karla_700Bold' }}>Catégorie : </Text>
+                  {LIBELLES_CATEGORIE[data.categorie] || data.categorie}
+                </Text>
+              </View>
+            )}
+            {!!data.domaine_prioritaire && (
+              <View className="flex-row items-start gap-2">
+                <Building size={14} color="#E05017" />
+                <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-600 text-xs flex-1">
+                  <Text style={{ fontFamily: 'Karla_700Bold' }}>Thématiques : </Text>
+                  {[data.domaine_prioritaire, data.domaine_prioritaire_2, data.domaine_prioritaire_3, data.domaine_prioritaire_4, data.domaine_prioritaire_5]
+                    .filter(Boolean).join(' · ')}
                 </Text>
               </View>
             )}
