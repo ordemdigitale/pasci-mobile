@@ -37,7 +37,7 @@ export default function PartnerDetailsScreen() {
   const onShare = async () => {
     if (!data) return;
     try {
-      await Share.share({ message: `Partenaire PASCI : ${data.name}` });
+      await Share.share({ message: `Partenaire PdoC : ${data.name}` });
     } catch (error) { console.log(error); }
   };
 

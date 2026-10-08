@@ -403,7 +403,7 @@ export default function CourseDetailsScreen() {
   const onShare = async () => {
     if (!data) return;
     try {
-      await Share.share({ message: `Formation PASCI : ${data.title}` });
+      await Share.share({ message: `Formation PdoC : ${data.title}` });
     } catch (error) { console.log(error); }
   };
 

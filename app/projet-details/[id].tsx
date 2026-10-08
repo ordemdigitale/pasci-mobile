@@ -40,7 +40,7 @@ export default function ProjetDetailsScreen() {
   const onShare = async () => {
     if (!data) return;
     try {
-      await Share.share({ message: `Appel à projets PASCI : ${data.nom}` });
+      await Share.share({ message: `Appel à projets PdoC : ${data.nom}` });
     } catch (error) { console.log(error); }
   };
 

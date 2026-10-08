@@ -79,7 +79,7 @@ export default function NewsDetailsScreen() {
         <View className="items-center">
             <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-lg">Actualité</Text>
             <Text className="text-brand-orange text-[10px] font-bold uppercase tracking-widest">
-                {data.crasc?.name || 'PASCI INFO'}
+                {data.crasc?.name || 'PdoC INFO'}
             </Text>
         </View>
         <TouchableOpacity onPress={onShare} className="bg-gray-50 p-2 rounded-full">
@@ -133,7 +133,7 @@ export default function NewsDetailsScreen() {
               </View>
               <View className="flex-1">
                 <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-gray-900 text-xs" >
-                    {data.osc?.name || 'Équipe PASCI'}
+                    {data.osc?.name || 'Équipe PdoC'}
                 </Text>
                 <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-400 text-[10px]">
                     {data.osc ? 'Organisation' : 'Auteur'}

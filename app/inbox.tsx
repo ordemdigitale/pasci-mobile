@@ -38,7 +38,7 @@ export default function InboxScreen() {
             {item.title}
           </Text>
           <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-400 text-xs mt-1" numberOfLines={1}>
-            {item.crasc?.name || item.osc?.name || 'PASCI Info'}
+            {item.crasc?.name || item.osc?.name || 'PdoC Info'}
           </Text>
         </View>
         {timeLabel ? (

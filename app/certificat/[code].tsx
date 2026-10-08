@@ -29,7 +29,7 @@ export default function CertificatScreen() {
     if (!cert) return;
     try {
       await Share.share({
-        message: `Certificat PASCI — ${cert.formation_title}\nDélivré à : ${cert.participant_name}\nCode : ${certCode}\nVérifier : https://plateforme-osci.org/certificat/${certCode}`,
+        message: `Certificat PdoC — ${cert.formation_title}\nDélivré à : ${cert.participant_name}\nCode : ${certCode}\nVérifier : https://plateforme-osci.org/certificat/${certCode}`,
       });
     } catch (_) { }
   };
@@ -122,7 +122,7 @@ export default function CertificatScreen() {
 
           {/* Logo band */}
           <View className="py-5 items-center" style={{ backgroundColor: '#E05017' }}>
-            <Text style={{ fontFamily: 'Poppins_700Bold', color: 'white', fontSize: 18, letterSpacing: 3 }}>PASCI</Text>
+            <Text style={{ fontFamily: 'Poppins_700Bold', color: 'white', fontSize: 18, letterSpacing: 3 }}>PdoC</Text>
             <Text style={{ fontFamily: 'Karla_400Regular', color: 'rgba(255,255,255,0.8)', fontSize: 11 }}>
               Plateforme des OSC de Côte d'Ivoire
             </Text>

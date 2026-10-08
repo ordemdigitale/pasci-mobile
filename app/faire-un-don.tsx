@@ -195,7 +195,7 @@ export default function FaireUnDonScreen() {
               </View>
               <View className="flex-row justify-between items-center">
                 <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 text-sm">Référence</Text>
-                <Text style={{ fontFamily: 'Karla_700Bold' }} className="text-gray-800">Don PASCI #{donId}</Text>
+                <Text style={{ fontFamily: 'Karla_700Bold' }} className="text-gray-800">Don PdoC #{donId}</Text>
               </View>
             </View>
 
