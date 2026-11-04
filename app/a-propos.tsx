@@ -16,7 +16,7 @@ const COLORS = {
 
 const PLATFORM_SECTIONS = [
   {
-    title: 'Une plateforme pour tous',
+    title: 'Une plateforme pour tous et pour toutes',
     text: "Cette plateforme digitale est née d'un travail collectif. Elle a été construite avec la participation des associations ivoiriennes, de l'État et de partenaires techniques et financiers.",
   },
   {
@@ -38,7 +38,7 @@ const PLATFORM_SECTIONS = [
     bullets: [
       'renforcer le vivre ensemble',
       'aider à préparer le travail en équipe sans conflit',
-      'encourager la participation des femmes et des jeunes',
+      'encourager la participation des femmes, des jeunes et des personnes en situation de handicap',
     ],
   },
 ];
@@ -48,7 +48,7 @@ const CRASC_SECTIONS = [
     title: "Histoire des CRASC en Côte d'Ivoire",
     bullets: [
       'En 2010, une étude a montré que les organisations de la société civile avaient beaucoup de difficultés.',
-      "Pour aider, l'État et l'Union Européenne ont lancé le programme LIANE afin de renforcer la démocratie, la gouvernance et le partenariat entre l'État et les OSC.",
+      "Pour aider, l'État et l'Union Européenne ont lancé le programme LIANE (Leadership et Initiative des Acteurs Non Étatiques) afin de renforcer la démocratie, la gouvernance et le partenariat entre l'État et les OSC.",
       'En 2015, grâce au projet LIANE I, les premiers Centres Régionaux d’Appui à la Société Civile ont été créés.',
     ],
   },
@@ -70,7 +70,7 @@ const CRASC_SECTIONS = [
   },
   {
     title: 'Mission des CRASC',
-    text: "Les CRASC ont pour mission principale d'aider les organisations de la société civile de leur région à mieux fonctionner. Ils aident les organisations à avoir leurs papiers, à bien s'organiser et leur donnent des méthodes efficaces pour bien travailler.",
+    text: "Les CRASC ont pour mission principale d'aider les organisations de la société civile de leur région à mieux fonctionner. Ils aident les organisations à avoir leurs papiers (leurs documents de formalisation), à bien s'organiser et leur donnent des méthodes efficaces pour bien travailler.",
   },
   {
     title: 'Objectifs des CRASC',
@@ -91,6 +91,7 @@ const CRASC_SECTIONS = [
       'Délégations régionales',
       'Commissariat aux comptes',
       'Conseil des sages',
+      'Taskforces',
     ],
   },
 ];
@@ -123,7 +124,7 @@ const ZONES = [
   {
     title: 'CRASC Sud',
     meta: '9 régions + 1 district',
-    text: "Agnéby-Tiassa (Agboville), Gbôklè (Sassandra), Gôh (Gagnoa), Mé (Adzopé), San Pedro, Grands-Ponts (Dabou), Loh-Djiboua (Divo), Nawa (Soubré), Sud-Comoé (Aboisso), District autonome d'Abidjan.",
+    text: "Agnéby-Tiassa (Agboville), Gbôklè (Sassandra), Gôh (Gagnoa), Mé (Adzopé), San Pedro (San Pedro), Grands-Ponts (Dabou), Loh-Djiboua (Divo), Nawa (Soubré), Sud-Comoé (Aboisso), District autonome d'Abidjan.",
     color: '#06B6D4',
   },
 ];
@@ -141,7 +142,7 @@ const ACHIEVEMENTS = [
   {
     title: 'Appui à la gouvernance et à la participation citoyenne',
     bullets: [
-      "Réalisation d'enquêtes de satisfaction citoyenne sur les services publics.",
+      "Réalisation d'enquêtes de satisfaction citoyenne sur les services publics (éducation à l'inclusion financière).",
       'Organisation de cafés citoyens et panels de dialogue avec les autorités et les candidats aux élections.',
       'Contribution à la définition des politiques de développement local.',
       'Élaboration d’une feuille de route pour les CRASC.',
@@ -161,7 +162,7 @@ const DGAT_SECTIONS = [
   {
     title: 'Rôle principal de la DGAT',
     bullets: [
-      "Vulgarisation et formation autour de l'ordonnance n° 2024-368.",
+      "Vulgarisation et formation autour de la loi n° 2025-386 du 11 juin 2025 portant ratification de l'ordonnance n° 2024-368 du 12 juin 2024 relative à l'organisation de la société civile en Côte d'Ivoire.",
       'Accompagnement juridique et administratif des OSC.',
       'Mise en conformité des statuts, procédures et modes de fonctionnement.',
       'Renforcement de la gouvernance financière, comptable et humaine.',
@@ -178,7 +179,7 @@ const DGAT_SECTIONS = [
     ],
   },
   {
-    title: "Articles clés de l'ordonnance n° 2024-368",
+    title: "Articles clés de la loi n° 2025-386 (ratification de l'ordonnance n° 2024-368)",
     bullets: [
       'Article 5 : déclaration auprès de la préfecture ou sous-préfecture.',
       'Article 15 : droit de recevoir des dons, posséder des biens et ouvrir un compte bancaire.',
