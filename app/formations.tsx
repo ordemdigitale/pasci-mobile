@@ -15,7 +15,7 @@ import { useQuery } from '@tanstack/react-query';
 import { dataService } from '../services/dataService';
 import { Formation } from '../services/types';
 import { useActualisation } from '../hooks/useActualisation';
-import { MODES_FORMATION, libelleFiche, modeFormation } from '../constants/formations';
+import { MODES_FORMATION, creneauHoraire, libelleFiche, modeFormation } from '../constants/formations';
 
 const { width } = Dimensions.get('window');
 
@@ -197,7 +197,7 @@ export default function FormationsScreen() {
         {item.start_date && (
           <>
             <Calendar size={14} color="#9CA3AF" />
-            <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-400 text-xs ml-1.5">{new Date(item.start_date).toLocaleDateString('fr-FR')}</Text>
+            <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-400 text-xs ml-1.5">{new Date(item.start_date).toLocaleDateString('fr-FR')}{creneauHoraire(item.start_date, item.end_date) ? ` · ${creneauHoraire(item.start_date, item.end_date)}` : ''}</Text>
           </>
         )}
       </View>

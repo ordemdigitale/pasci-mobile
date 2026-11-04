@@ -29,7 +29,7 @@ import { authService } from '../../services/authService';
 import { buildPaymentOperators, DEFAULT_PAYMENT_NUMBERS } from '../../constants/payment';
 import SupportsFormation from '../../components/formations/SupportsFormation';
 import EvaluationFinale from '../../components/formations/EvaluationFinale';
-import { CATEGORIES_ACTEURS, DOCUMENTS_DELIVRES, MODES_FORMATION, libelleFiche, modeFormation } from '../../constants/formations';
+import { CATEGORIES_ACTEURS, DOCUMENTS_DELIVRES, MODES_FORMATION, creneauHoraire, libelleFiche, modeFormation } from '../../constants/formations';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -610,6 +610,11 @@ export default function CourseDetailsScreen() {
                 <Text style={{ fontFamily: 'Poppins_700Bold', fontSize: 10 }} className="text-gray-900 mt-2">
                   {new Date(data.start_date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}
                 </Text>
+                {creneauHoraire(data.start_date, data.end_date) && (
+                  <Text style={{ fontFamily: 'Karla_700Bold', fontSize: 9 }} className="text-brand-orange mt-0.5" numberOfLines={1}>
+                    {creneauHoraire(data.start_date, data.end_date)}
+                  </Text>
+                )}
                 <Text style={{ fontFamily: 'Karla_400Regular', fontSize: 8 }} className="text-gray-400 uppercase mt-0.5">Début</Text>
               </View>
             )}
