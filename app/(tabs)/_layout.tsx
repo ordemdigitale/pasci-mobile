@@ -1,8 +1,13 @@
 import { Tabs } from 'expo-router';
-import { Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Home, Folder, Users, Briefcase, User, Book } from 'lucide-react-native';
 
 export default function TabLayout() {
+  // Marge du bas du téléphone (barre gestuelle, ou 3 boutons de navigation
+  // Android) : sans elle, les boutons du téléphone recouvraient le menu
+  const insets = useSafeAreaInsets();
+  const basTelephone = Math.max(insets.bottom, 8);
+
   return (
     <Tabs
       screenOptions={{
@@ -10,9 +15,9 @@ export default function TabLayout() {
         tabBarActiveTintColor: '#E05017',
         tabBarInactiveTintColor: '#9CA3AF',
         tabBarStyle: {
-          height: Platform.OS === 'ios' ? 70 : 60,
-          paddingBottom: Platform.OS === 'ios' ? 45 : 20,
-          paddingTop: 0,
+          height: 56 + basTelephone,
+          paddingBottom: basTelephone,
+          paddingTop: 6,
           backgroundColor: 'white',
           borderTopWidth: 0,
           elevation: 0,
