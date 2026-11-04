@@ -471,6 +471,8 @@ export interface PoleConcertation {
   nb_membres_actifs?: number;
   // Régions des membres avec leur nombre d'OSC, de la plus représentée à la moins représentée
   regions_effectifs?: { nom: string; nb: number }[];
+  /** Experts qui animent le pôle */
+  experts?: { id: string; nom: string }[];
   // Listes JSON sérialisées en texte par l'API
   agenda?: string | null;
 }
@@ -562,6 +564,7 @@ export interface ForumCommentaire {
 export interface ForumSujetDetail extends ForumSujet {
   commentaires: ForumCommentaire[];
   pieces_jointes?: PieceJointe[];
+  experts?: { id: string; nom: string }[];
 }
 
 export interface KeyStats {

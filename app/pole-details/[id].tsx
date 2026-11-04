@@ -235,6 +235,15 @@ export default function PoleDetailsScreen() {
           {pole.description && (
             <TexteFormate texte={pole.description} depliable />
           )}
+          {(pole.experts ?? []).length > 0 && (
+            <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-600 text-sm mt-2">
+              Animé par{' '}
+              <Text style={{ fontFamily: 'Karla_700Bold' }} className="text-teal-700">
+                {(pole.experts ?? []).map((e) => e.nom).join(', ')}
+              </Text>
+              {' '}(expert)
+            </Text>
+          )}
           <View className="flex-row mt-3">
             <View className="flex-1 bg-white rounded-xl px-3 py-2 mr-2 border border-blue-100">
               <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-base">{nbOscMembres}</Text>

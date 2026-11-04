@@ -109,6 +109,8 @@ export default function SujetDetailsScreen() {
   }
 
   const commentaires = sujet.commentaires ?? [];
+  const idsExperts = new Set((sujet.experts ?? []).map((e) => e.id));
+  const estExpert = (id?: string | null) => !!id && idsExperts.has(id);
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
@@ -153,6 +155,7 @@ export default function SujetDetailsScreen() {
                 <UserCircle size={14} color="#9CA3AF" />
                 <Text style={{ fontFamily: 'Karla_700Bold' }} className="text-gray-600 text-xs ml-1">
                   {sujet.author_name || 'Anonyme'}
+                  {estExpert(sujet.author_id) && <Text style={{ fontFamily: 'Karla_700Bold' }} className="text-teal-700 text-[9px]"> · Expert</Text>}
                 </Text>
               </View>
               <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-400 text-xs mr-3">
@@ -220,6 +223,7 @@ export default function SujetDetailsScreen() {
                     <View>
                       <Text style={{ fontFamily: 'Karla_700Bold' }} className="text-gray-800 text-sm">
                         {c.author_name || 'Anonyme'}
+                        {estExpert(c.author_id) && <Text style={{ fontFamily: 'Karla_700Bold' }} className="text-teal-700 text-[9px]"> · Expert</Text>}
                       </Text>
                       <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-400 text-[10px]">
                         {formatDate(c.created_at)}
