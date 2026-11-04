@@ -15,6 +15,7 @@ import { useQuery } from '@tanstack/react-query';
 import { dataService } from '../services/dataService';
 import { Formation } from '../services/types';
 import { useActualisation } from '../hooks/useActualisation';
+import { MODES_FORMATION, libelleFiche, modeFormation } from '../constants/formations';
 
 const { width } = Dimensions.get('window');
 
@@ -40,11 +41,6 @@ export default function FormationsScreen() {
     queryFn: () => dataService.getFormations({ limit: 100 }),
   });
 
-  const { data: rubriques } = useQuery({
-    queryKey: ['formation-rubriques'],
-    queryFn: dataService.getFormationRubriques,
-  });
-
   const { data: catalogues = [] } = useQuery({
     queryKey: ['formation-catalogues-public'],
     queryFn: () => dataService.getFormationCatalogues(true),
@@ -68,7 +64,7 @@ export default function FormationsScreen() {
   const filteredFormations = React.useMemo(() => {
     if (!formations) return [];
     return formations.filter(f =>
-      (selectedCategory === 'all' || f.rubrique?.slug === selectedCategory) &&
+      (selectedCategory === 'all' || modeFormation(f) === selectedCategory) &&
       (statut === 'all' || (statut === 'terminees' ? estTerminee(f) : !estTerminee(f)))
     );
   }, [formations, selectedCategory, statut]);
@@ -96,7 +92,7 @@ export default function FormationsScreen() {
         </View>
       </View>
 
-      {/* Categories Chips */}
+      {/* Mode : en ligne, présentiel, hybride */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-8 -mx-2">
         <TouchableOpacity
           onPress={() => setSelectedCategory('all')}
@@ -110,18 +106,18 @@ export default function FormationsScreen() {
             Tous
           </Text>
         </TouchableOpacity>
-        {(rubriques || []).map((rub) => (
+        {MODES_FORMATION.map((m) => (
           <TouchableOpacity
-            key={rub.slug}
-            onPress={() => setSelectedCategory(rub.slug)}
+            key={m.valeur}
+            onPress={() => setSelectedCategory(m.valeur)}
             style={{
-              backgroundColor: selectedCategory === rub.slug ? '#E05017' : 'white',
-              borderColor: selectedCategory === rub.slug ? '#E05017' : '#E5E7EB'
+              backgroundColor: selectedCategory === m.valeur ? '#E05017' : 'white',
+              borderColor: selectedCategory === m.valeur ? '#E05017' : '#E5E7EB'
             }}
             className="px-6 py-2.5 rounded-full border mx-2 shadow-sm"
           >
-            <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className={selectedCategory === rub.slug ? "text-white text-xs" : "text-gray-600 text-xs"}>
-              {rub.name}
+            <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className={selectedCategory === m.valeur ? "text-white text-xs" : "text-gray-600 text-xs"}>
+              {m.libelle}
             </Text>
           </TouchableOpacity>
         ))}
@@ -168,8 +164,17 @@ export default function FormationsScreen() {
   const renderCourseItem = ({ item }: { item: Formation }) => (
     <View className="bg-white rounded-[40px] p-6 mb-6 mx-6 border border-gray-100 shadow-sm">
       <View className="flex-row justify-between items-center mb-4">
-        <View className="bg-orange-50 px-3 py-1 rounded-lg">
-          <Text style={{ color: '#E05017', fontSize: 9, fontWeight: 'bold' }}>FORMATION</Text>
+        <View className="flex-row">
+          <View className={`px-3 py-1 rounded-lg mr-2 ${item.is_pinned && !estTerminee(item) ? 'bg-brand-orange' : 'bg-orange-50'}`}>
+            <Text style={{ color: item.is_pinned && !estTerminee(item) ? 'white' : '#E05017', fontSize: 9, fontWeight: 'bold' }}>
+              {item.is_pinned && !estTerminee(item) ? 'À NE PAS MANQUER' : 'FORMATION'}
+            </Text>
+          </View>
+          <View className="bg-blue-50 px-3 py-1 rounded-lg">
+            <Text style={{ color: '#1D4ED8', fontSize: 9, fontWeight: 'bold' }}>
+              {(libelleFiche(MODES_FORMATION, modeFormation(item)) || '').toUpperCase()}
+            </Text>
+          </View>
         </View>
         {estTerminee(item) && (
           <View className="bg-gray-100 px-3 py-1 rounded-lg">
@@ -196,6 +201,11 @@ export default function FormationsScreen() {
           </>
         )}
       </View>
+      {!!item.registration_deadline && !estTerminee(item) && (
+        <Text style={{ fontFamily: 'Karla_700Bold' }} className="text-brand-orange text-xs -mt-3 mb-5">
+          Inscriptions jusqu'au {new Date(item.registration_deadline).toLocaleDateString('fr-FR')}
+        </Text>
+      )}
 
       <TouchableOpacity
         onPress={() => router.push({ pathname: `/course-details/${item.slug}` })}

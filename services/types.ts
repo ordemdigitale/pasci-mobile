@@ -110,6 +110,16 @@ export interface Formation {
   thumbnail_path: string;
   registration_link: string | null;
   materials_link: string | null;
+  /** en_ligne | presentiel | hybride */
+  mode?: string | null;
+  duree_heures?: number | null;
+  /** attestation | certificat | diplome | neant */
+  document_delivre?: string | null;
+  competences_requises?: string | null;
+  /** Lien Zoom/Teams : renvoyé aux inscrits seulement */
+  lien_visio?: string | null;
+  chronogramme?: string | null;
+  is_pinned?: boolean;
   rubrique?: FormationRubrique | null;
   crasc?: { id: number; name: string; slug: string } | null;
   osc?: { id: number; name: string; slug: string } | null;

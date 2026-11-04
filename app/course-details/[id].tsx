@@ -17,6 +17,9 @@ import {
   Award,
   Maximize2,
   Smartphone,
+  Monitor,
+  Video,
+  ListOrdered,
 } from 'lucide-react-native';
 import { WebView } from 'react-native-webview';
 import Skeleton from '../../components/ui/Skeleton';
@@ -26,6 +29,7 @@ import { authService } from '../../services/authService';
 import { buildPaymentOperators, DEFAULT_PAYMENT_NUMBERS } from '../../constants/payment';
 import SupportsFormation from '../../components/formations/SupportsFormation';
 import EvaluationFinale from '../../components/formations/EvaluationFinale';
+import { CATEGORIES_ACTEURS, DOCUMENTS_DELIVRES, MODES_FORMATION, libelleFiche, modeFormation } from '../../constants/formations';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -150,6 +154,8 @@ export default function CourseDetailsScreen() {
   const [participantNom, setParticipantNom] = useState('');
   const [participantPrenoms, setParticipantPrenoms] = useState('');
   const [participantEmail, setParticipantEmail] = useState('');
+  const [participantPhone, setParticipantPhone] = useState('');
+  const [categorieActeur, setCategorieActeur] = useState('');
   // inscrit : accès au contenu (formation gratuite ou paiement validé) ; registered : inscription existante
   const [inscrit, setInscrit] = useState(false);
   const [registered, setRegistered] = useState(false);
@@ -199,6 +205,7 @@ export default function CourseDetailsScreen() {
       setParticipantNom((user.first_name || '').trim());
       setParticipantPrenoms((user.last_name || '').trim());
       setParticipantEmail(user.email || '');
+      if (user.osc_id) setCategorieActeur((v) => v || 'Organisation de la Société Civile OSC');
     }
   }, [user]);
 
@@ -346,13 +353,15 @@ export default function CourseDetailsScreen() {
 
   const inscriptionMutation = useMutation({
     mutationFn: async () => {
-      if (!participantNom.trim() || !participantPrenoms.trim() || !participantEmail.trim()) {
-        throw new Error('Veuillez renseigner nom, prénoms et email.');
+      if (!participantNom.trim() || !participantPrenoms.trim() || !participantEmail.trim() || !participantPhone.trim() || !categorieActeur) {
+        throw new Error('Tous les champs sont obligatoires : catégorie, nom, prénoms, email et contact.');
       }
       const inscription = await dataService.inscrireFormation(slug, {
         participant_nom: participantNom.trim(),
         participant_prenoms: participantPrenoms.trim(),
         participant_email: participantEmail.trim(),
+        participant_phone: participantPhone.trim(),
+        categorie_acteur: categorieActeur,
       });
       return {
         paid: inscription.payment_status === 'pending' || data?.type === 'payante' || (data?.price ?? 0) > 0,
@@ -363,6 +372,8 @@ export default function CourseDetailsScreen() {
       setModalVisible(false);
       setRegistered(true);
       queryClient.invalidateQueries({ queryKey: ['ma-progression', slug] });
+      // Recharge la fiche : le lien de la séance en ligne est donné aux inscrits
+      queryClient.invalidateQueries({ queryKey: ['formation', slug] });
 
       if (result.paid) {
         setPaymentStatus(result.inscription.payment_status);
@@ -663,6 +674,75 @@ export default function CourseDetailsScreen() {
             </View>
           )}
 
+          {/* Fiche : mode, durée, document délivré */}
+          <View className="flex-row flex-wrap mb-6">
+            <View className="flex-row items-center bg-blue-50 px-3 py-2 rounded-2xl mr-2 mb-2">
+              <Monitor size={14} color="#1D4ED8" />
+              <Text style={{ fontFamily: 'Karla_700Bold' }} className="text-blue-700 ml-1.5 text-xs">
+                {libelleFiche(MODES_FORMATION, modeFormation(data))}
+              </Text>
+            </View>
+            {data.duree_heures != null && (
+              <View className="flex-row items-center bg-gray-50 px-3 py-2 rounded-2xl mr-2 mb-2">
+                <Clock size={14} color="#4B5563" />
+                <Text style={{ fontFamily: 'Karla_700Bold' }} className="text-gray-600 ml-1.5 text-xs">
+                  {data.duree_heures.toLocaleString('fr-FR')} h
+                </Text>
+              </View>
+            )}
+            {!!data.document_delivre && data.document_delivre !== 'neant' && (
+              <View className="flex-row items-center bg-orange-50 px-3 py-2 rounded-2xl mr-2 mb-2">
+                <Award size={14} color="#E05017" />
+                <Text style={{ fontFamily: 'Karla_700Bold' }} className="text-brand-orange ml-1.5 text-xs">
+                  {libelleFiche(DOCUMENTS_DELIVRES, data.document_delivre)} délivré{data.document_delivre === 'attestation' ? 'e' : ''}
+                </Text>
+              </View>
+            )}
+          </View>
+
+          {!!data.competences_requises && (
+            <View className="mb-8">
+              <View className="flex-row items-center mb-3">
+                <View className="w-1 h-5 bg-brand-orange rounded-full mr-3" />
+                <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-lg">Compétences requises</Text>
+              </View>
+              <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 leading-6 text-base">
+                {data.competences_requises}
+              </Text>
+            </View>
+          )}
+
+          {!!data.lien_visio && (
+            <TouchableOpacity
+              onPress={() => Linking.openURL(data.lien_visio!)}
+              className="flex-row items-center justify-center mb-8 bg-blue-600 px-4 py-4 rounded-2xl"
+            >
+              <Video size={18} color="white" />
+              <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-white ml-2 text-sm">Rejoindre la séance en ligne</Text>
+            </TouchableOpacity>
+          )}
+
+          {/* Chronogramme (saisi dans l'admin) */}
+          <View className="mb-8">
+            <View className="flex-row items-center mb-4">
+              <View className="w-1 h-5 bg-brand-orange rounded-full mr-3" />
+              <ListOrdered size={18} color="#E05017" />
+              <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-lg ml-2">Chronogramme de la formation</Text>
+            </View>
+            {(data.chronogramme || '').split(/\r?\n/).map((l) => l.trim()).filter(Boolean).length === 0 ? (
+              <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-400 text-sm">Le chronogramme sera bientôt publié.</Text>
+            ) : (
+              (data.chronogramme || '').split(/\r?\n/).map((l) => l.trim()).filter(Boolean).map((etape, i) => (
+                <View key={i} className="flex-row mb-2">
+                  <View className="w-6 h-6 rounded-full bg-orange-100 items-center justify-center mr-3">
+                    <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-brand-orange text-[10px]">{i + 1}</Text>
+                  </View>
+                  <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-600 text-sm flex-1">{etape}</Text>
+                </View>
+              ))
+            )}
+          </View>
+
           {/* Dates */}
           {data.end_date && (
             <View className="flex-row items-center mb-6 bg-gray-50 px-4 py-3 rounded-2xl border border-gray-100">
@@ -847,12 +927,12 @@ export default function CourseDetailsScreen() {
             </View>
           )}
 
-          {/* Programme / Curriculum */}
+          {/* Contenu en ligne (modules et leçons) */}
           {hasModules && (
             <View className="mb-8">
               <View className="flex-row items-center mb-4">
                 <View className="w-1 h-5 bg-brand-orange rounded-full mr-3" />
-                <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-lg">Programme</Text>
+                <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-lg">Contenu en ligne</Text>
               </View>
               {(modules as any[]).map((module: any) => (
                 <View key={module.id} className="mb-5">
@@ -994,7 +1074,20 @@ export default function CourseDetailsScreen() {
             <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-xl mb-2">S'inscrire</Text>
             <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-400 text-sm mb-6">{data.title}</Text>
 
-            <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-gray-700 text-xs uppercase tracking-widest mb-2">Nom</Text>
+            <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-gray-700 text-xs uppercase tracking-widest mb-2">Catégorie d'acteurs *</Text>
+            <View className="flex-row flex-wrap mb-5">
+              {CATEGORIES_ACTEURS.map((c) => (
+                <TouchableOpacity
+                  key={c}
+                  onPress={() => setCategorieActeur(c)}
+                  className={`px-3 py-2 rounded-full border mr-2 mb-2 ${categorieActeur === c ? 'bg-brand-orange border-brand-orange' : 'bg-gray-50 border-gray-200'}`}
+                >
+                  <Text style={{ fontFamily: 'Karla_700Bold' }} className={`text-xs ${categorieActeur === c ? 'text-white' : 'text-gray-600'}`}>{c}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-gray-700 text-xs uppercase tracking-widest mb-2">Nom *</Text>
             <View className="bg-gray-50 flex-row items-center px-4 py-4 rounded-2xl border border-gray-100 mb-5">
               <TextInput
                 placeholder="Votre nom"
@@ -1005,7 +1098,7 @@ export default function CourseDetailsScreen() {
               />
             </View>
 
-            <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-gray-700 text-xs uppercase tracking-widest mb-2">Prénoms</Text>
+            <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-gray-700 text-xs uppercase tracking-widest mb-2">Prénoms *</Text>
             <View className="bg-gray-50 flex-row items-center px-4 py-4 rounded-2xl border border-gray-100 mb-5">
               <TextInput
                 placeholder="Vos prénoms"
@@ -1016,8 +1109,8 @@ export default function CourseDetailsScreen() {
               />
             </View>
 
-            <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-gray-700 text-xs uppercase tracking-widest mb-2">Email</Text>
-            <View className="bg-gray-50 flex-row items-center px-4 py-4 rounded-2xl border border-gray-100 mb-8">
+            <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-gray-700 text-xs uppercase tracking-widest mb-2">Email *</Text>
+            <View className="bg-gray-50 flex-row items-center px-4 py-4 rounded-2xl border border-gray-100 mb-5">
               <TextInput
                 placeholder="votre@email.com"
                 placeholderTextColor="#9CA3AF"
@@ -1026,6 +1119,18 @@ export default function CourseDetailsScreen() {
                 className="flex-1 text-gray-700"
                 value={participantEmail}
                 onChangeText={setParticipantEmail}
+              />
+            </View>
+
+            <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-gray-700 text-xs uppercase tracking-widest mb-2">Contact *</Text>
+            <View className="bg-gray-50 flex-row items-center px-4 py-4 rounded-2xl border border-gray-100 mb-8">
+              <TextInput
+                placeholder="+225 XX XX XX XX XX"
+                placeholderTextColor="#9CA3AF"
+                keyboardType="phone-pad"
+                className="flex-1 text-gray-700"
+                value={participantPhone}
+                onChangeText={setParticipantPhone}
               />
             </View>
 
