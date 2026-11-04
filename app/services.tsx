@@ -26,7 +26,7 @@ const SERVICES = [
   },
   {
     id: 4,
-    title: 'Rédaction',
+    title: 'Rédactions',
     description: 'Rédaction de documents professionnels : statuts, règlements, projets, manuels.'
   },
   {
