@@ -347,6 +347,20 @@ export default function CrascDetailsScreen() {
           </View>
         )}
 
+        {/* Les OSC publient elles-mêmes leurs actualités (validées par le CRASC) */}
+        <View className="bg-orange-50 border border-orange-100 rounded-3xl p-5 mb-4">
+          <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-sm">Votre OSC a une actualité à partager ?</Text>
+          <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 text-xs mt-1 mb-3">
+            Publiez-la vous-même : le CRASC la relit avant sa mise en ligne.
+          </Text>
+          <TouchableOpacity
+            onPress={() => router.push('/publier-mon-actualite')}
+            className="bg-white border border-brand-orange py-3 rounded-2xl items-center"
+          >
+            <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-brand-orange text-sm">Publier mon actualité</Text>
+          </TouchableOpacity>
+        </View>
+
         {/* Bouton Contacter le CRASC */}
         <TouchableOpacity
           onPress={() => router.push('/contact')}

@@ -24,6 +24,16 @@ export interface PaymentNumbers {
   orange_money_number: string;
 }
 
+/** Actualité de l'OSC du compte, avec son état de validation (« Publier mon actualité »). */
+export interface MaNews {
+  id: number;
+  title: string;
+  slug: string;
+  created_at: string;
+  statut_publication: 'en_attente' | 'publie' | 'rejete' | string;
+  est_archivee?: boolean;
+}
+
 export interface News {
   id: number;
   title: string;

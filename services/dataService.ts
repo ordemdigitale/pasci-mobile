@@ -39,6 +39,7 @@ import {
   SoumettrePaiementPayload,
   Faq,
   PaymentNumbers,
+  MaNews,
 } from "./types";
 
 // Message d'un pôle : JSON si texte seul (comme avant), multipart s'il y a des
@@ -115,6 +116,26 @@ export const dataService = {
   },
 
   // Actualités
+  // « Publier mon actualité » : l'OSC du compte publie, son CRASC valide
+  publierMonActualite: async (
+    champs: { title: string; content: string; date_expiration: string },
+    image?: FichierLocal | null,
+  ): Promise<MaNews> => {
+    const corps = new FormData();
+    Object.entries(champs).forEach(([cle, valeur]) => corps.append(cle, valeur));
+    if (image) corps.append("thumbnail", { uri: image.uri, name: image.name, type: image.type } as unknown as Blob);
+    const response = await apiClient.post<MaNews>("/news/mon-osc", corps, {
+      headers: { "Content-Type": "multipart/form-data" },
+      timeout: 2 * 60 * 1000,
+    });
+    return response.data;
+  },
+
+  mesActualites: async (): Promise<MaNews[]> => {
+    const response = await apiClient.get<MaNews[]>("/news/mon-osc");
+    return response.data;
+  },
+
   getNews: async (filters?: {
     crasc_id?: number;
     osc_id?: number;

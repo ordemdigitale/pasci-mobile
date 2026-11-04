@@ -199,6 +199,14 @@ export default function ProfilScreen() {
                 <Edit size={14} color="#fff" />
                 <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-white text-xs ml-1.5 font-bold">Modifier le profil</Text>
               </TouchableOpacity>
+              {!!user.osc_id && (
+                <TouchableOpacity
+                  onPress={() => router.push('/publier-mon-actualite')}
+                  className="flex-row items-center mt-3 bg-white border border-[#E05017] px-5 py-2 rounded-full"
+                >
+                  <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-[#E05017] text-xs font-bold">Publier mon actualité</Text>
+                </TouchableOpacity>
+              )}
             </>
           ) : (
             <>
