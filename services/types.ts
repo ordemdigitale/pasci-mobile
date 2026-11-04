@@ -148,6 +148,8 @@ export interface Partner {
     slug: string;
     thumbnail_url?: string;
     created_at: string;
+    /** Date de désactivation passée : dans les archives de l'OSC */
+    est_archivee?: boolean;
   }[];
   tags?: string[];
   type_document_formalisation?: string | null;

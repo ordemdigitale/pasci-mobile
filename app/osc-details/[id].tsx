@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Image, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
@@ -13,6 +13,7 @@ import {
   Globe,
   ChevronRight,
   Newspaper,
+  Archive,
 } from 'lucide-react-native';
 import Skeleton from '../../components/ui/Skeleton';
 import { useQuery } from '@tanstack/react-query';
@@ -36,6 +37,10 @@ export default function OscDetailsScreen() {
     queryFn: () => dataService.getPartnerBySlug(id as string),
     enabled: !!id,
   });
+  // Actualités en cours, et archives (date de désactivation passée)
+  const [voirArchives, setVoirArchives] = useState(false);
+  const enCours = (data?.news_items ?? []).filter((n) => !n.est_archivee);
+  const archives = (data?.news_items ?? []).filter((n) => n.est_archivee);
 
   if (isLoading) {
     return (
@@ -255,8 +260,8 @@ export default function OscDetailsScreen() {
             <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-base">Actualités Récentes</Text>
           </View>
 
-          {data.news_items && data.news_items.length > 0 ? (
-            data.news_items.map((item) => (
+          {enCours.length > 0 ? (
+            enCours.map((item) => (
               <TouchableOpacity
                 key={item.id}
                 onPress={() => router.push(`/news-details/${item.slug}`)}
@@ -284,6 +289,34 @@ export default function OscDetailsScreen() {
               <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-400 text-sm mt-3 text-center">
                 Aucune actualité pour le moment.
               </Text>
+            </View>
+          )}
+
+          {/* Archives : actualités désactivées automatiquement */}
+          {archives.length > 0 && (
+            <View className="mt-2">
+              <TouchableOpacity
+                onPress={() => setVoirArchives((v) => !v)}
+                className="flex-row items-center py-2"
+                activeOpacity={0.7}
+              >
+                <Archive size={16} color="#6B7280" />
+                <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-gray-600 text-sm ml-2">
+                  Archives ({archives.length}) {voirArchives ? '▲' : '▼'}
+                </Text>
+              </TouchableOpacity>
+              {voirArchives && archives.map((item) => (
+                <TouchableOpacity
+                  key={item.id}
+                  onPress={() => router.push(`/news-details/${item.slug}`)}
+                  className="bg-gray-50 rounded-2xl px-4 py-3 mb-2 border border-gray-100"
+                >
+                  <Text style={{ fontFamily: 'Karla_700Bold' }} className="text-gray-600 text-sm" numberOfLines={2}>{item.title}</Text>
+                  <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-400 text-[10px] mt-1">
+                    {new Date(item.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                  </Text>
+                </TouchableOpacity>
+              ))}
             </View>
           )}
         </View>
