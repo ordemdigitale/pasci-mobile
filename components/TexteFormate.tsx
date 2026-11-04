@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity } from 'react-native';
 
 /**
  * Texte modifiable dans l'admin du site (Textes et illustrations), même format que le web :
@@ -19,10 +19,14 @@ function enLigne(texte: string, variables: Record<string, string | number>) {
 export default function TexteFormate({
   texte,
   variables = {},
+  depliable = false,
 }: {
   texte: string;
   variables?: Record<string, string | number>;
+  /** N'affiche que le premier paragraphe, avec « Voir plus » pour dérouler le reste. */
+  depliable?: boolean;
 }) {
+  const [ouvert, setOuvert] = useState(false);
   const blocs: React.ReactNode[] = [];
   let paragraphe: string[] = [];
   const style = { fontFamily: 'Karla_400Regular' };
@@ -59,5 +63,15 @@ export default function TexteFormate({
     }
   });
   viderParagraphe('fin');
-  return <View>{blocs}</View>;
+  if (!depliable || blocs.length <= 1) return <View>{blocs}</View>;
+  return (
+    <View>
+      {ouvert ? blocs : blocs[0]}
+      <TouchableOpacity onPress={() => setOuvert((o) => !o)} activeOpacity={0.7} className="self-start">
+        <Text style={{ fontFamily: 'Karla_700Bold' }} className="text-[#E05017] text-sm">
+          {ouvert ? 'Voir moins' : 'Voir plus'}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
 }

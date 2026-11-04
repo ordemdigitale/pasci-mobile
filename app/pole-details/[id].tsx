@@ -21,6 +21,7 @@ import { libelleRegion } from '../../constants/oscDomaines';
 import { authService } from '../../services/authService';
 import { ForumSujet, PoleAgendaItem, PoleAgendaStatut, PoleMembre, FichierLocal } from '../../services/types';
 import SelecteurMedias from '../../components/forum/SelecteurMedias';
+import TexteFormate from '../../components/TexteFormate';
 import {
   FILTRES_VIDES,
   FiltresMembres,
@@ -232,9 +233,7 @@ export default function PoleDetailsScreen() {
             {pole.name}
           </Text>
           {pole.description && (
-            <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-600 text-sm leading-5">
-              {pole.description}
-            </Text>
+            <TexteFormate texte={pole.description} depliable />
           )}
           <View className="flex-row mt-3">
             <View className="flex-1 bg-white rounded-xl px-3 py-2 mr-2 border border-blue-100">
@@ -543,7 +542,7 @@ export default function PoleDetailsScreen() {
                       <View className="flex-row mb-1">
                         {!!sujet.synthese && (
                           <View className="bg-green-100 px-2 py-0.5 rounded-full mr-1">
-                            <Text style={{ fontFamily: 'Karla_700Bold' }} className="text-green-700 text-[9px]">Synthèse</Text>
+                            <Text style={{ fontFamily: 'Karla_700Bold' }} className="text-green-700 text-[9px]">Récapitulatif</Text>
                           </View>
                         )}
                         {!!sujet.est_clos && (

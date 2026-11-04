@@ -182,7 +182,7 @@ export default function SujetDetailsScreen() {
               <View className="flex-row items-center mb-2">
                 <FileText size={16} color="#166534" />
                 <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-green-900 text-sm ml-2">
-                  Synthèse de la discussion
+                  Récapitulatif des recommandations
                 </Text>
               </View>
               <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-green-950 text-sm leading-5">
@@ -200,14 +200,14 @@ export default function SujetDetailsScreen() {
           {/* Commentaires */}
           <View className="px-4 mb-4">
             <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-800 text-base mb-3">
-              {commentaires.length} réponse{commentaires.length !== 1 ? 's' : ''}
+              {commentaires.length} commentaire{commentaires.length !== 1 ? 's' : ''}
             </Text>
 
             {commentaires.length === 0 ? (
               <View className="bg-white rounded-[24px] p-8 items-center border border-gray-100">
                 <MessageSquare size={36} color="#D1D5DB" />
                 <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-400 text-sm mt-3 text-center">
-                  Aucune réponse pour l'instant. Soyez le premier !
+                  Aucun commentaire pour l'instant. Soyez le premier !
                 </Text>
               </View>
             ) : (
@@ -237,21 +237,21 @@ export default function SujetDetailsScreen() {
             )}
           </View>
 
-          {/* Formulaire réponse */}
+          {/* Formulaire commentaire */}
           {sujet.est_clos ? (
             <View className="mx-4 bg-gray-100 border border-gray-200 rounded-[24px] p-5 flex-row items-center justify-center">
               <Lock size={14} color="#4B5563" />
               <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-600 text-sm ml-2 flex-shrink">
-                Cette discussion est close : elle n'accepte plus de réponses.
+                Cette discussion est close : elle n'accepte plus de commentaires.
               </Text>
             </View>
           ) : isAuthenticated ? (
             <View className="mx-4 bg-white border border-gray-200 rounded-[24px] p-4">
-              <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-800 text-sm mb-3">Votre réponse</Text>
+              <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-800 text-sm mb-3">Votre commentaire</Text>
               <TextInput
                 className="border border-gray-200 rounded-2xl px-4 py-3 text-gray-900 bg-gray-50 min-h-[80px]"
                 style={{ fontFamily: 'Karla_400Regular', textAlignVertical: 'top' }}
-                placeholder="Écrivez votre réponse..."
+                placeholder="Écrivez votre commentaire..."
                 placeholderTextColor="#9ca3af"
                 value={comment}
                 onChangeText={setComment}
@@ -288,7 +288,7 @@ export default function SujetDetailsScreen() {
               >
                 <Send size={16} color="white" />
                 <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-white text-sm ml-2">
-                  Se connecter pour répondre
+                  Se connecter pour commenter
                 </Text>
               </TouchableOpacity>
             </View>

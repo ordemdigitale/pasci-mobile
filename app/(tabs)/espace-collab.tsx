@@ -41,7 +41,6 @@ export default function EspaceCollabScreen() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'Pôles' | 'Offres'>('Pôles');
   const [searchQuery, setSearchQuery] = useState('');
-  const [introOuverte, setIntroOuverte] = useState(false);
   // Texte et illustration modifiables dans l'admin du site (Textes et illustrations)
   const contenu = useContenusSite();
 
@@ -266,14 +265,7 @@ export default function EspaceCollabScreen() {
         <View className="bg-white rounded-3xl border border-gray-100 overflow-hidden mb-6">
           <Image source={{ uri: contenu('poles_illustration') }} className="w-full h-36" resizeMode="cover" />
           <View className="p-4">
-            <View style={introOuverte ? undefined : { maxHeight: 84, overflow: 'hidden' }}>
-              <TexteFormate texte={contenu('poles_intro')} variables={{ nb_poles: poles?.length ?? 'plusieurs' }} />
-            </View>
-            <TouchableOpacity onPress={() => setIntroOuverte((v) => !v)} className="mt-1">
-              <Text style={{ fontFamily: 'Poppins_600SemiBold' }} className="text-brand-orange text-xs">
-                {introOuverte ? 'Réduire' : 'Lire la suite'}
-              </Text>
-            </TouchableOpacity>
+            <TexteFormate texte={contenu('poles_intro')} variables={{ nb_poles: poles?.length ?? 'plusieurs' }} depliable />
           </View>
         </View>
       )}
