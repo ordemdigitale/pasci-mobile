@@ -138,7 +138,7 @@ export default function ServicesScreen() {
         {/* FAQ Section */}
         <View className="px-6 pb-6">
           <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-xl text-gray-900 mb-4">
-            Questions Fréquentes
+            Foire Aux Questions (FAQ)
           </Text>
 
           {displayFaq.map((item) => (
