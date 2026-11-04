@@ -1,7 +1,11 @@
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 
-const BASE_URL = "https://api.plateforme-osci.org/api/v1";
+// EXPO_PUBLIC_API_URL (origine ou URL en /api/v1) permet de tester contre une API locale
+const API_ORIGIN = (process.env.EXPO_PUBLIC_API_URL || "https://api.plateforme-osci.org")
+  .replace(/\/api\/v1\/?$/, "")
+  .replace(/\/$/, "");
+const BASE_URL = `${API_ORIGIN}/api/v1`;
 
 const apiClient = axios.create({
   baseURL: BASE_URL,

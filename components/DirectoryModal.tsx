@@ -153,7 +153,7 @@ const DirectoryModal: React.FC<DirectoryModalProps> = ({ visible, onClose, selec
             </TouchableOpacity>
             <View>
               <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-lg">Annuaire des CRASC</Text>
-              <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-brand-orange text-[10px] font-bold uppercase tracking-widest">Pasci Project</Text>
+              <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-brand-orange text-[10px] font-bold uppercase tracking-widest">PdoC</Text>
             </View>
           </View>
 

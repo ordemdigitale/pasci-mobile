@@ -79,7 +79,7 @@ export default function FormationsScreen() {
           </TouchableOpacity>
           <View>
             <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-2xl text-gray-900">Catalogue</Text>
-            <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-brand-orange text-[10px] font-bold uppercase tracking-widest">Pasci Project</Text>
+            <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-brand-orange text-[10px] font-bold uppercase tracking-widest">PdoC</Text>
           </View>
         </View>
         <View className="flex-row">

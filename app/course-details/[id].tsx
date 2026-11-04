@@ -1069,8 +1069,13 @@ export default function CourseDetailsScreen() {
 
       {/* Modal d'inscription */}
       <Modal visible={modalVisible} transparent animationType="slide" onRequestClose={() => setModalVisible(false)}>
-        <View className="flex-1 justify-end bg-black/40">
-          <View className="bg-white rounded-t-[40px] p-8">
+        <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.4)' }}>
+          {/* Défilable : avec la catégorie et le contact, le formulaire dépasse un petit écran */}
+          <ScrollView
+            style={{ maxHeight: '88%', flexGrow: 0, backgroundColor: 'white', borderTopLeftRadius: 40, borderTopRightRadius: 40 }}
+            contentContainerStyle={{ padding: 32 }}
+            keyboardShouldPersistTaps="handled"
+          >
             <Text style={{ fontFamily: 'Poppins_700Bold' }} className="text-gray-900 text-xl mb-2">S'inscrire</Text>
             <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-400 text-sm mb-6">{data.title}</Text>
 
@@ -1151,7 +1156,7 @@ export default function CourseDetailsScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
-          </View>
+          </ScrollView>
         </View>
       </Modal>
 
