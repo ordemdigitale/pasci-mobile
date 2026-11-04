@@ -11,18 +11,18 @@ const logo = require('../assets/logo.png');
 const SERVICES = [
   {
     id: 1,
-    title: 'Appui-Conseil',
-    description: 'Des conseils stratégiques pour des décisions éclairées et une croissance durable.'
+    title: 'Conseils',
+    description: "Nous venons vous expliquer comment déposer vos demandes de financement et les conditions pour être accepté."
   },
   {
     id: 2,
-    title: 'Accompagnement',
-    description: 'Un soutien personnalisé à chaque étape de la mise en œuvre de vos projets.'
+    title: 'Accompagnements',
+    description: "Le but du CRASC est de vous aider à devenir autonomes. Nous restons à vos côtés pour mettre en pratique vos idées. Cela peut être du coaching, des formations pour vos équipes, du mentorat pour vos responsables, ou même la prise en charge de certaines tâches importantes."
   },
   {
     id: 3,
-    title: 'Soutien Administratif',
-    description: 'Formalisation et mise en conformité pour une structure solide et transparente.'
+    title: 'Soutiens administratifs',
+    description: "Nous vous aidons à rédiger vos statuts, vos règlements et à respecter les règles légales. L'objectif est que votre organisation fonctionne correctement et en toute sécurité."
   },
   {
     id: 4,
@@ -31,18 +31,18 @@ const SERVICES = [
   },
   {
     id: 5,
-    title: 'Formation',
-    description: 'Un processus d\'apprentissage structuré qui permet à un individu ou à un groupe d\'acquérir des connaissances.'
+    title: 'Formations',
+    description: "Nos formations servent à développer l'esprit critique, l'autonomie et la capacité à appliquer ce qu'on a appris sur le terrain. Nous encourageons aussi le partage d'expériences entre participants."
   },
   {
     id: 6,
-    title: 'Suivi-évaluation',
-    description: 'Mise en place d\'outils et d\'indicateurs de performance pour mesurer l\'avancement et l\'impact des actions menées.'
+    title: 'Suivi-évaluations',
+    description: "Le suivi-évaluation est un outil pour prendre de bonnes décisions, ajuster vos actions en cours de route et améliorer l'impact de vos projets. Il garantit aussi plus de transparence et de responsabilité."
   },
   {
     id: 7,
-    title: 'Information',
-    description: 'Nous vous donnons des informations sur les opportunités de financements, de formation et de réseautage.'
+    title: 'Informations',
+    description: "Nous partageons avec vous les opportunités de financement, de formation et de réseautage. En diffusant ces informations, nous vous aidons à saisir les opportunités et à renforcer vos actions sur le terrain."
   },
 ];
 
