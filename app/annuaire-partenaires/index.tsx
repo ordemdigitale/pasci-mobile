@@ -357,7 +357,7 @@ export default function AnnuairePartenairesScreen() {
                   ? `OSC de ${selectedRegion}`
                   : activeTab === 'OSC'
                   ? 'Toutes les organisations membres'
-                  : 'Institutions partenaires du projet PASCI'}
+                  : 'Institutions partenaires de la PdoC'}
               </Text>
             </View>
           </>
