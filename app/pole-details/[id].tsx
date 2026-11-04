@@ -78,6 +78,7 @@ export default function PoleDetailsScreen() {
   const [filtres, setFiltres] = useState<FiltresMembres>(FILTRES_VIDES);
   const [membresPage, setMembresPage] = useState(1);
   const [regionOuverte, setRegionOuverte] = useState<string | null>(null);
+  const [regionPage, setRegionPage] = useState(1);
 
   const { data: membres = [] } = useQuery({
     queryKey: ['pole-membres', slug],
@@ -190,6 +191,9 @@ export default function PoleDetailsScreen() {
   // Régions : de la plus représentée à la moins représentée, avec le nombre d'OSC
   const regions = regrouperParRegion(membres);
   const oscsRegionOuverte = regions.find((r) => r.nom === regionOuverte)?.oscs ?? [];
+  const nbPagesRegion = Math.max(1, Math.ceil(oscsRegionOuverte.length / MEMBRES_PAR_PAGE));
+  const pageRegion = Math.min(regionPage, nbPagesRegion);
+  const oscsRegionAffichees = oscsRegionOuverte.slice((pageRegion - 1) * MEMBRES_PAR_PAGE, pageRegion * MEMBRES_PAR_PAGE);
 
   const ouvrirOsc = (membre: PoleMembre) => {
     if (membre.slug) router.push(`/osc-details/${membre.slug}`);
@@ -475,7 +479,10 @@ export default function PoleDetailsScreen() {
                 return (
                   <TouchableOpacity
                     key={region.nom}
-                    onPress={() => setRegionOuverte(active ? null : region.nom)}
+                    onPress={() => {
+                      setRegionOuverte(active ? null : region.nom);
+                      setRegionPage(1);
+                    }}
                     className={`px-3 py-1 rounded-full mr-2 mb-2 ${active ? 'bg-green-800' : 'bg-green-50'}`}
                   >
                     <Text style={{ fontFamily: 'Karla_700Bold' }} className={`text-xs ${active ? 'text-white' : 'text-green-800'}`}>
@@ -485,7 +492,7 @@ export default function PoleDetailsScreen() {
                 );
               })}
             </View>
-            {regionOuverte && oscsRegionOuverte.map((membre) => (
+            {regionOuverte && oscsRegionAffichees.map((membre) => (
               <TouchableOpacity
                 key={membre.id}
                 onPress={() => ouvrirOsc(membre)}
@@ -494,6 +501,27 @@ export default function PoleDetailsScreen() {
                 <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-800 text-sm">{membre.name}</Text>
               </TouchableOpacity>
             ))}
+            {regionOuverte && nbPagesRegion > 1 && (
+              <View className="flex-row items-center justify-center mt-3">
+                <TouchableOpacity
+                  onPress={() => setRegionPage(pageRegion - 1)}
+                  disabled={pageRegion <= 1}
+                  className={`px-3 py-1.5 rounded-full border border-gray-200 ${pageRegion <= 1 ? 'opacity-40' : ''}`}
+                >
+                  <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-600 text-xs">← Précédent</Text>
+                </TouchableOpacity>
+                <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-500 text-xs mx-3">
+                  Page {pageRegion} / {nbPagesRegion}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => setRegionPage(pageRegion + 1)}
+                  disabled={pageRegion >= nbPagesRegion}
+                  className={`px-3 py-1.5 rounded-full border border-gray-200 ${pageRegion >= nbPagesRegion ? 'opacity-40' : ''}`}
+                >
+                  <Text style={{ fontFamily: 'Karla_400Regular' }} className="text-gray-600 text-xs">Suivant →</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         )}
 
